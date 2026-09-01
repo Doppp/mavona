@@ -11,15 +11,20 @@ require "mavona"
 
 module RepositoryFixtures
   def with_repository(rails: true, branch: "develop")
-    Dir.mktmpdir("mavona-repository") do |directory|
+    directory = Dir.mktmpdir("mavona-repository")
+    begin
       run!("git", "init", "--initial-branch", branch, directory)
       run!("git", "-C", directory, "config", "user.email", "fixtures@mavona.test")
       run!("git", "-C", directory, "config", "user.name", "Mavona Fixtures")
+      run!("git", "-C", directory, "config", "gc.auto", "0")
+      run!("git", "-C", directory, "config", "maintenance.auto", "false")
       build_rails_app(directory) if rails
       write(directory, "README.md", "# Fixture repository\n") unless File.exist?(File.join(directory, "README.md"))
       run!("git", "-C", directory, "add", ".")
       run!("git", "-C", directory, "commit", "-m", "fixture baseline")
       yield directory
+    ensure
+      FileUtils.rm_rf(directory)
     end
   end
 
