@@ -36,6 +36,8 @@ class EvaluationRunIntegrationTest < Minitest::Test
         assert_equal "passed", mavona.grader_status
         assert_equal ["agent_observation.json", "app/models/account.rb"], mavona.files_changed
         assert_equal 2, results.all.size
+        assert File.exist?(File.join(temporary, "results", "account-name--baseline", "agent.stdout.log"))
+        assert File.exist?(File.join(temporary, "results", "account-name--mavona", "grader.log"))
         aggregate = Mavona::Evaluation::Report.new(results.all).aggregate
         assert_equal 1, aggregate.fetch("mavona_only")
         assert_equal 0, aggregate.fetch("baseline_verified")

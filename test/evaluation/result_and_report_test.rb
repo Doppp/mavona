@@ -21,6 +21,9 @@ class EvaluationResultAndReportTest < Minitest::Test
 
       assert_equal original.to_h, JSON.parse(File.read(path))
       assert_equal [original.to_h], store.all
+
+      artifact = store.write_artifact(task_id: "one", condition: "baseline", name: "agent.stdout.log", content: "done\n")
+      assert_equal "done\n", File.read(artifact)
     end
   end
 

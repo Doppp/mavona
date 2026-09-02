@@ -18,12 +18,14 @@ module Mavona
         repository = @catalog.repositories.fetch(task.repo)
         worktree = @repositories.prepare(repository, task:, condition:)
         agent_result = @agent.call(task:, condition:, worktree:)
+        persist_process_artifacts(task, condition, agent_result)
         files_changed = changed_files(worktree)
         grading = if agent_result.success?
           @grader.call(task:, worktree:)
         else
           { "grader_status" => "not_run", "tests_status" => "not_run", "notes" => agent_result.timed_out ? "agent timed out" : agent_result.stderr.strip }
         end
+        @results.write_artifact(task_id: task.id, condition:, name: "grader.log", content: grading["output"]) if grading.key?("output")
         finish(task, condition, started_wall, started_clock, agent_result, grading, files_changed)
       rescue StandardError => error
         failed = Result.new(task_id: task.id, repo: task.repo, commit: task.commit, condition:, agent: "codex",
@@ -53,6 +55,11 @@ module Mavona
       def changed_files(worktree)
         stdout, = Open3.capture3("git", "status", "--short", chdir: worktree)
         stdout.lines.map { |line| line[3..].strip }.sort
+      end
+
+      def persist_process_artifacts(task, condition, result)
+        @results.write_artifact(task_id: task.id, condition:, name: "agent.stdout.log", content: result.stdout)
+        @results.write_artifact(task_id: task.id, condition:, name: "agent.stderr.log", content: result.stderr)
       end
     end
   end

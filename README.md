@@ -350,6 +350,12 @@ When changing Mavona itself, prefer the smallest implementation that proves the 
 
 Avoid adding infrastructure in anticipation of hypothetical future requirements.
 
+Default CI requires no paid coding agent or external model API.
+
+## Rails agent evaluation
+
+The opt-in smoke suite compares the same Codex agent on nine pinned Rails tasks with and without Mavona context. It uses disposable checkouts, independent hidden graders, structured results, and paired reporting; normal tests never run the paid 18-session suite. See [`docs/evaluation.md`](docs/evaluation.md) for prerequisites and exact commands.
+
 ## Status
 
 Mavona is under active development.

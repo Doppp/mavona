@@ -14,6 +14,18 @@ module Mavona
         path
       end
 
+      def write_artifact(task_id:, condition:, name:, content:)
+        unless name.match?(/\A[a-z0-9][a-z0-9.-]*\z/)
+          raise ArgumentError, "invalid artifact name: #{name.inspect}"
+        end
+
+        directory = File.join(@directory, "#{task_id}--#{condition}")
+        FileUtils.mkdir_p(directory)
+        path = File.join(directory, name)
+        File.write(path, content.to_s)
+        path
+      end
+
       def all
         Dir[File.join(@directory, "*.json")].sort.map { |path| JSON.parse(File.read(path)) }
       end
