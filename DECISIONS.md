@@ -1,7 +1,7 @@
 # Mavona Decisions
 
 **Status:** Settled architectural decisions  
-**Date:** 1 September 2026
+**Date:** 2 September 2026
 
 Open questions belong in the relevant spec or vision document.
 
@@ -50,15 +50,15 @@ focused
 
 ## D008 — Initial verifier selection uses cheap evidence
 
-Signals include Rails conventions, component type, reference search, test naming, task-plan relationships, routes/associations/callers and Git co-change history.
+Signals include Rails conventions, component type, reference search, test naming, task relationships, routes/associations/callers and Git co-change history.
 
 ## D009 — Ruby parser facilities are allowed
 
 Use Prism where available and Ripper where useful.
 
-## D010 — Plans are structured artifacts
+## D010 — Planning is proportional
 
-`PLAN_READY` and refusal/decomposition statuses use status-specific schemas.
+Task routing distinguishes `direct_change`, `lightweight_plan` and `full_plan`. A structured plan is an artifact only when the selected mode requires one. Existing refusal/decomposition statuses retain status-specific schemas.
 
 ## D011 — Canonical task state outranks conversation
 
@@ -102,7 +102,7 @@ verifier identity/subset
 relevant environment fingerprint
 ```
 
-## D017 — Planning may refuse
+## D017 — Task routing may refuse
 
 ```text
 PLAN_READY
@@ -156,19 +156,19 @@ Canonical machine state is JSON. Markdown is a human view. CLI `--format` contro
 Mavona releases follow SemVer.
 
 ```text
-0.1.0 Plan
-0.2.0 Implement + Verify
+0.1.0 Understand
+0.2.0 Change + Verify
 0.3.0 Repair + Safety
 1.0.0 stable autonomous-harness contracts
 ```
 
 Breaking public CLI/config/artifact changes during `0.x` require a minor-version bump.
 
-## D026 — Planning has deterministic core + optional enrichment
+## D026 — Rails understanding is deterministic-first
 
-`mavona plan` must work without calling a coding agent.
+Repository analysis and task-context selection must work without calling a coding agent.
 
-Deterministic analysis produces the plan skeleton and evidence.
+Deterministic analysis produces Rails evidence and a task-routing mode. It produces a plan only for `lightweight_plan` or `full_plan` work.
 
 Optional coding-agent enrichment may add higher-level summaries, risks and decomposition.
 
@@ -186,7 +186,7 @@ no predeclared human-review disqualifier
 
 Protected graders are written before agent execution and excluded from agent context.
 
-## D028 — Downstream outcome outranks proxy plan metrics
+## D028 — Downstream outcome outranks proxy task-analysis metrics
 
 Affected-surface recall/precision and verifier recall are diagnostic metrics.
 
@@ -196,7 +196,7 @@ Promotion decisions prioritize downstream independently verified completion.
 
 Repository/Git discovery, instruction discovery, static project profile, component inventory and evidence infrastructure may proceed while Phase 0 runs.
 
-Planning/verifier strategy is gated by Phase 0 findings.
+Task-routing/context-selection and verifier strategy are gated by Phase 0 findings.
 
 ## D030 — Phase 0 primarily uses curated historical Rails PRs
 
@@ -204,7 +204,7 @@ Historical merged PRs provide realistic tasks, pre-change snapshots, inherited g
 
 ## D031 — Protected grader information must not leak into Condition D
 
-Condition D's plan/profile author must not inspect the protected grader or merged diff. If separation is impossible, Stage 1 uplift is explicitly treated as an upper bound.
+Condition D's repository-treatment author must not inspect the protected grader or merged diff. If separation is impossible, Stage 1 uplift is explicitly treated as an upper bound.
 
 ## D032 — Impact candidates require a substantive nomination signal
 
@@ -226,9 +226,9 @@ Report both-pass, A-only, D-only and both-fail counts. Discordant cells drive th
 
 Phase 0 and 0.1.0 downstream evaluation have separate maximum run, human-time and spend budgets.
 
-## D037 — Condition D authoring is timeboxed
+## D037 — Condition D treatment authoring is timeboxed
 
-Manual Phase 0 Condition D repository profile + plan authoring is capped at 45 minutes per task. Overruns are flagged and interpreted as upper-bound treatment.
+Manual Phase 0 Condition D evidence/context and any proportionate plan authoring are capped at 45 minutes per task. Overruns are flagged and interpreted as upper-bound treatment.
 
 ## D038 — Stage 1 gate is numeric
 
@@ -259,3 +259,19 @@ Report Mavona verifier recall/runtime against:
 ## D042 — ROADMAP and SPEC have separate ownership
 
 `ROADMAP.md` owns sequencing and gates. `SPEC-V0.1.md` owns formulas, thresholds, schemas and acceptance behavior. Do not duplicate normative details across both.
+
+## D043 — Agent-facing policy stays small
+
+The runtime prompt contains concise Rails policy, the task and a narrow evidence packet. Generic inspection, planning, testing and software-engineering procedure belongs in harness behavior rather than repeated prose.
+
+## D044 — Rails convention precedence
+
+Mavona prefers, in order:
+
+1. existing application conventions;
+2. standard Rails mechanisms and the integrated Rails stack;
+3. new abstractions only when justified by the task or existing architecture.
+
+## D045 — Evidence widens progressively
+
+Task context begins with the narrowest Rails surface supported by evidence. It widens only when repository evidence or independent verification reveals a missing dependency or incorrect assumption.

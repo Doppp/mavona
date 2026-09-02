@@ -1,13 +1,13 @@
 # Mavona 0.1.0 Specification
 
 **Status:** Implementation-ready  
-**Scope:** Non-mutating planning harness  
-**Date:** 1 September 2026  
+**Scope:** Non-mutating Rails task-understanding harness
+**Date:** 2 September 2026
 **Version:** 0.1.0
 
 ## 1. Objective
 
-0.1.0 proves that Mavona can inspect an unfamiliar Rails repository and generate an evidence-backed implementation plan approaching the quality and downstream usefulness of the hand-written plans produced in Phase 0.
+0.1.0 proves that Mavona can inspect an unfamiliar Rails repository, select a narrow evidence packet and choose task ceremony proportional to the work. The resulting treatment should approach the downstream usefulness of the hand-written Phase 0 treatments without requiring a formal plan for every task.
 
 0.1.0 does **not** edit application code.
 
@@ -15,18 +15,24 @@ Public workflow:
 
 ```text
 mavona init
-mavona plan "<task>"
+mavona plan "<task>" # optional explicit planning
+```
+
+The cross-release product loop is:
+
+```text
+Understand → Change → Verify
 ```
 
 Unconditional discovery-layer implementation may proceed while Phase 0 runs.
 
-Planning/verifier strategy is informed by Phase 0 before stabilization.
+Task-context, proportional-planning and verifier strategies are informed by Phase 0 before stabilization.
 
 ## 2. Definitions
 
 **Task** — complete user-requested unit of work.
 
-**Slice** — planned independently verifiable portion of a task.
+**Slice** — independently verifiable portion of a task.
 
 **Verifier** — deterministic or repository-defined check that would produce correctness evidence for future implementation.
 
@@ -67,26 +73,36 @@ mavona plan --format json "..."
 
 `--format` affects stdout only.
 
-Canonical plan/task state is JSON. A Markdown view may also be persisted.
+This command requests an explicit plan. It is not a prerequisite for a future change command. Canonical task state and any warranted plan are JSON; a Markdown plan view may also be persisted.
 
-## 4. Planning architecture
+## 4. Agent interaction architecture
 
-`mavona plan` is deterministic-first.
+Mavona spends harness complexity to reduce agent complexity. The agent-facing surface contains policy, the task and a task-scoped evidence packet.
 
 ```text
 repository discovery
       ↓
 deterministic Rails analysis
       ↓
-deterministic plan skeleton
-      │
-      ├── valid offline output
-      │
-      ▼
-optional agent enrichment
+narrow task evidence
       ↓
-validated enriched plan
+direct_change | lightweight_plan | full_plan
 ```
+
+### Agent policy
+
+The default policy is intentionally brief:
+
+```text
+You are modifying an existing Ruby on Rails application.
+
+Follow the application's existing conventions. When they do not decide the approach, prefer standard Rails mechanisms and the integrated Rails stack. Introduce new abstractions only when justified by the task or existing architecture.
+Make the smallest complete change required by the task. Preserve behavior outside the requested scope.
+
+Use the supplied repository evidence. Mavona will independently verify the resulting repository state.
+```
+
+Do not add generic inspection, planning, testing or software-engineering procedure to this policy. Those responsibilities belong in harness behavior.
 
 ### Deterministic layer must produce
 
@@ -97,20 +113,21 @@ validated enriched plan
 - candidate data changes;
 - candidate downstream callers;
 - verifier recommendations;
-- planability status;
-- structured plan skeleton.
+- task-routing status;
+- planning mode: `direct_change`, `lightweight_plan` or `full_plan`;
+- a structured plan only when the selected mode requires one.
 
-### Optional agent enrichment may add
+### Optional enrichment may add
 
 - concise summary;
 - risks;
-- implementation-slice decomposition;
+- implementation-slice decomposition for planned work;
 - higher-order architectural implications;
 - ambiguity interpretation.
 
-Agent enrichment may not erase deterministic evidence or convert `unknown` into certainty without evidence.
+Enrichment may not expand the policy prompt with procedural boilerplate, erase deterministic evidence or convert `unknown` into certainty without evidence.
 
-The deterministic plan must be testable and usable without network/model access.
+Deterministic task understanding and routing must be testable and usable without network/model access.
 
 ## 5. Technology stack
 
@@ -161,7 +178,7 @@ If multiple candidate apps exist:
 - select only when working directory/task scope makes one clear;
 - otherwise return `NEEDS_DECISION`.
 
-Cross-application planning is out of scope for 0.1.0.
+Cross-application task handling is out of scope for 0.1.0.
 
 ## 8. Static-first degradation
 
@@ -247,6 +264,12 @@ custom autoload/eager-load paths
 
 Avoid expensive parsing when filesystem structure suffices.
 
+### Task-scoped evidence packets
+
+The component inventory is harness input, not the default agent context. For a task, Mavona selects the narrowest supported Rails surface and may include relevant routes, controllers, models, associations, callbacks, jobs, mailers, migrations/schema, namespaces, autoload paths, gems, nearby tests and scoped project instructions.
+
+Start narrow. Widen only when additional repository evidence or independent verification identifies a missing dependency or incorrect assumption. Do not include the full repository inventory merely because it is available.
+
 ## 12. Unified evidence envelope
 
 ```yaml
@@ -268,7 +291,7 @@ metadata: {}
 
 At least one provenance owner is required: `task_id` or `session_id`.
 
-`mavona init` may use a session ID because initialization is not inherently a task. Plan evidence should use its task ID.
+`mavona init` may use a session ID because initialization is not inherently a task. Task-scoped evidence should use its task ID.
 
 Required fields are `id`, `kind`, `subject`, `observation`, `confidence`, `sources`, and at least one provenance owner.
 
@@ -284,7 +307,17 @@ low    < 0.50
 
 Always expose numerator/denominator.
 
-## 14. Planability schemas
+## 14. Task routing and status schemas
+
+Planning modes:
+
+```text
+direct_change    no formal plan artifact
+lightweight_plan concise scope/slice record
+full_plan        structured plan for broad or high-risk work
+```
+
+The mode must be supported by task and repository evidence. A small conventional Rails change should default to `direct_change`; uncertainty alone should widen evidence or trigger `NEEDS_DECISION`, not manufacture planning ceremony.
 
 Statuses:
 
@@ -297,9 +330,20 @@ UNSUPPORTED
 
 ### PLAN_READY
 
+`PLAN_READY` is retained as the successful task-analysis status. It does not imply that a formal plan exists.
+
 ```yaml
-status:
+status: PLAN_READY
+planning_mode: direct_change | lightweight_plan | full_plan
 summary:
+known_scope:
+plan: null | structured plan
+evidence:
+```
+
+When `planning_mode` is `lightweight_plan` or `full_plan`, the plan may contain the existing structured fields as warranted:
+
+```yaml
 public_interfaces:
 internal_components:
 data_changes:
@@ -312,7 +356,6 @@ risks:
 assumptions:
 non_goals:
 escalations:
-evidence:
 ```
 
 ### NEEDS_DECISION
@@ -469,9 +512,9 @@ For each evaluation task use:
 
 Historical merged diffs are implementation evidence, not the sole definition of correctness. Reviewer annotation distinguishes logically required surfaces from incidental files and may recognize multiple valid implementations.
 
-The Condition D plan/profile author must not inspect protected graders or merged diffs. If separation cannot be maintained, mark the resulting uplift estimate as an upper bound.
+The Condition D repository-treatment author must not inspect protected graders or merged diffs. If separation cannot be maintained, mark the resulting uplift estimate as an upper bound.
 
-## 19. Plan-quality evaluation
+## 19. Task-understanding evaluation
 
 Primary promotion outcome is downstream independently verified completion.
 
@@ -481,9 +524,11 @@ Diagnostics are:
 - affected-surface precision;
 - interface recall/precision where applicable.
 
-The precision floor is fixed to the precision achieved by the hand-written Phase 0 plans **before** generated-plan results are examined.
+The precision floor is fixed to the precision achieved by the hand-written Phase 0 evidence packets **before** generated results are examined.
 
 Do not use raw recall alone as a gate.
+
+For `lightweight_plan` and `full_plan` tasks, retain plan-quality diagnostics as secondary measurements. `direct_change` tasks must not be penalized for lacking a plan artifact.
 
 ## 20. Optional enrichment ablation
 
@@ -492,12 +537,12 @@ Implement the minimum enrichment path behind a default-off/experimental flag so 
 Evaluate:
 
 ```text
-deterministic plan
+deterministic task understanding
 vs
-deterministic + agent enrichment
+deterministic + enrichment
 ```
 
-Measure downstream outcome, plan diagnostics, added latency and added cost. Only then decide whether enrichment ships enabled, remains experimental or is removed.
+Measure downstream outcome, evidence/routing diagnostics, plan diagnostics where applicable, added latency and added cost. Only then decide whether enrichment ships enabled, remains experimental or is removed.
 
 ## 21. Evaluation budgets
 
@@ -511,17 +556,17 @@ Before Stage 1 begins, record:
 - maximum evidence-packet hours;
 - maximum total model/API spend.
 
-Condition D profile + plan authoring is capped at 45 minutes per task.
+Condition D evidence/context and any proportionate-plan authoring are capped at 45 minutes per task.
 
 Declare separate budgets before execution.
 
 ### Phase 0 budget
 
-Covers task curation, grader validation/augmentation, manual profiles/plans, evidence packets, reviewer time and Stage 1 agent runs.
+Covers task curation, grader validation/augmentation, manual profiles/evidence packets, any proportionate plans, reviewer time and Stage 1 agent runs.
 
 ### 0.1.0 evaluation budget
 
-Covers deterministic-plan downstream runs, enrichment downstream runs if built and baseline reruns required for comparability.
+Covers deterministic task-understanding downstream runs, enrichment downstream runs if built and baseline reruns required for comparability.
 
 Record maximum runs, maximum human hours and maximum spend.
 
@@ -529,7 +574,7 @@ Record maximum runs, maximum human hours and maximum spend.
 
 Do not proceed automatically to 0.2.0.
 
-Generated plans must not materially worsen downstream independently verified completion relative to the hand-written Phase 0 plans. Diagnostics explain why.
+Generated task treatments must not materially worsen downstream independently verified completion relative to the manual Phase 0 treatments. Diagnostics explain why.
 
 ## 23. Performance targets
 
@@ -537,8 +582,8 @@ Representative ~100k-line Rails repo:
 
 ```text
 mavona init static discovery: < 30 sec
-deterministic plan:          < 30 sec
-optional enriched plan:      target < 90 sec
+static task understanding:   < 30 sec
+optional enriched treatment: target < 90 sec
 ```
 
 Record timing in tests/UAT.
@@ -554,11 +599,11 @@ Include larger synthetic/fixture repos to catch scaling regressions.
       task.json
       project-profile.json
       evidence.json
-      plan.json
-      plan.md
+      plan.json     # lightweight_plan/full_plan only
+      plan.md       # optional human view when plan.json exists
 ```
 
-`plan.json` is canonical.
+Task state and evidence are always canonical JSON. When a plan exists, `plan.json` is its canonical representation.
 
 ## 25. Test strategy
 
@@ -576,10 +621,12 @@ Test:
 - instruction discovery;
 - component inventory;
 - evidence envelope;
+- concise agent policy;
+- narrow evidence-packet serialization;
 - convention confidence;
 - impact combination rule;
-- planability schemas;
-- plan validation;
+- task-routing modes and status schemas;
+- conditional plan validation;
 - Git co-change;
 - verifier recommendation;
 - persistence.
@@ -599,7 +646,10 @@ Include:
 9. app unable to boot;
 10. monorepo with two Rails roots;
 11. large repo;
-12. labeled breaking mutations.
+12. labeled breaking mutations;
+13. direct-change task;
+14. lightweight-plan task;
+15. full-plan task.
 
 ### Optional enrichment tests
 
@@ -621,6 +671,7 @@ Live agent      → UAT/evaluation
 - [ ] component inventory
 - [ ] unified evidence model
 - [ ] static-only degradation
+- [ ] concise Rails-native agent policy
 
 These may be implemented while Phase 0 runs.
 
@@ -628,12 +679,14 @@ These may be implemented while Phase 0 runs.
 
 - [ ] protected graders defined
 - [ ] Stage 1 decision rule executed
-- [ ] Phase 0 hand-written plans/profiles preserved
+- [ ] Phase 0 hand-written evidence treatments and any proportionate plans preserved
 - [ ] successful verified diffs preserved
 
-### Planning
+### Task understanding and routing
 
-- [ ] deterministic plan works offline
+- [ ] deterministic task understanding works offline
+- [ ] direct changes do not require a plan artifact
+- [ ] lightweight/full plans are evidence-backed
 - [ ] status-specific schemas validate
 - [ ] impact scoring is reproducible
 - [ ] verifier recommendations expose evidence
@@ -644,7 +697,7 @@ These may be implemented while Phase 0 runs.
 - [ ] verifier recall measured
 - [ ] recommended verifier runtime measured
 - [ ] affected-surface recall/precision measured
-- [ ] downstream outcome measured against hand-written Phase 0 plans
+- [ ] downstream outcome measured against manual Phase 0 treatments
 - [ ] enrichment ablation measured if enrichment ships
 - [ ] evaluation run/time/cost budget recorded
 - [ ] 0.1.0 promotion/kill decision recorded
@@ -687,23 +740,23 @@ A. Start immediately
 B. In parallel
 12. Curate Phase 0 historical PR tasks
 13. Validate/augment protected graders
-14. Separate grader visibility from Condition D plan/profile authorship
+14. Separate grader visibility from Condition D treatment authorship
 15. Run Stage 1
 16. Record paired outcomes, human time and cost
 
-C. After Phase 0 informs planning strategy
+C. After Phase 0 informs task-routing strategy
 17. convention confidence
 18. impact nomination/scoring
 19. verifier recommendation
-20. planability schemas
-21. deterministic plan skeleton
-22. plan validation
-23. persistence
-24. `mavona init`
-25. `mavona plan`
+20. task-scoped evidence selection
+21. planning-mode selection
+22. status schemas
+23. conditional plan generation/validation
+24. persistence
+25. explicit `mavona plan`
 26. minimal default-off enrichment implementation
 27. fixture/gold evaluations within predeclared budget
-28. compare generated vs hand-written plans
+28. compare generated vs manual treatments
 29. apply 0.1.0 promotion criterion
 ```
 
@@ -720,7 +773,7 @@ C. After Phase 0 informs planning strategy
 ## Phase 0 paired outcomes and cost/human time
 ## Evaluation budget and actuals
 ## Verifier recall/runtime
-## Plan-quality diagnostics
+## Task-understanding diagnostics
 ## Downstream verified outcome
 ## Optional enrichment ablation
 ## 0.1.0 promotion/kill decision

@@ -1,10 +1,14 @@
 # Mavona
 
-**Rails engineering infrastructure for coding agents.**
+**An opinionated Ruby on Rails coding harness for AI coding agents.**
 
-Mavona is a Ruby-first harness that helps coding agents work on Ruby on Rails repositories with more discipline and less guesswork.
+Mavona helps agents understand and safely modify real Rails codebases. It supplies repository evidence, keeps task ceremony proportional and independently verifies the resulting repository state.
 
-It sits above tools such as Codex, Claude Code, Gemini CLI and OpenCode. Those tools provide the generic coding-agent loop: models, shell access, file editing, sessions and tools. Mavona adds the Rails-specific engineering layer around them.
+```text
+Understand → Change → Verify
+```
+
+Mavona spends harness complexity to reduce agent complexity. It does not try to replace the generic agent loop supplied by Codex, Claude Code, Gemini CLI, OpenCode or future agents. It adds a Rails-specific engineering layer around them.
 
 ```text
 Human
@@ -14,13 +18,13 @@ Mavona
   │
   ├── repository intelligence
   ├── Rails conventions
-  ├── implementation planning
+  ├── narrow evidence packets
+  ├── proportional task routing
   ├── verifier selection
-  ├── independent verification
-  └── evidence and reporting
+  └── independent evidence
   │
   ▼
-Codex / Claude Code / Gemini / other agents
+Coding agent
   │
   ▼
 Rails repository
@@ -28,227 +32,108 @@ Rails repository
 
 The goal is simple:
 
-> Help a coding agent understand the Rails application, make the smallest correct change and prove that the change works.
+> Help a coding agent understand the Rails application, make the smallest complete change and prove that the change works.
 
 ## Why Mavona?
 
-Modern coding agents are increasingly capable, but most of their engineering workflow is still generic.
+Generic coding agents can inspect files, run commands and write code, but they do not automatically know:
 
-They can inspect files, run commands and write code, but they do not automatically know:
+- which Rails conventions this repository follows;
+- which routes, models, controllers, jobs or mailers are relevant;
+- which associations, callbacks, migrations or schema details constrain a change;
+- which nearby tests provide meaningful evidence;
+- when verification should widen beyond the obvious test;
+- which repository knowledge should survive the current agent conversation.
 
-- which Rails conventions this repository actually follows;
-- which files and downstream callers a change is likely to affect;
-- which tests provide meaningful evidence for that change;
-- when verification should widen beyond the obvious unit test;
-- whether a migration, callback or test modification introduces risk;
-- which repository knowledge should be preserved for the next agent invocation.
+Mavona turns those Rails-specific questions into structured, reproducible harness behavior instead of a long prompt.
 
-Mavona exists to make those Rails-specific engineering decisions explicit and reproducible.
+## Agent-facing policy
 
-## The core idea
+The runtime policy is deliberately brief. It tells the agent to follow local conventions, prefer standard Rails mechanisms when local evidence does not decide, make the smallest complete scoped change, use the supplied evidence and expect independent verification.
 
-Mavona separates **implementation** from **verification**.
+It does not repeatedly tell a capable coding agent how to inspect a codebase, write a detailed plan, enumerate classes, explain generic risks or run tests. Mechanical work belongs in the harness.
 
-```text
-Coding agent implements
-        ↓
-Mavona inspects the change
-        ↓
-Mavona chooses the required evidence
-        ↓
-Mavona runs verification independently
-        ↓
-pass → continue
-fail → structured evidence back to the agent
-```
+The exact current policy is defined in [`SPEC-V0.1.md`](SPEC-V0.1.md) and tested against the runtime template.
 
-An agent saying “the tests pass” is not proof that the tests passed.
+## Rails-native defaults
 
-Mavona records the evidence itself.
+Mavona uses this precedence:
 
-## Rails-specific, agent-independent
+1. Existing application conventions.
+2. Standard Rails mechanisms and the integrated Rails stack.
+3. New abstractions only when justified by the task or existing architecture.
 
-Mavona is not tied to a particular coding agent or model.
+If an application uses Active Record directly, conventional controllers and models, or a simple monolithic structure, Mavona should support that design. It does not impose repository/DAO layers, service-object hierarchies, packages or generic architecture boundaries without local evidence.
 
-The architecture is intended to support adapters for tools such as:
+## Progressive disclosure
+
+Mavona starts with the narrowest Rails surface supported by repository evidence.
 
 ```text
-Codex
-Claude Code
-Gemini CLI
-OpenCode
-future coding agents
+likely Rails surface
+        ↓
+narrow evidence packet
+        ↓
+agent change
+        ↓
+independent verification
+        ↓
+widen only if evidence requires it
 ```
 
-The durable part of Mavona is not the model interface.
+The component inventory is harness input, not a prompt dump. Missing dependencies or incorrect assumptions discovered during verification can widen the next evidence packet.
 
-It is the Rails engineering knowledge around the agent.
+## Planning is proportional
+
+Planning is not a mandatory first-class ritual.
+
+```text
+direct_change
+lightweight_plan
+full_plan
+```
+
+A tiny bug fix or conventional Rails change may proceed directly from understanding to change. A broad migration, multi-model feature or architectural change may warrant a lightweight or full plan. The routing decision must be backed by task and repository evidence.
+
+Explicit `mavona plan` remains available for work that warrants or requests a plan, but it is not a prerequisite for change.
 
 ## Repository intelligence
 
-Mavona is designed to understand Rails repositories through evidence already present in the codebase.
+Mavona is designed to derive evidence already present in the Rails codebase, including:
 
-That includes:
-
-- Rails application structure;
+- Rails and Ruby versions;
 - routes;
 - models and associations;
 - controllers;
-- jobs;
-- mailers;
+- callbacks;
+- jobs and mailers;
 - migrations and schema;
-- services and project-specific abstractions;
+- namespaces and autoload paths;
+- project-specific abstractions;
 - Minitest or RSpec conventions;
-- fixtures or factories;
-- Bundler configuration;
-- Git history;
-- repository instructions such as `AGENTS.md`;
-- CI, lint and security tooling.
+- nearby tests, fixtures or factories;
+- relevant gems;
+- repository instructions;
+- CI, lint and security tooling;
+- Git repository state and history.
 
-Mavona prefers repository evidence over generic Rails assumptions.
+Repository evidence outranks generic Rails assumptions. A coherent local pattern wins over an external style prescription.
 
-If a project consistently does something differently from conventional Rails style, the repository wins.
-
-## Repository legibility
-
-A good coding-agent environment is not only about prompts.
-
-Mavona is also intended to identify places where a repository itself is difficult for agents to understand.
-
-For example:
-
-```text
-Recurring jobs are configured in a custom initializer,
-but no architecture document or integration test points to it.
-```
-
-That can become a **repository-legibility finding**.
-
-Over time, recurring failures can be converted into better documentation, structural tests or Mavona rules so future agents do not need to rediscover the same lesson.
-
-## Planning
-
-Mavona planning is deterministic-first.
-
-```text
-Repository discovery
-        ↓
-Rails analysis
-        ↓
-evidence-backed plan skeleton
-        │
-        ├── usable offline
-        │
-        ▼
-optional agent enrichment
-```
-
-The deterministic layer is responsible for repository facts and likely affected surfaces.
-
-An optional coding-agent pass may later enrich higher-level reasoning such as risks or task decomposition.
-
-Mavona should remain useful even without a model call.
-
-## Verification
-
-Verifier selection is one of Mavona's central research areas.
-
-Instead of simply running the closest test file, Mavona can use signals such as:
-
-- Rails naming conventions;
-- constant and reference relationships;
-- routes and callers;
-- model associations;
-- test structure;
-- Git co-change history.
-
-When verification confidence is low, Mavona widens verification rather than pretending certainty.
-
-```text
-focused test
-    ↓
-related tests
-    ↓
-component tests
-    ↓
-broader relevant suite
-```
-
-Under-verification is considered more dangerous than a modest amount of extra test runtime.
-
-## Current status
-
-Mavona is under active development.
-
-The current implementation target is the non-mutating discovery and planning foundation for `0.1.0`.
-
-The first release focuses on:
-
-- Git and repository discovery;
-- default-branch detection;
-- Rails root detection;
-- static Rails profiling;
-- repository instruction discovery;
-- component inventory;
-- structured evidence;
-- implementation planning.
-
-It does **not** yet edit application code.
-
-For the current implementation contract, see [`SPEC-V0.1.md`](SPEC-V0.1.md).
-
-## Technology
-
-Mavona Core is written in **Ruby**.
-
-The initial stack is deliberately small:
-
-```text
-Ruby
-Ruby gem / CLI
-Git CLI
-Prism / Ripper
-JSON + Markdown task artifacts
-Rails / Bundler repository inspection
-Minitest unless the repository establishes otherwise
-```
-
-Mavona itself is not a Rails application.
-
-A future App Inspection capability may use a separate browser automation process, but the Ruby core will remain independent of that technology.
-
-## App Inspection
-
-Longer term, Mavona may expose the running Rails application itself as verification evidence.
-
-Potential evidence includes:
-
-- screenshots;
-- DOM state;
-- visible text;
-- accessibility state;
-- browser console errors;
-- failed network requests.
-
-Agent-native capabilities such as Codex AppShots may also be used when available.
-
-The goal is not simply to attach screenshots to prompts.
-
-The goal is to make application behavior independently inspectable and verifiable.
-
-## Design principles
-
-### Repository evidence beats generic assumptions
-
-Prefer what this Rails application actually does.
-
-### Verification is independent
+## Independent verification
 
 The implementation agent does not decide whether its own work is complete.
 
-### Not run never means passed
+```text
+Coding agent changes code
+        ↓
+Mavona inspects repository state
+        ↓
+Mavona selects and runs verifiers
+        ↓
+Mavona records evidence
+```
 
-Executable evidence has three states:
+An agent saying “the tests pass” is not proof that the tests passed. Executable evidence has three states:
 
 ```text
 passed
@@ -256,17 +141,81 @@ failed
 unknown
 ```
 
+Not run never means passed. When verification confidence is low, Mavona widens rather than pretending certainty.
+
+## Repository legibility
+
+Mavona can surface places where a repository is difficult for agents to understand: hidden conventions, opaque entry points, undocumented jobs, expensive verification paths or important behavior known only through folklore.
+
+Repeated ambiguity should become better documentation, a structural test, a Mavona rule or clearer repository structure—not a permanently growing agent prompt.
+
+## Current status
+
+Mavona is under active development. The current target is `0.1.0 — Understand`, a non-mutating Rails discovery and task-understanding foundation.
+
+Implemented now:
+
+- Ruby gem and CLI skeleton;
+- Git and default-branch discovery;
+- Rails-root detection, including safe monorepo ambiguity;
+- scoped repository instruction discovery;
+- static Rails project profiling;
+- Rails component inventory;
+- structured provenance-backed evidence;
+- graceful static-only degradation;
+- discovery timing;
+- concise Rails-native agent policy.
+
+Task-scoped relevance selection, proportional planning-mode classification and verifier recommendation remain gated on Phase 0 evidence. Mavona does not yet edit application code.
+
+For the current behavior contract, see [`SPEC-V0.1.md`](SPEC-V0.1.md).
+
+## Discovery CLI
+
+```text
+bundle exec mavona init /path/to/rails/repository
+bundle exec mavona init /path/to/monorepo --rails-root apps/storefront
+```
+
+JSON is canonical output. `--format markdown` provides a human view, and `--no-boot` requests static-only discovery. A Rails boot failure never discards the static profile.
+
+## Technology
+
+Mavona Core is deliberately small:
+
+```text
+Ruby
+Ruby gem / CLI
+Git CLI
+Prism / Ripper where useful
+JSON + Markdown artifacts
+Rails / Bundler repository inspection
+Minitest
+```
+
+Mavona itself is not a Rails application. A future App Inspection capability may use a separate browser process, but the Ruby core remains independent of that technology.
+
+## Design principles
+
+### Repository evidence beats generic assumptions
+
+Prefer what the target Rails application actually does.
+
+### Spend harness complexity to reduce agent complexity
+
+Keep intelligence mechanical and the agent-facing policy small.
+
+### Verification is independent
+
+Repository state and executed verifiers outrank agent narration.
+
 ### Low confidence widens
 
-When Mavona cannot confidently identify sufficient verification, it runs or recommends more, not less.
+Unknown never becomes success merely because evidence is absent.
 
 ### Agent conversation is disposable
 
 Long-term task state belongs to Mavona, not one model conversation.
-
-### Important conventions become mechanical
-
-Repeated prose instructions should eventually become executable rules, tests or repository structure where practical.
 
 ### Keep the harness smaller than the problem
 
@@ -274,76 +223,24 @@ A harness that costs substantially more than the engineering uplift it provides 
 
 ## Development
 
-The authoritative implementation specification for the current release is:
+- [`SPEC-V0.1.md`](SPEC-V0.1.md) — authoritative current behavior.
+- [`DECISIONS.md`](DECISIONS.md) — settled architecture.
+- [`VISION.md`](VISION.md) — durable product intent.
+- [`ROADMAP.md`](ROADMAP.md) — sequencing and experimental gates.
+- [`AGENTS.md`](AGENTS.md) — concise contributor instructions.
 
-[`SPEC-V0.1.md`](SPEC-V0.1.md)
-
-Settled architectural decisions are recorded in:
-
-[`DECISIONS.md`](DECISIONS.md)
-
-The broader product thesis lives in:
-
-[`VISION.md`](VISION.md)
-
-Future sequencing and release gates live in:
-
-[`ROADMAP.md`](ROADMAP.md)
-
-Coding agents working in this repository should also read:
-
-[`AGENTS.md`](AGENTS.md)
-
-## Documentation map
-
-```text
-README.md
-    ↓
-What Mavona is and where to start
-
-AGENTS.md
-    ↓
-How coding agents should work in this repository
-
-SPEC-V0.1.md
-    ↓
-Exact implementation contract for 0.1.0
-
-DECISIONS.md
-    ↓
-Settled architectural decisions
-
-VISION.md
-    ↓
-Why Mavona exists
-
-ROADMAP.md
-    ↓
-Future sequencing and gates
-```
-
-Coding agents implementing `0.1.0` should treat `SPEC-V0.1.md` as authoritative for release behavior.
+Use `mise exec` for Ruby commands. Default CI requires no paid coding agent or external model API.
 
 ## Versioning
 
-Mavona uses Semantic Versioning.
-
-During the `0.x` series, breaking public CLI, configuration or artifact-contract changes require a minor version bump.
-
-Examples:
+Mavona follows Semantic Versioning.
 
 ```text
-0.1.0 → 0.1.1
-backward-compatible bug fix
-
-0.1.x → 0.2.0
-new public capability or breaking pre-1.0 contract change
+Phase 0 — research only
+0.1.0   — Understand
+0.2.0   — Change + Verify
+0.3.0   — Repair + Safety
+1.0.0   — stable autonomous-harness contracts
 ```
 
-## Project philosophy
-
-Coding agents are becoming increasingly good at writing code.
-
-The harder problem is building an environment in which they can reliably do software engineering.
-
-Mavona is an attempt to make that environment unusually good for Ruby on Rails.
+During `0.x`, breaking public CLI, configuration or artifact-contract changes require a minor version bump.
