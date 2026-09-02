@@ -2,5 +2,6 @@
 
 require_relative "mavona/version"
 require_relative "mavona/evidence"
+require_relative "mavona/agent_prompt"
 require_relative "mavona/discovery"
 require_relative "mavona/cli"

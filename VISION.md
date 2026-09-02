@@ -1,13 +1,13 @@
 # Mavona Vision
 
 **Status:** Product vision  
-**Date:** 1 September 2026
+**Date:** 2 September 2026
 
 ## Product thesis
 
-Mavona is a **Rails engineering harness for coding agents**.
+Mavona is an **opinionated Ruby on Rails coding harness for AI coding agents**.
 
-It helps supported coding agents understand Rails repositories, plan changes explicitly, implement narrowly, verify independently and leave behind auditable evidence.
+It helps supported coding agents understand and safely modify real Rails codebases by supplying repository evidence and independently verifying the result.
 
 The coding agent can change. The model can change. The Rails engineering discipline remains Mavona.
 
@@ -25,7 +25,8 @@ The coding agent can change. The model can change. The Rails engineering discipl
 
 - Rails engineering process;
 - repository understanding;
-- planning structure;
+- task-context selection;
+- proportional planning when warranted;
 - evidence;
 - verifier selection;
 - independent verification;
@@ -66,21 +67,16 @@ Mavona is not a raw LLM SDK, Codex wrapper, generic agent loop, benchmark harnes
 Verification is independent of implementation.
 
 ```text
-Agent writes code
-     ↓
-Mavona inspects repository state
-     ↓
-Mavona selects and executes verifiers
-     ↓
-Mavona records evidence
-     ↓
-pass → continue
-fail → evidence-backed repair
+Understand → Change → Verify
 ```
 
-Agent narration is never proof.
+Mavona gathers Rails evidence before change, keeps agent ceremony proportional to the task, then inspects repository state and executes verifiers itself. Agent narration is never proof.
 
 ## Harness-engineering principles
+
+### Spend harness complexity to reduce agent complexity
+
+Rails-specific understanding, context selection, planning depth and verification belong in Mavona when they can be determined mechanically. The agent-facing surface should contain concise policy, the task and a narrow evidence packet—not a generic software-engineering playbook.
 
 ### Repository as system of record
 
@@ -90,15 +86,17 @@ Mavona should avoid giant instruction encyclopedias.
 
 ### Progressive disclosure
 
-Mavona should compile the smallest sufficient context for the current task or phase rather than dump the repository.
+Mavona should compile the smallest sufficient Rails context for the current task or phase rather than dump the repository.
+
+Start narrow and widen only when repository evidence or independent verification exposes a missing dependency or incorrect assumption.
 
 ### Mechanical enforcement over prose
 
 If an important convention repeatedly causes mistakes, the preferred long-term response is an executable rule, verifier, structural test or clearer repository artifact—not an ever-longer prompt.
 
-### Plans as first-class artifacts
+### Planning is proportional
 
-Plans should make interfaces, data changes, downstream callers, implementation slices, verification, risks and unresolved decisions explicit.
+Planning is not a mandatory ritual. Conventional, bounded Rails work may proceed directly from understanding to change. Broader migrations, multi-model features and architectural changes may use a lightweight or full structured plan when repository evidence justifies it.
 
 ### Agent legibility
 
@@ -134,23 +132,23 @@ Mavona should maintain authoritative task state so replacement agents, replay, r
 
 Mavona should not reimplement Codex, Claude Code or Gemini CLI's inner conversation compaction.
 
-Its distinct responsibility is **task-context compilation**: selecting the task constraints, repository evidence, current plan, current changes and unresolved verification evidence needed for the next interaction.
+Its distinct responsibility is **task-context compilation**: selecting the task constraints, narrow repository evidence, any proportionate plan, current changes and unresolved verification evidence needed for the next interaction.
 
-## Planning philosophy
+## Rails-native defaults
 
-Mavona planning should have a deterministic core and may have an optional agent-enrichment layer.
+Mavona applies this order:
 
-The deterministic layer should discover repository facts, affected surfaces, candidate interfaces, verifier candidates and structured evidence.
+1. Existing application conventions.
+2. Standard Rails mechanisms and the integrated Rails stack.
+3. New abstractions only when justified by the task or existing architecture.
 
-Optional agent reasoning may enrich:
+This means Mavona can support direct Active Record use, conventional controllers/models/jobs/mailers, and simple monolithic Rails structures when the application does. It must not impose repository/DAO layers, service hierarchies or generic architecture boundaries without local evidence.
 
-- summaries;
-- risks;
-- task decomposition;
-- slice boundaries;
-- ambiguous architectural trade-offs.
+The harness should determine Rails versions, routes, components, associations, callbacks, schema, nearby tests, namespaces, autoload paths, relevant gems and local conventions where feasible. These facts should narrow the evidence given to the agent rather than expand the policy prompt.
 
-Mavona remains useful offline without the enrichment layer.
+## Agent-facing policy
+
+The durable prompt contract is deliberately small: follow local conventions, prefer standard Rails mechanisms when local evidence does not decide, make the smallest complete scoped change, use the supplied evidence and expect independent verification. Procedural instructions belong in harness behavior, not repeated prose.
 
 ## Verify vs critique
 
@@ -226,8 +224,8 @@ Roadmap milestones correspond to actual release lines:
 
 ```text
 Phase 0  — research only; no software release
-0.1.0    — Plan
-0.2.0    — Implement + Verify
+0.1.0    — Understand
+0.2.0    — Change + Verify
 0.3.0    — Repair + Safety
 1.0.0    — stable autonomous-harness contracts
 ```

@@ -17,12 +17,13 @@ class CLITest < Minitest::Test
     end
   end
 
-  def test_plan_is_explicitly_deferred
+  def test_explicit_plan_is_deferred_without_making_planning_mandatory
     stderr = StringIO.new
     status = Mavona::CLI.new(stdout: StringIO.new, stderr:).run(["plan", "do work"])
 
     assert_equal 2, status
-    assert_match(/deferred until Phase 0/, stderr.string)
+    assert_match(/Explicit planning is not implemented/, stderr.string)
+    assert_match(/task routing remains deferred/, stderr.string)
   end
 
   def test_discovery_does_not_mutate_target_repository

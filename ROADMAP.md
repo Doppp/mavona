@@ -1,12 +1,12 @@
 # Mavona Roadmap
 
 **Status:** Active roadmap  
-**Date:** 1 September 2026  
+**Date:** 2 September 2026
 **Versioning:** Semantic Versioning
 
 ## Phase 0 — Validate the harness hypothesis
 
-Phase 0 happens before the contingent planning/verifier layers of 0.1.0. Unconditional repository-discovery work may proceed in parallel.
+Phase 0 happens before the contingent task-routing, task-context and verifier layers of 0.1.0. Unconditional repository-discovery work may proceed in parallel.
 
 This is a directional product experiment, not a significance test.
 
@@ -58,12 +58,12 @@ no predeclared human-review disqualifier
 
 ### Grader / Condition D separation
 
-The person authoring Condition D's repository profile and plan must **not** inspect the protected grader or merged implementation diff for that task.
+The person authoring Condition D's repository treatment must **not** inspect the protected grader or merged implementation diff for that task.
 
 Preferred:
 
 ```text
-grader/reviewer role != Condition D plan/profile author
+grader/reviewer role != Condition D treatment author
 ```
 
 If this separation cannot be maintained because of team size, record that limitation explicitly and treat measured Stage 1 uplift as an **upper bound**, not an unbiased estimate.
@@ -74,7 +74,7 @@ Use 20 diverse Rails tasks, one coding agent, one attempt per task per condition
 
 **A — Native:** task + pre-change repository using the agent's normal workflow.
 
-**D — Manual Mavona treatment:** the same task plus a manually prepared Rails repository profile, hand-written structured Mavona plan, independently selected focused verification and human-written evidence packets when verification fails. The D author sees only the task description and pre-change repository, never the protected grader or merged diff.
+**D — Manual Mavona treatment:** the same task plus a concise Rails policy, manually selected task-scoped Rails evidence, proportionate planning only when warranted, independently selected focused verification and human-written evidence packets when verification fails. The D author sees only the task description and pre-change repository, never the protected grader or merged diff.
 
 Record agent cost, human harness minutes and repair interventions.
 
@@ -112,11 +112,11 @@ Do not reinterpret this rule after seeing outcomes.
 Only if Stage 1 is positive. Use the divergent tasks and run:
 
 - B: repository profile only;
-- C: repository profile + structured plan.
+- C: repository profile + narrow Rails evidence + proportional task routing.
 
 ```text
 A → B   repository-profile value
-B → C   structured-plan value
+B → C   task-context and proportional-ceremony value
 C → D   independent-verifier-feedback value
 ```
 
@@ -134,19 +134,19 @@ Primary measurements:
 - cost per verified task;
 - human repair interventions.
 
-Before Stage 1, estimate and record task-curation hours, grader validation/augmentation hours, profile/plan-authoring hours, expected evidence-packet time, reviewer hours and agent-run budget. Reduce or stop the experiment if setup cost becomes disproportionate to the product question.
+Before Stage 1, estimate and record task-curation hours, grader validation/augmentation hours, evidence/context-authoring hours, any proportional-planning hours, expected failure-packet time, reviewer hours and agent-run budget. Reduce or stop the experiment if setup cost becomes disproportionate to the product question.
 
 ### Phase 0 output
 
-Preserve frozen task snapshots, task provenance, protected graders, grader metadata, hand-written profiles/plans, verifier choices, evidence packets, final diffs, paired outcomes and human-time/cost measurements.
+Preserve frozen task snapshots, task provenance, protected graders, grader metadata, hand-written profiles/evidence packets, task-routing decisions, any proportionate plans, verifier choices, failure packets, final diffs, paired outcomes and human-time/cost measurements.
 
-# 0.1.0 — Planning harness
+# 0.1.0 — Rails understanding harness
 
 Public commands:
 
 ```text
 mavona init
-mavona plan "<task>"
+mavona plan "<task>" # explicit planning when requested or warranted
 ```
 
 No application-code mutation.
@@ -162,45 +162,41 @@ These are unconditional:
 - static Rails project profiling;
 - component inventory;
 - unified evidence model;
-- static-only degradation behavior.
+- static-only degradation behavior;
+- concise Rails-native agent policy.
 
 ## Work gated on Phase 0 Stage 1
 
 The following should be informed by Stage 1 before being stabilized:
 
-- impact-analysis sophistication;
-- plan-generation strategy;
+- task-surface analysis sophistication;
+- task-routing and proportional-planning strategy;
 - verifier-recommendation strategy;
-- optional agent-enrichment behavior.
+- optional evidence/plan enrichment behavior.
 
-## Planning architecture
+## Task-understanding architecture
 
-`mavona plan` has two layers:
+The deterministic path discovers Rails evidence and chooses proportional ceremony:
 
 ```text
 deterministic Rails analysis
         ↓
-deterministic plan skeleton
-        │
-        ├── usable offline
-        │
-        ▼
-optional agent enrichment
+task-scoped evidence
         ↓
-validated enriched plan
+direct_change | lightweight_plan | full_plan
 ```
 
-The deterministic path is required.
+`direct_change` creates no formal plan artifact. The other modes create only the structure needed for their complexity. Explicit `mavona plan` remains available for a user-requested plan.
 
-Agent enrichment is optional and independently measurable.
+Optional enrichment may improve selected evidence or a warranted plan, but may not turn the policy prompt into procedural boilerplate. It is independently measurable.
 
 ## 0.1.0 empirical question
 
-> Can auto-generated plans approach the quality and downstream usefulness of the hand-written Phase 0 plans?
+> Can Rails-native evidence, a small policy prompt and proportional planning improve downstream independently verified completion at acceptable overhead?
 
 ## Gold-set construction
 
-Do not treat a plan author's own annotations as ground truth.
+Do not treat a repository-treatment author's own annotations as ground truth.
 
 For each Phase 0 task, construct evaluation references from:
 
@@ -210,13 +206,13 @@ For each Phase 0 task, construct evaluation references from:
 
 The reviewer annotation distinguishes logically required surfaces from incidental files touched by one implementation.
 
-## Plan-quality diagnostics
+## Task-understanding diagnostics
 
 Primary product outcome remains downstream independently verified completion.
 
 Diagnostic metrics include affected-surface recall at a declared precision floor, affected-surface precision and interface recall/precision where applicable.
 
-The precision floor is **the precision achieved by the hand-written Phase 0 plans**, fixed before generated-plan results are examined. Do not choose the floor after seeing Mavona's numbers.
+The precision floor is **the precision achieved by the hand-written Phase 0 evidence packets**, fixed before generated results are examined. Do not choose the floor after seeing Mavona's numbers. For tasks routed to a planning mode, retain plan-quality diagnostics as secondary measurements.
 
 ## Verifier recommendation quality
 
@@ -241,7 +237,7 @@ Do not use an ambiguous “useful test” precision metric.
 
 Budget downstream evaluation separately from Phase 0.
 
-At minimum account for generated deterministic-plan runs, deterministic+enrichment runs if enrichment is implemented and any hand-written-plan baseline reruns needed for comparability.
+At minimum account for generated deterministic task-understanding runs, enrichment runs if implemented and any manual-treatment baseline reruns needed for comparability.
 
 Set maximum agent runs, human hours and spend before evaluation begins.
 
@@ -250,43 +246,45 @@ Set maximum agent runs, human hours and spend before evaluation begins.
 Build only the minimum enrichment path needed for evaluation, behind a default-off/experimental flag. Then ablate:
 
 ```text
-deterministic plan
+deterministic task understanding
 vs
-deterministic + agent enrichment
+deterministic + enrichment
 ```
 
-Measure downstream verified outcome, plan diagnostics, added latency and added cost. Afterward decide whether enrichment ships enabled, remains experimental or is removed.
+Measure downstream verified outcome, evidence and routing diagnostics, plan diagnostics where applicable, added latency and added cost. Afterward decide whether enrichment ships enabled, remains experimental or is removed.
 
 ## 0.1.0 promotion/kill criterion
 
 Do not proceed automatically to 0.2.0.
 
-Generated plans must not materially worsen downstream independently verified completion relative to hand-written Phase 0 plans. Plan/verifier metrics are diagnostics that explain why.
+Generated task treatments must not materially worsen downstream independently verified completion relative to the manual Phase 0 treatments. Evidence, routing, plan and verifier metrics are diagnostics that explain why.
 
 ## Performance research targets
 
 Representative ~100k-line Rails repo:
 
 - `mavona init` static discovery: under 30 seconds;
-- static plan construction: under 30 seconds;
-- optional enriched plan: target under 90 seconds.
+- static task understanding: under 30 seconds;
+- optional enriched task treatment: target under 90 seconds.
 
 These are research targets until validated on representative hardware.
 
 ---
 
-# 0.2.0 — Implement + Verify
+# 0.2.0 — Change + Verify
 
 Adds:
 
 ```text
-mavona implement "<task>"
+mavona change "<task>"
 mavona verify
 ```
 
 Capabilities:
 
 - agent adapters;
+- concise policy + task-scoped evidence packets;
+- proportional task routing;
 - bounded implementation slice;
 - canonical task state;
 - Context Compiler;
