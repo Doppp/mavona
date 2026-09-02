@@ -1,0 +1,8 @@
+id: demo_post_title_normalization
+repo: sqlite_on_rails_demo
+commit: 478c9ab1d2429123a0e56be7ce6ca427236191de
+prompt: |
+  Normalize Post titles by stripping leading and trailing whitespace before validation and persistence, and enforce uniqueness without regard to case. Whitespace-only titles must remain invalid and the existing five-character minimum must still apply. Add focused model tests.
+budget:
+  max_duration_seconds: 900
+grader: graders/demo_post_title_normalization.rb

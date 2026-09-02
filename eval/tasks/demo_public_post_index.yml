@@ -1,0 +1,8 @@
+id: demo_public_post_index
+repo: sqlite_on_rails_demo
+commit: 478c9ab1d2429123a0e56be7ce6ca427236191de
+prompt: |
+  The public posts index should show only posts whose `published_at` is present and not in the future. Order them by `published_at` newest first and retain the existing 50-post limit. Add focused controller tests that cover unpublished, scheduled, and published posts.
+budget:
+  max_duration_seconds: 900
+grader: graders/demo_public_post_index.rb

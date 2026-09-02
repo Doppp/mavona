@@ -14,7 +14,9 @@ module Mavona
         @catalog.validate!
         @catalog.repositories.each_value do |repository|
           @stdout.puts("Setting up #{repository.fetch('id')} at #{repository.fetch('commit')}...")
-          @repositories.setup(repository)
+          task = @catalog.tasks.find { |candidate| candidate.repo == repository.fetch("id") }
+          worktree = @repositories.prepare(repository, task:, condition: "setup")
+          @repositories.remove(worktree)
         end
       end
 

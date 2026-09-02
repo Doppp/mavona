@@ -13,7 +13,11 @@ module Mavona
         status = nil
         timed_out = false
 
-        Open3.popen3(environment, *argv, chdir:) do |stdin, out, err, wait|
+        clean_environment = ENV.keys.grep(/\ABUNDLE/).to_h { |key| [key, nil] }
+          .merge("RUBYOPT" => nil, "RUBYLIB" => nil, "GEM_HOME" => nil, "GEM_PATH" => nil,
+            "RB_USER_INSTALL" => nil)
+          .merge(environment)
+        Open3.popen3(clean_environment, *argv, chdir:) do |stdin, out, err, wait|
           stdin.write(stdin_data) if stdin_data
           stdin.close
           readers = [Thread.new { out.read }, Thread.new { err.read }]
@@ -28,6 +32,9 @@ module Mavona
               Process.kill("KILL", wait.pid)
               status = wait.value
             end
+          rescue Interrupt
+            Process.kill("TERM", wait.pid)
+            raise
           ensure
             stdout = readers[0].value
             stderr = readers[1].value

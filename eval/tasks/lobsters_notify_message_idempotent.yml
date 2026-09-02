@@ -1,0 +1,8 @@
+id: lobsters_notify_message_idempotent
+repo: lobsters
+commit: 2f385d149e67f5ff78643dcf6d3cab0b24c0117c
+prompt: |
+  Make NotifyMessageJob safe to retry for the same message. Repeating the job must not create a second notification or send a second email, while the first execution must continue to create and deliver both. Add a focused job test.
+budget:
+  max_duration_seconds: 900
+grader: graders/lobsters_notify_message_idempotent.rb

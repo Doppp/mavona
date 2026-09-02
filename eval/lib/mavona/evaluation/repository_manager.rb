@@ -33,6 +33,13 @@ module Mavona
         raise "checkout failed: #{checkout.stderr}" unless checkout.success?
         clean = run(["git", "clean", "-ffdqx"], chdir: worktree, timeout: 60)
         raise "worktree reset failed: #{clean.stderr}" unless clean.success?
+        Array(repository["prepare"]).each do |argv|
+          unless argv.is_a?(Array) && argv.all? { |argument| argument.is_a?(String) && !argument.empty? }
+            raise ArgumentError, "prepare commands must be non-empty argument arrays"
+          end
+          prepared = run(argv, chdir: worktree, timeout: 900)
+          raise "prepare command failed (#{argv.join(' ')}): #{prepared.stderr}" unless prepared.success?
+        end
         worktree
       rescue StandardError
         FileUtils.rm_rf(worktree) if worktree
