@@ -17,7 +17,7 @@ module Mavona
       when "init"
         run_init(args)
       when "plan"
-        @stderr.puts("mavona plan is deferred until Phase 0 informs planning strategy")
+        @stderr.puts("Explicit planning is not implemented; task routing remains deferred pending Phase 0 evidence")
         2
       when "--version", "-v", "version"
         @stdout.puts(VERSION)
@@ -60,7 +60,7 @@ module Mavona
 
         Usage:
           mavona init [PATH] [--rails-root PATH] [--format json|markdown] [--no-boot]
-          mavona plan <task>  # deferred pending Phase 0
+          mavona plan <task>  # optional explicit planning; not implemented yet
           mavona --version
       HELP
     end
