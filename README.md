@@ -4,6 +4,10 @@
 
 Mavona helps coding agents understand the structure, conventions and verification paths of a real Ruby on Rails application before they start changing it.
 
+```text
+Understand → Change → Verify
+```
+
 It is not another coding agent. It is a small layer of Rails-specific context and guardrails around the agent you already use.
 
 ## Why Mavona?
