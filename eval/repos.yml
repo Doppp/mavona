@@ -1,0 +1,34 @@
+repositories:
+  - id: sqlite_on_rails_demo
+    url: https://github.com/fractaledmind/wrocloverb-2024.git
+    commit: 478c9ab1d2429123a0e56be7ce6ca427236191de
+    license: MIT
+    role: conventional Rails application
+    why: A compact Rails/SQLite application with conventional posts, comments, authentication, controllers, and Minitest.
+    prepare:
+      - [mise, install, "ruby@3.2.1"]
+      - [mise, exec, "ruby@3.2.1", --, bundle, install, --jobs, "4"]
+      - [env, RAILS_ENV=test, mise, exec, "ruby@3.2.1", --, bundle, exec, rails, db:prepare]
+  - id: lobsters
+    url: https://github.com/lobsters/lobsters.git
+    commit: 2f385d149e67f5ff78643dcf6d3cab0b24c0117c
+    license: BSD-3-Clause
+    role: mature real-world Rails application
+    why: A long-lived production Rails 8 application with a focused RSpec suite and realistic messaging and moderation behavior.
+    prepare:
+      - [mise, install, "ruby@4.0.0"]
+      - [mise, exec, "ruby@4.0.0", --, bundle, config, set, --local, build.sqlite3, --enable-system-libraries]
+      - [mise, exec, "ruby@4.0.0", --, bundle, install, --jobs, "4"]
+      - [cp, config/database.yml.sample, config/database.yml]
+      - [env, RAILS_ENV=test, mise, exec, "ruby@4.0.0", --, bundle, exec, rails, db:prepare]
+  - id: fat_free_crm
+    url: https://github.com/fatfreecrm/fat_free_crm.git
+    commit: 059c4d0c79d5628bed33026372d17390965bdad5
+    license: MIT
+    role: Rails application with strong local conventions
+    why: A mature Rails CRM whose namespaced models, concerns, dynamic fields, scopes, and legacy conventions punish generic assumptions.
+    prepare:
+      - [mise, install, "ruby@4.0.2"]
+      - [mise, exec, "ruby@4.0.2", --, bundle, config, set, --local, build.sqlite3, --enable-system-libraries]
+      - [mise, exec, "ruby@4.0.2", --, bundle, install, --jobs, "4"]
+      - [env, DB=sqlite, RAILS_ENV=test, mise, exec, "ruby@4.0.2", --, bundle, exec, rake, "spec:preparedb"]

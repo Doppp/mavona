@@ -4,6 +4,10 @@
 
 Mavona helps coding agents understand the structure, conventions and verification paths of a real Ruby on Rails application before they start changing it.
 
+```text
+Understand → Change → Verify
+```
+
 It is not another coding agent. It is a small layer of Rails-specific context and guardrails around the agent you already use.
 
 ## Why Mavona?
@@ -349,6 +353,12 @@ bundle exec exe/mavona --help
 When changing Mavona itself, prefer the smallest implementation that proves the behaviour end-to-end.
 
 Avoid adding infrastructure in anticipation of hypothetical future requirements.
+
+Default CI requires no paid coding agent or external model API.
+
+## Rails agent evaluation
+
+The opt-in smoke suite compares the same Codex agent on nine pinned Rails tasks with and without Mavona context. It uses disposable checkouts, independent hidden graders, structured results, and paired reporting; normal tests never run the paid 18-session suite. See [`docs/evaluation.md`](docs/evaluation.md) for prerequisites and exact commands.
 
 ## Status
 

@@ -1,0 +1,8 @@
+id: ffcrm_account_name_normalization
+repo: fat_free_crm
+commit: 059c4d0c79d5628bed33026372d17390965bdad5
+prompt: |
+  Normalize Account names by stripping leading and trailing whitespace before validation and persistence. Whitespace-only names must remain invalid, and already-clean names must remain unchanged. Follow Fat Free CRM's model conventions and add focused specs.
+budget:
+  max_duration_seconds: 900
+grader: graders/ffcrm_account_name_normalization.rb
