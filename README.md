@@ -158,7 +158,14 @@ NORMAL | qwen3-coder:30b | LOCAL | plan | context 18%
 
 ## How Mavona works
 
-Mavona keeps one Rails-specific workflow regardless of the selected model:
+Mavona keeps one Rails-specific workflow regardless of the selected model. Its
+canonical shape remains:
+
+```text
+Understand → Change → Verify
+```
+
+The implementation breaks that shape into five concrete stages:
 
 1. **Inspect** the application structure, configuration, conventions and relevant code.
 2. **Focus** the context on the smallest useful set of files and runtime facts.
