@@ -1,387 +1,221 @@
 # Mavona
 
-**A Rails-specific coding harness for AI coding agents.**
+**A Ruby on Rails coding harness that lets you bring your subscription, API key or local model.**
 
-Mavona helps coding agents understand the structure, conventions and verification paths of a real Ruby on Rails application before they start changing it.
+Mavona gives an AI model a Rails-native way to inspect, plan, change and verify a real application. It combines a focused terminal interface with repository discovery, constrained context, Rails-aware tools and evidence-based verification.
 
-```text
-Understand → Change → Verify
-```
-
-It is not another coding agent. It is a small layer of Rails-specific context and guardrails around the agent you already use.
+> [!IMPORTANT]
+> Mavona is pre-release software. Provider connections and the interactive TUI described below are the target experience for the current implementation milestone. Until that milestone lands, consult the checked-out version's command help and release notes for the functionality that is actually available.
 
 ## Why Mavona?
 
-General-purpose coding agents are increasingly capable, but they still have to rediscover the same things every time they enter a Rails application:
+General coding agents can edit Rails applications, but they still have to rediscover the same conventions on every task: where behavior lives, which framework defaults matter, which tests provide useful evidence and how a change crosses models, controllers, jobs, mailers and views.
 
-* how the application is structured
-* which Rails conventions it follows
-* where relevant behaviour lives
-* what local conventions override Rails defaults
-* which tests matter
-* how a change should be verified
-* when they have enough evidence to safely proceed
+Mavona supplies that missing Rails-specific harness. It is designed to help capable models work with less irrelevant context, make narrower changes and prove what they actually verified.
 
-Mavona gives the agent a compact, evidence-based view of the Rails application so it can spend less time exploring blindly and more time making the right change.
+Mavona is not a hosted model service. You choose how inference is provided:
 
-The goal is simple:
+- an existing subscription through an officially supported integration
+- your own provider API key
+- a local model running on your machine
 
-> Give a coding agent just enough Rails-specific context to make better decisions.
+## Installation
 
-## Install
+Mavona requires Ruby and is intended to run from the root of a Ruby on Rails application.
 
-Mavona is distributed as a Ruby gem.
+When the gem is published:
 
-```bash
+```sh
 gem install mavona
 ```
 
-Mavona is intended to be installed as a CLI tool. You do not need to add it to the Rails application's `Gemfile`.
+To work from the repository:
 
-### Development install
-
-If you are working from the Mavona repository:
-
-```bash
+```sh
 git clone https://github.com/Doppp/mavona.git
 cd mavona
-
 bundle install
 bundle exec exe/mavona --help
 ```
 
-## Getting started
+The source command above is provisional and must match the executable shipped by the repository.
 
-Go to an existing Rails application:
+## Quick start
 
-```bash
+Enter a Rails application and launch Mavona:
+
+```sh
 cd my-rails-app
+mavona
 ```
 
-Run Mavona from the root of the repository.
-
-Start by asking Mavona to inspect the application:
-
-```bash
-mavona inspect
-```
-
-Mavona examines the Rails application and derives the context that may be useful to a coding agent, such as:
-
-* Rails and Ruby versions
-* application structure
-* routes
-* models and associations
-* database schema
-* test framework and test layout
-* jobs and other Rails components
-* repository instructions
-* local project conventions
-* available verification commands
-
-The important part is not generating a large repository summary. Mavona tries to identify the smallest useful set of evidence for the work the agent is about to perform.
-
-## Try Mavona on a real Rails project
-
-The best way to understand Mavona is to use it on a normal Rails change.
-
-Choose a Rails repository you are comfortable modifying and give your coding agent a small, realistic task.
-
-For example:
-
-> Add an archived state to Projects. Archived projects should disappear from the default index but remain directly accessible. Add tests and preserve existing behaviour.
-
-Try the task once using your coding agent normally.
-
-Then try the same task with Mavona providing Rails-aware context.
-
-Keep the following constant where practical:
-
-* repository
-* starting commit
-* task
-* model
-* token budget
-
-Then compare the results.
-
-Did the Mavona-assisted agent:
-
-* find the relevant code faster?
-* understand the application's existing conventions?
-* touch fewer unrelated files?
-* choose an implementation that fits the Rails application?
-* identify the right tests?
-* verify its work properly?
-* require less steering?
-* produce a change you would be more comfortable merging?
-
-That comparison is the core Mavona experiment.
-
-Mavona does not need to solve the task itself. The question is whether the **same coding agent makes a better Rails change when Mavona is present**.
-
-## Usage
-
-Mavona is designed to stay small.
-
-Its job is to inspect the repository, gather relevant Rails-specific evidence and expose that evidence to coding agents.
-
-It should not become a second coding agent or a general-purpose agent orchestration framework.
-
-Run:
-
-```bash
-mavona --help
-```
-
-to see the commands supported by your installed version.
-
-### Inspecting a Rails application
-
-```bash
-mavona inspect
-```
-
-Use this to see what Mavona understands about the current application.
-
-Inspection is also useful before involving an agent: if Mavona has misunderstood the repository, you should be able to see that rather than relying on hidden context.
-
-### Using Mavona with an agent
-
-Mavona is intended to work alongside coding agents rather than replace them.
-
-The exact integration depends on the agent, but the basic loop is:
+On first launch, choose how you want to connect a model:
 
 ```text
-Rails repository
-      ↓
-    Mavona
-      ↓
-Rails-specific evidence
-      ↓
- coding agent
-      ↓
-    change
-      ↓
-verification
+Welcome to Mavona.
+
+How would you like to connect a model?
+
+  1. Use a subscription
+  2. Enter an API key
+  3. Use a local model
+  4. Configure a custom endpoint
 ```
 
-The agent remains responsible for reasoning about and implementing the task.
-
-Mavona helps it enter the repository with better information.
-
-## What Mavona looks for
-
-Mavona favours evidence from the application itself over generic assumptions about how a Rails application ought to look.
-
-Depending on the task, relevant evidence can include:
+Once connected, describe the change you want:
 
 ```text
-Gemfile
-Gemfile.lock
-config/routes.rb
-config/application.rb
-config/environments/
-db/schema.rb
-db/structure.sql
-app/models/
-app/controllers/
-app/jobs/
-test/
-spec/
-AGENTS.md
-README.md
+> Allow customers to reschedule an order from the account page
 ```
 
-as well as relationships between the files involved in the requested change.
+Mavona inspects the application, builds a focused Rails context, proposes or follows a plan, makes approved changes and runs the relevant verification. A check that did not run is never reported as passed.
 
-A repository using standard Rails conventions should require very little explanation.
+## Connecting models
 
-A repository that deliberately departs from Rails conventions should teach Mavona those differences through its own code and instructions.
+### Subscription access
 
-## Rails first
+Mavona can use a consumer or workspace subscription only where the provider offers an official, permitted integration.
 
-Mavona is deliberately Rails-specific.
+The first supported subscription path is ChatGPT through Codex. Mavona uses the official Codex authentication flow; it does not copy or inspect another application's stored tokens.
 
-It understands that a Rails application is more than a collection of Ruby files. Routes, Active Record models, migrations, schema, controllers, jobs, conventions, autoloading and tests all provide useful structural information.
+From the TUI:
 
-That specialization is the point.
+```text
+/connect
+```
 
-Mavona is not currently trying to become a universal harness for every language and framework.
+Then select:
 
-## Principles
+```text
+Subscription → ChatGPT → Sign in with Codex
+```
 
-### Rails conventions are the prior
+If Codex is not installed or authenticated, Mavona explains what is missing and starts the official login flow when possible.
 
-Start with Rails conventions and then look for evidence that the application does something differently.
+Availability depends on the provider's current terms and supported interfaces. A general chat subscription does not automatically imply that third-party harness access is permitted.
 
-### The repository is the authority
+### API keys
 
-Local code and explicit project instructions beat generic Rails advice.
+Mavona supports direct provider credentials and OpenAI-compatible endpoints. The initial provider set is expected to include:
 
-### Evidence before inference
+- OpenAI
+- Anthropic
+- DeepSeek
+- Qwen / Alibaba Cloud
+- Kimi / Moonshot
+- GLM / Zhipu
+- OpenRouter
+- custom OpenAI-compatible services
 
-Where possible, tell the agent what was observed rather than inventing a theory about the application.
+Run `/connect`, choose the provider and enter the key when prompted. Mavona recognises supported environment variables before asking for a key.
 
-### Small context is good context
+Credentials never belong in `.mavona.yml`. Interactive credentials are stored in the operating-system credential store when supported. If secure persistent storage is unavailable, use a session-only credential or the provider's environment variable.
 
-More repository context is not automatically better.
+### Local models
 
-Mavona should provide the smallest amount of information that materially improves the agent's ability to complete the task.
+Mavona supports local inference through:
 
-### Widen only when necessary
+- Ollama
+- LM Studio
+- llama.cpp
+- vLLM
+- another OpenAI-compatible endpoint
 
-Start narrow.
+For example, with Ollama:
 
-If the available evidence is insufficient, widen the search deliberately rather than loading the entire repository up front.
+```sh
+ollama serve
+ollama pull qwen3-coder:30b
+```
 
-### Verification is part of the work
+Then launch Mavona and select:
 
-A change is not complete merely because code was written.
+```text
+/connect → Local model → Ollama
+```
 
-Mavona should help the agent identify the relevant verification path and distinguish between:
+Mavona probes conventional loopback endpoints, lists the models reported by the local server and checks the capabilities required by its agent loop.
 
-* verified
-* failed
-* not run
+When local mode is selected, Mavona displays `LOCAL` throughout the session. It does not silently send the task to a cloud provider or fall back to a paid model.
 
-**Not run never means passed.**
+## TUI commands
 
-### Preserve the agent
+The main interaction happens inside one Mavona session:
 
-Mavona should make existing coding agents better, not reproduce their capabilities.
+| Command | Purpose |
+| --- | --- |
+| `/connect` | Connect or manage model providers |
+| `/model` | Select the active provider and model |
+| `/status` | Show the connection, model, execution mode and capabilities |
+| `/logout` | Remove Mavona-owned credentials for a provider |
+| `/help` | Show available commands and keyboard controls |
 
-Reasoning, implementation and most tool use belong to the coding agent.
+The status line keeps the active execution path visible:
 
-Rails-specific repository understanding belongs to Mavona.
+```text
+NORMAL | qwen3-coder:30b | LOCAL | plan | context 18%
+```
+
+## How Mavona works
+
+Mavona keeps one Rails-specific workflow regardless of the selected model:
+
+1. **Inspect** the application structure, configuration, conventions and relevant code.
+2. **Focus** the context on the smallest useful set of files and runtime facts.
+3. **Plan** through narrow interfaces, risks and verification requirements.
+4. **Change** the application while preserving existing behavior unless the task says otherwise.
+5. **Verify** with relevant tests, static checks and explicit evidence.
+
+Changing from an API model to a local model changes inference, not Mavona's Rails reasoning or verification contract.
+
+## Configuration
+
+Project-specific behavior belongs in `.mavona.yml`:
+
+```yaml
+test_command: bin/rails test
+lint_command: bin/rubocop
+
+model:
+  provider: ollama
+  id: qwen3-coder:30b
+```
+
+Project configuration may select a provider and model, but it must not contain API keys, OAuth tokens or other credentials.
+
+User-level configuration stores non-secret defaults such as the preferred provider, model and custom endpoint metadata.
+
+## Privacy and safety
+
+Mavona makes the active inference route explicit so you can tell whether code is staying on your machine.
+
+- Local mode permits inference requests only to the configured local endpoint.
+- Cloud providers receive the context required for the selected task.
+- Secrets are excluded from project configuration and redacted from logs and errors.
+- Mavona does not import credentials from Codex, Pi, OpenCode or other agents.
+- Mavona does not silently switch providers.
+- Repository commands remain subject to Mavona's approval and verification rules.
+
+You remain responsible for reviewing changes and for the data-handling terms of the provider you select.
 
 ## What Mavona is not
 
 Mavona is not:
 
-* an autonomous software engineer
-* an infinite-loop coding agent
-* a multi-agent orchestration framework
-* an IDE
-* a replacement for Codex, Claude Code or other coding agents
-* a giant repository index injected into every prompt
-* a framework for every programming language
+- another model subscription
+- an inference reseller
+- a generic chat client with a Rails system prompt
+- an infinite-agent orchestration system
+- a replacement for your application's test suite
 
-The project should earn additional complexity before adding it.
-
-## Good first tasks
-
-When trying Mavona, boring Rails work is useful.
-
-For example:
-
-1. Add a validation and tests.
-2. Add an association and migration.
-3. Add a route and controller action.
-4. Change a background job.
-5. Modify behaviour spanning a model, controller and tests.
-6. Fix a bug where the obvious implementation conflicts with an existing application convention.
-
-These tasks expose whether Mavona is genuinely helping the agent understand Rails applications rather than merely succeeding on impressive demos.
-
-## Evaluating Mavona
-
-A useful comparison is:
-
-```text
-same repository
-same starting commit
-same task
-same coding agent
-same approximate budget
-
-agent alone
-    vs
-agent + Mavona
-```
-
-Useful outcomes include:
-
-* task completion
-* correctness
-* independent acceptance
-* unnecessary files changed
-* unnecessary abstractions introduced
-* relevant tests discovered
-* verification performed
-* agent turns
-* token usage
-* human steering required
-
-The objective is not to make every number smaller. It is to determine whether Rails-specific harness information produces meaningfully better engineering outcomes.
-
-## Supported environment
-
-Mavona is being developed primarily for modern Ruby on Rails applications and a command-line development workflow.
-
-Early development is focused on macOS and Rails repositories using conventional Ruby tooling.
-
-Broader environment and agent compatibility should be added when real usage demonstrates the need for it.
+Its job is narrower: make supported models better at understanding and safely changing Rails applications.
 
 ## Development
 
-Clone the repository:
+Run the repository's documented setup and test commands before submitting a change. Provider tests must use deterministic fakes or local stub servers by default; the normal test suite must not require paid API access.
 
-```bash
-git clone https://github.com/Doppp/mavona.git
-cd mavona
-```
-
-Install dependencies:
-
-```bash
-bundle install
-```
-
-Run the test suite:
-
-```bash
-bundle exec rake test
-```
-
-Run the CLI from source:
-
-```bash
-bundle exec exe/mavona --help
-```
-
-When changing Mavona itself, prefer the smallest implementation that proves the behaviour end-to-end.
-
-Avoid adding infrastructure in anticipation of hypothetical future requirements.
-
-Default CI requires no paid coding agent or external model API.
-
-## Rails agent evaluation
-
-The opt-in smoke suite compares the same Codex agent on nine pinned Rails tasks with and without Mavona context. It uses disposable checkouts, independent hidden graders, structured results, and paired reporting; normal tests never run the paid 18-session suite. See [`docs/evaluation.md`](docs/evaluation.md) for prerequisites and exact commands.
-
-## Status
-
-Mavona is under active development.
-
-The interfaces and commands may change while the core harness is validated against real Rails repositories.
-
-For now, the most valuable contribution is using Mavona on real Rails work and finding cases where its evidence causes an agent to make a better or worse decision.
-
-## Contributing
-
-Bug reports, failing Rails examples and small focused improvements are welcome.
-
-Especially useful reports include:
-
-* the Rails repository or a minimal reproduction
-* the task given to the coding agent
-* what Mavona surfaced
-* what the agent did
-* what you expected instead
-
-Examples where Mavona provides **too much**, **too little** or **misleading** context are particularly valuable.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing expectations and contribution guidelines.
 
 ## License
 
-See [LICENSE](LICENSE).
+See the repository's license file for the terms that apply to Mavona.
