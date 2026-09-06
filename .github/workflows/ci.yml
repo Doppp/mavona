@@ -41,11 +41,12 @@ jobs:
       - run: bun scripts/rails-browser-acceptance.ts
       - run: bun run build
       - run: env -i PATH=/usr/bin:/bin ./dist/mavona --version
-      - run: MAVONA_TEST_BINARY="$PWD/dist/mavona" bun test tests/cli.test.ts tests/session-cli.test.ts tests/inspection-cli.test.ts
+      - run: MAVONA_TEST_BINARY="$PWD/dist/mavona" bun test tests/cli.test.ts tests/session-cli.test.ts tests/inspection-cli.test.ts tests/inspection-viewer.test.ts tests/agent-inspection.test.ts
       - run: bun build --compile scripts/source-highlighting-spike.ts --outfile dist/highlighting-spike
       - run: env -i PATH=/usr/bin:/bin ./dist/highlighting-spike
       - run: python3 scripts/pty-source.py dist/mavona
       - run: python3 scripts/pty-source.py dist/mavona --multiple-roots
+      - run: python3 scripts/pty-models.py dist/mavona
       - run: python3 scripts/pty-smoke.py dist/mavona
       - run: python3 scripts/pty-editor.py dist/mavona
       - run: python3 scripts/pty-editor.py dist/mavona --cancel

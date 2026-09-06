@@ -35,7 +35,7 @@ export class SessionStore {
   } catch(error){this.close();throw error;}
  }
  addSecret(value:string):void{if(value&&!this.secrets.includes(value))this.secrets=[...this.secrets,value];}
- sanitizeText(input:string):string{let text=input;for(const secret of this.secrets)if(secret)text=text.split(secret).join('[REDACTED]');return text.replace(/Bearer\s+[A-Za-z0-9._~+\/-]+/gi,'Bearer [REDACTED]').replace(/\bsk-[A-Za-z0-9_-]{12,}/g,'[REDACTED]');}
+ sanitizeText(input:string):string{let text=input;for(const secret of this.secrets)if(secret)text=text.split(secret).join('[REDACTED]');return text.replace(/(https?:\/\/)[^/\s]*@/gi,'$1[REDACTED]@').replace(/([?&](?:access_token|refresh_token|auth_token|token|password|api[_-]?key|secret|credential)=)[^&#\s]*/gi,'$1[REDACTED]').replace(/Bearer\s+[A-Za-z0-9._~+\/-]+/gi,'Bearer [REDACTED]').replace(/\bsk-[A-Za-z0-9_-]{12,}/g,'[REDACTED]');}
  private project(event:Envelope){this.db!.query('INSERT INTO events VALUES (?, ?, ?)').run(event.eventId,event.sequence,JSON.stringify(event));}
  append<T extends EventType>(type:T,payload:Payloads[T],causedBy?:string):Envelope {
   if(this.closed)throw new Error('Session closed');
@@ -45,11 +45,7 @@ export class SessionStore {
   decode(raw);
   // Redact string values before either canonical or projection storage; never log originals.
   const redact=(value:unknown):unknown=>{
-   if(typeof value==='string'){
-    let text=value;
-    for(const secret of this.secrets)if(secret)text=text.split(secret).join('[REDACTED]');
-    return text.replace(/Bearer\s+[A-Za-z0-9._~+\/-]+/gi,'Bearer [REDACTED]').replace(/\bsk-[A-Za-z0-9_-]{12,}/g,'[REDACTED]');
-   }
+   if(typeof value==='string')return this.sanitizeText(value);
    if(Array.isArray(value))return value.map(redact);
    if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,/password|secret|credential|api.?key|(?:access|refresh|auth).?token/i.test(k)?'[REDACTED]':redact(v)]));
    return value;
