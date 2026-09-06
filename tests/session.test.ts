@@ -64,3 +64,7 @@ test('unreconciled effect blocks another intent and malformed completed record i
  store.close();appendFileSync(join(dir,'events.jsonl'),'broken\n');const before=readFileSync(join(dir,'events.jsonl'));
  expect(()=>new SessionStore(dir,'session-7')).toThrow();expect(readFileSync(join(dir,'events.jsonl'))).toEqual(before);
 });
+
+test('canonical JSON evidence redacts values without consuming structure or adjacent fields',async()=>{
+ const {mkdtemp,rm}=await import('node:fs/promises');const dir=await mkdtemp(join(tmpdir(),'mavona-json-redaction-'));const store=new SessionStore(dir,'json-redaction',['EXPLICIT_CANARY']);try{const event=store.append('app_observation',{inspectionId:'inspection',observationId:'observation',evidence:JSON.stringify({url:'http://127.0.0.1/?token=QUERY_CANARY',title:'EXPLICIT_CANARY',metadata:{password:'PASSWORD_CANARY'},files:{'config/credentials.yml.enc':{digest:'hash',state:'present'}},next:'retained',nested:JSON.stringify({url:'http://127.0.0.1/?secret=NESTED_CANARY',safe:'yes'})})});const evidence=JSON.parse(String(event.payload.evidence));expect(evidence.next).toBe('retained');expect(evidence.files['config/credentials.yml.enc']).toEqual({digest:'hash',state:'present'});expect(JSON.parse(evidence.nested).safe).toBe('yes');expect(JSON.stringify(event)).not.toContain('CANARY');expect(evidence.metadata.password).toBe('[REDACTED]');}finally{store.close();await rm(dir,{recursive:true,force:true});}
+});

@@ -44,10 +44,11 @@ export class SessionStore {
   const raw:Envelope={protocolVersion:1,eventId:Bun.randomUUIDv7(),sessionId:this.sessionId,sequence:this.events.length+1,timestamp:new Date().toISOString(),type,schemaVersion:1,payload:payload as unknown as Record<string,unknown>,...(causedBy?{causedBy}: {})};
   decode(raw);
   // Redact string values before either canonical or projection storage; never log originals.
-  const redact=(value:unknown):unknown=>{
-   if(typeof value==='string')return this.sanitizeText(value);
-   if(Array.isArray(value))return value.map(redact);
-   if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,/password|secret|credential|api.?key|(?:access|refresh|auth).?token/i.test(k)?'[REDACTED]':redact(v)]));
+  const redact=(value:unknown,depth=0,structured=false):unknown=>{
+   if(depth>64)throw new Error('Evidence nesting exceeds redaction budget');
+   if(typeof value==='string'){if(/^[\s]*[\[{]/.test(value)){let parsed:unknown;try{parsed=JSON.parse(value);}catch{}if(parsed&&typeof parsed==='object')return JSON.stringify(redact(parsed,depth+1,true));}return this.sanitizeText(value);}
+   if(Array.isArray(value))return value.map(item=>redact(item,depth+1,structured));
+   if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,(structured?/^[a-z0-9_-]*(?:password|secret|credential|api[_-]?key|(?:access|refresh|auth)[_-]?token)s?$/i:/password|secret|credential|api.?key|(?:access|refresh|auth).?token/i).test(k)?'[REDACTED]':redact(v,depth+1,structured)]));
    return value;
   };
   const event=decode({...raw,payload:redact(raw.payload)});const state=replay([...this.events,event]);

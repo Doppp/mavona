@@ -1,4 +1,5 @@
 export interface Payloads {
+ 'inspection.artifact':{inspectionId:string;artifactId:string;managedPath:string;evidence:string};
  'context.compacted':{taskId:string;beforeBytes:number;afterBytes:number;snapshot:string};
  'repair.policy':{maxAttempts:number};
  'task.repair.started':{taskId:string;attempt:number;failedCheckIds:string};
@@ -50,6 +51,7 @@ export type EventType=keyof Payloads;
 export interface Envelope {protocolVersion:1;eventId:string;sessionId:string;sequence:number;timestamp:string;type:string;schemaVersion:number;payload:Record<string,unknown>;causedBy?:string}
 export type KnownEvent = {[T in EventType]:Omit<Envelope,'type'|'payload'>&{type:T;payload:Payloads[T]}}[EventType];
 const shapes:Record<EventType,Record<string,readonly string[]|null|'number'|'boolean'>>={
+ 'inspection.artifact':{inspectionId:null,artifactId:null,managedPath:null,evidence:null},
  'context.compacted':{taskId:null,beforeBytes:'number',afterBytes:'number',snapshot:null},
  'repair.policy':{maxAttempts:'number'},
  'task.repair.started':{taskId:null,attempt:'number',failedCheckIds:null},
