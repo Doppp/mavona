@@ -405,3 +405,25 @@ A separate versioned Rails-runner script reports resolved route metadata, select
 The TUI uses its exact-action review. Headless --allow-runtime-probe JSON_MODELS grants one matching model-list request under the initial settings digest; absent/mismatched/reused authorization refuses before boot. No runtime model/provider switching or gem installation is performed by this tool.
 
 The missing-module test failed before implementation; the actual Rails fixture initially exposed an incorrect test column expectation (scheduled_at versus the real scheduled_on), corrected against observed schema. The actual approved/denied loop, private request, malformed/timeout and native headless exact/one-use grant tests passed. Final native runtime/context/no-boot run:12passed,97assertions, no skips/failures; strict typecheck and native build passed. Full container/older-Ruby runtime, broad parity and cancellation/recovery acceptance remain implementing.
+
+### Actual pinned smoke application baseline characterization — 2026-09-07
+
+Mise installed the original Ruby3.2.1/4.0.0/4.0.2 binaries after checksum and GitHub artifact-attestation verification. Clean checkout caches at /tmp/mavona-smoke-cache-20260907 use the exact three catalog commits. With private HOME and no inherited credentials, bundle installation completed for all three applications. Lobsters' first SQLite native build failed; the catalog's explicit --enable-system-libraries setting fixed it. All test database preparation commands completed. The demo public-index grader initially errored because application.css was missing; installing from its original yarn.lock and running its existing JS/CSS build scripts produced the needed assets. No application behavior or protected grader was changed.
+
+All original graders then reached actual behavioral assertions on the pinned baseline:
+
+| Task | Observed result |
+| --- | --- |
+| demo_comment_length |2runs,5assertions,1failure,0errors |
+| demo_post_title_normalization |2runs,3assertions,2failures,0errors |
+| demo_public_post_index |2runs,9assertions,2failures,0errors after asset setup |
+| lobsters_message_subject |1example,1failure |
+| lobsters_notify_message_idempotent |1example,1failure |
+| lobsters_tag_json |1example,1failure |
+| ffcrm_account_name_normalization |2examples,1failure |
+| ffcrm_task_literal_search |1example,1failure |
+| ffcrm_website_job_url_safety |1example,1failure |
+
+Each original grader exited1 with failed/failed. The original support's [-6000..] slice returned null notes for shorter outputs; an external Open3 observation wrapper retained real child stdout/stderr without changing arguments, results or grader bytes. Raw private observations are in /tmp/mavona-smoke-baseline-20260907; commands/setup logs are /tmp/mavona-smoke-*. These are application/grader baseline characterization runs, not protected end-to-end agent evaluation, nine Mavona successes or comparative uplift. The evaluation runner still needs a reproducible prepared-worktree path before full inherited-task evaluation; live model budget and non-Darwin hosts remain unavailable. Ruby retirement is not accepted.
+
+The broad offline suite preceding the runtime-probe addition passed253tests,1598assertions,6conditional skips, zero failures across47files. Later runtime/native evidence is recorded above.
