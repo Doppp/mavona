@@ -1,9 +1,25 @@
 {
   "compilerOptions": {
-    "target": "ESNext", "module": "Preserve", "moduleResolution": "Bundler",
-    "strict": true, "noUncheckedIndexedAccess": true, "exactOptionalPropertyTypes": true,
-    "noEmit": true, "types": ["bun"], "skipLibCheck": false,
-    "jsx": "preserve", "jsxImportSource": "@opentui/solid"
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noEmit": true,
+    "types": [
+      "bun"
+    ],
+    "skipLibCheck": false,
+    "jsx": "preserve",
+    "jsxImportSource": "@opentui/solid"
   },
-  "include": ["apps/**/*.ts", "packages/**/*.ts", "packages/**/*.tsx", "tests/**/*.ts", "scripts/**/*.ts"]
+  "include": [
+    "apps/**/*.ts",
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
+    "tests/**/*.ts",
+    "scripts/**/*.ts",
+    "tests/**/*.tsx"
+  ]
 }

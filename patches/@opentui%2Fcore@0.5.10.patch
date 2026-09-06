@@ -1,0 +1,13 @@
+diff --git a/lib/KeyHandler.d.ts b/lib/KeyHandler.d.ts
+index b49c35523aef6da1c481fea0d1e2007e07186220..15dbf5195018519ca414238bdc2a570aa64ff525 100644
+--- a/lib/KeyHandler.d.ts
++++ b/lib/KeyHandler.d.ts
+@@ -54,7 +54,7 @@ export declare class KeyHandler extends EventEmitter<KeyHandlerEventMap> {
+  */
+ export declare class InternalKeyHandler extends KeyHandler {
+     private renderableHandlers;
+-    emit<K extends keyof KeyHandlerEventMap>(event: K, ...args: KeyHandlerEventMap[K]): boolean;
++    emit: KeyHandler["emit"];
+     private emitWithPriority;
+     onInternal<K extends keyof KeyHandlerEventMap>(event: K, handler: (...args: KeyHandlerEventMap[K]) => void): void;
+     offInternal<K extends keyof KeyHandlerEventMap>(event: K, handler: (...args: KeyHandlerEventMap[K]) => void): void;

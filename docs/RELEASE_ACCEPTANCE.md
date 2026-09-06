@@ -89,11 +89,11 @@ Baseline: master `fdee113`; implementation branch `codex/mavona-v0.1`. No featur
 
 | ID | State | Implementation / checks / remaining evidence |
 | --- | --- | --- |
-| UI-01 | not started | Required full contract pending. |
-| UI-02 | not started | Required full contract pending. |
+| UI-01 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
+| UI-02 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
 | UI-03 | not started | Required full contract pending. |
-| CODE-01 | not started | Required full contract pending. |
-| CODE-02 | not started | Required full contract pending. |
+| CODE-01 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
+| CODE-02 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
 | RAILS-01 | implementing | Initial offline discovery/toolchain slice in progress; no release pass. |
 | RAILS-02 | not started | Required full contract pending. |
 | RAILS-03 | not started | Required full contract pending. |
@@ -107,8 +107,8 @@ Baseline: master `fdee113`; implementation branch `codex/mavona-v0.1`. No featur
 | APP-02 | not started | Required full contract pending. |
 | APP-03 | not started | Required full contract pending. |
 | APP-04 | not started | Required full contract pending. |
-| VERIFY-01 | not started | Required full contract pending. |
-| SESSION-01 | not started | Required full contract pending. |
+| VERIFY-01 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
+| SESSION-01 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
 | CLI-01 | implementing | Initial offline discovery/toolchain slice in progress; no release pass. |
 | DIST-01 | implementing | Initial offline discovery/toolchain slice in progress; no release pass. |
 
@@ -134,3 +134,18 @@ Darwin arm64, Bun 1.4.2, TypeScript 7.0.2. Commands used the development Bun dir
 - `MAVONA_TEST_BINARY=$PWD/dist/mavona bun test tests/cli.test.ts`: native packaged fixture inspection/refusal checks; results recorded with this slice.
 
 No provider request, browser execution or Rails boot occurs in this slice. Structural parsing, full instruction scope, cache, routing/parity, interactive source viewing and runtime facts remain required. The user-supplied Ruby deletions remain unstaged; retirement acceptance has not passed.
+
+### Evidence M0/M1-runtime — renderer and persistence foundations
+
+Code: `packages/protocol/events.ts`, `packages/domain/task.ts`, `packages/sessions/store.ts`, `packages/tui/`, `scripts/build.ts`. No milestone is yet complete.
+
+On Darwin arm64 / Bun 1.4.2 / TypeScript 7.0.2 / OpenTUI 0.5.10 / Solid 1.9.12:
+
+- `bun test tests/session.test.ts` before implementation: exit 1, missing module.
+- `bun test`: 17 passed, 1 packaged-only test skipped, 61 assertions, exit 0. Includes real native renderer Unicode/multiline bracketed paste and resize, event replay/duplicate conflicts, incomplete-tail recovery, SQLite rebuild, writer exclusion, unreconciled/unknown-event refusal and secret canary redaction.
+- `bun run typecheck`: exit 0 with strict and library declaration checking enabled after the documented dependency declaration patch. Earlier attempts failed on upstream declarations; see ADR 002.
+- `bun run build`: exit 0, embeds native renderer plus SQLite path. Initial packaged launch failed on development preload; compile now disables target bunfig/dotenv/tsconfig/package autoload.
+- `MAVONA_TEST_BINARY=$PWD/dist/mavona bun test tests/cli.test.ts`: 3 passed, 10 assertions, exit 0, including hostile repository preload refusal.
+- `python3 scripts/pty-smoke.py dist/mavona`: exit 0, real packaged startup/input/paste/80×24→60×18 resize/Ctrl+C cleanup, original termios restored. Isolated HOME, PATH only /usr/bin:/bin.
+
+This is an initial local inspection UI, not a streaming coding preview. Plans, approvals, provider streams, comprehensive source controls/editor handoff, crash lock reconciliation, full draft recovery/retention and performance acceptance remain incomplete. UI currently opens a new session; resume/fork are not exposed. No unsupported event may authorize effects.

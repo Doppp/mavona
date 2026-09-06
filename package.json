@@ -5,12 +5,27 @@
   "license": "MIT",
   "type": "module",
   "packageManager": "bun@1.4.2",
-  "engines": { "bun": "1.4.2" },
+  "engines": {
+    "bun": "1.4.2"
+  },
   "scripts": {
     "start": "bun apps/mavona/main.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
-    "build": "bun build --compile apps/mavona/main.ts --outfile dist/mavona"
+    "build": "bun scripts/build.ts"
   },
-  "devDependencies": { "@types/bun": "1.4.1", "typescript": "7.0.2" }
+  "devDependencies": {
+    "@types/bun": "1.4.1",
+    "@types/node": "26.4.1",
+    "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "@opentui/core": "0.5.10",
+    "@opentui/solid": "0.5.10",
+    "solid-js": "1.9.12",
+    "web-tree-sitter": "0.25.10"
+  },
+  "patchedDependencies": {
+    "@opentui/core@0.5.10": "patches/@opentui%2Fcore@0.5.10.patch"
+  }
 }

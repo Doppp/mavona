@@ -2,7 +2,7 @@
 
 A Rails-specific coding harness being rewritten in TypeScript 7, Bun and OpenTUI/Solid.
 
-**Development status:** v0.1 is incomplete. This checkout contains the maintained product contracts and the beginning of the replacement implementation. There is no supported v0.1 release or installation claim yet. The previous Ruby implementation remains in Git history at `fdee113`.
+**Development status:** v0.1 is incomplete. This checkout contains the maintained product contracts and the beginning of the replacement implementation. There is no supported v0.1 release or installation claim yet. A development OpenTUI screen supports `/files`, `/open <path>`, `/close` and `/help`, plus multiline drafts. It has no coding provider integration yet. The previous Ruby implementation remains in Git history at `fdee113`.
 
 Mavona's required workflow is Inspect → Focus → Plan when warranted → Change → Verify. It will provide source viewing, explicit model/locality selection, policy-bound tools, durable sessions and full Rails browser inspection. Planned capabilities are not verified features; see the [acceptance ledger](docs/RELEASE_ACCEPTANCE.md).
 
@@ -12,6 +12,7 @@ Use Bun 1.4.2 and the exact dependencies in the lockfile. TypeScript 7 strict mo
 
 ```sh
 bun install --frozen-lockfile
+bun run start                    # development TUI in a terminal
 bun run typecheck
 bun test
 bun run start -- inspect /path/to/rails-app --format json
