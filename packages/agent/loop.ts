@@ -20,6 +20,8 @@ export const tools:ToolDefinition[]=[
  definition('read_file','Read contained source with its current digest.',{path:string}),
  definition('list_directory','List a contained directory without opening excluded paths.',{path:string}),
  definition('search','Find literal text in the discovered Rails inventory.',{query:{type:'string',minLength:1,maxLength:200}}),
+ definition('create_file','Create one absent source file, including missing contained parent directories. Requires approval.',{path:string,text:string}),
+ definition('delete_file','Remove an existing file after checking its digest, retaining private recovery bytes. Requires approval.',{path:string,beforeDigest:string}),
  definition('apply_patch','Replace one unique oldText after checking the full file digest. Requires approval.',{path:string,beforeDigest:string,oldText:string,newText:string}),
  definition('run_command','Run an argument array inside the repository with explicit execution approval. Never use a shell.',{argv:{type:'array',minItems:1,maxItems:64,items:{type:'string',maxLength:16384}},cwd:string,timeoutMs:{type:'integer',minimum:1,maximum:300000}})
 ];
@@ -61,7 +63,7 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
     if(!approved)throw new ApprovalRequired(prepared);options.policy.approveOnce(prepared);
    }
    signal.throwIfAborted();
-   const effectId=Bun.randomUUIDv7();const intent=emit('effect.requested',{effectId,kind:action.tool==='apply_patch'?'patch':'command'});
+   const effectId=Bun.randomUUIDv7();const intent=emit('effect.requested',{effectId,kind:action.tool==='run_command'?'command':'patch'});
    const outcome=await runtime.execute(action,signal);emit('effect.completed',{effectId,state:outcome.state},intent.eventId);latest=await captureRepositoryState(root);emit('repository.snapshot',{snapshot:JSON.stringify(latest),reason:'effect-result'});return outcome;
   };
   let calls=0;let concluded=false;
@@ -85,7 +87,9 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
      const matches:{path:string;line:number;text:string}[]=[];
      for(const path of inspection.files.slice(0,300)){if(matches.length>=100)break;try{const source=await readSource(root,path,128*1024);source.text.split('\n').forEach((line,index)=>{if(line.includes(args.query as string)&&matches.length<100)matches.push({path,line:index+1,text:line.slice(0,500)});});}catch{}}
      output={matches,bounded:true};
-    }else if(call.name==='apply_patch')output=await execute({tool:'apply_patch',path:args.path as string,beforeDigest:args.beforeDigest as string,oldText:args.oldText as string,newText:args.newText as string});
+    }else if(call.name==='create_file')output=await execute({tool:'create_file',path:args.path as string,text:args.text as string});
+    else if(call.name==='delete_file')output=await execute({tool:'delete_file',path:args.path as string,beforeDigest:args.beforeDigest as string});
+    else if(call.name==='apply_patch')output=await execute({tool:'apply_patch',path:args.path as string,beforeDigest:args.beforeDigest as string,oldText:args.oldText as string,newText:args.newText as string});
     else if(call.name==='run_command')output=await execute({tool:'run_command',argv:args.argv as string[],cwd:args.cwd as string,timeoutMs:args.timeoutMs as number});
     else throw new Error('Unsupported tool');
     const encoded=JSON.stringify(output);emit('tool.completed',{callId:call.id,result:encoded});messages.push({role:'tool',tool_call_id:call.id,content:encoded});

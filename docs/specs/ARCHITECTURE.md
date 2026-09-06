@@ -173,7 +173,7 @@ credentials: environment, memory or OS secure store
 sessions: OS-appropriate data directory/sessions/<id>/events.jsonl
 database: OS-appropriate data directory/mavona.sqlite3
 artifacts: sessions/<id>/artifacts/
-project: .mavona.yml and .mavona/locks only
+project: .mavona.yml, .mavona/locks and private .mavona/recovery source entries
 ```
 
 Writes use append, flush policy and atomic checkpoint replacement. On startup:

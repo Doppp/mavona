@@ -1,6 +1,6 @@
 # Session and artifact retention
 
-**Status:** Initial configurable defaults; revision 5
+**Status:** Initial configurable defaults; revision 6
 
 ## Ownership and defaults
 
@@ -13,6 +13,10 @@ Warn at 80% of the hard limit. At the hard limit, stop new large captures/spillo
 After 30 days of inactivity, offer archive; do not auto-archive active or pinned sessions. Offer large-artifact expiry after 90 days under an explicit opt-in retention policy. Preserve a tombstone with artifact ID/hash, original provenance, expiry time and reason. Historical check execution remains recorded, but deleted evidence is marked unavailable for review and cannot be presented as a fresh verification. Compaction never acts as evidence deletion.
 
 Archival moves data out of the active index and may create a local export; it does not change repository code. User deletion has a clear scope preview and removes Mavona-owned records only. Provide export before deletion, cancel controls and pinning. Authentication state is excluded from reports and follows its own shorter expiry/logout policy; never retain it as audit evidence.
+
+## Removed source recovery
+
+Approved source deletion retains the original entry in a private `.mavona/recovery/` directory in the owning checkout and records its relative recovery path in the effect result. These are user source bytes, not disposable inspection artifacts. Session archival, compaction and artifact expiry do not delete them. Recovery and permanent removal require an explicit scope preview; restoration must never overwrite a current path. Interrupted or ambiguous moves remain unknown until reconciled.
 
 ## Acceptance
 

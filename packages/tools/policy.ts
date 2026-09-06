@@ -1,11 +1,14 @@
 import {readFile,realpath,stat} from 'node:fs/promises';
-import {realpathSync} from 'node:fs';
+import {realpathSync,statSync} from 'node:fs';
+import {mutationScope,identity,type FileIdentity,type MutationScope} from './mutation-path';
 import {resolve,relative,join} from 'node:path';
 import {containedPath,digest,readSource,isWithin} from './source';
 export type Action=
+ |{tool:'create_file';path:string;text:string}
+ |{tool:'delete_file';path:string;beforeDigest:string}
  |{tool:'apply_patch';path:string;beforeDigest:string;oldText:string;newText:string}
  |{tool:'run_command';argv:string[];cwd:string;timeoutMs:number};
-export interface PreparedAction {action:Action;root:string;identity:string;settingsDigest:string;executable?:string;cwd?:string;nextText?:string;target?:string}
+export interface PreparedAction {action:Action;root:string;rootIdentity:FileIdentity;scope?:MutationScope;identity:string;settingsDigest:string;executable?:string;cwd?:string;nextText?:string;target?:string}
 export async function settingsDigest(root:string):Promise<string>{
  const entries:Record<string,string>={};
  const visit=async(path:string,depth:number)=>{
@@ -21,14 +24,15 @@ export async function settingsDigest(root:string):Promise<string>{
  await visit('.mavona.yml',0);return digest(JSON.stringify(Object.entries(entries).sort()));
 }
 export async function prepareAction(repository:string,action:Action):Promise<PreparedAction>{
- const root=await realpath(repository);const settings=await settingsDigest(root);
- if(action.tool==='apply_patch'){
-  if(typeof action.path!=='string'||typeof action.beforeDigest!=='string'||typeof action.oldText!=='string'||typeof action.newText!=='string'||!action.oldText||action.newText.length>1024*1024)throw new Error('Invalid patch arguments');
-  const source=await readSource(root,action.path);
-  if(source.digest!==action.beforeDigest)throw new Error('Patch source is stale; read and propose again');
-  if(source.text.split(action.oldText).length!==2)throw new Error('Patch oldText must have exactly one unique match');
-  const target=await containedPath(root,action.path);const nextText=source.text.replace(action.oldText,()=>action.newText);
-  return {action,root,settingsDigest:settings,target,nextText,identity:digest(JSON.stringify({root,settings,action,target}))};
+ const root=await realpath(repository);const rootIdentity=identity(await stat(root,{bigint:true}));const settings=await settingsDigest(root);
+ if(action.tool==='apply_patch'||action.tool==='create_file'||action.tool==='delete_file'){
+  const scope=await mutationScope(root,action.path,action.tool==='create_file');const target=resolve(root,action.path);let nextText:string|undefined;
+  if(action.tool==='create_file'){if(typeof action.text!=='string'||Buffer.byteLength(action.text)>1024*1024||action.text.includes('\0'))throw new Error('Invalid creation text');nextText=action.text;}
+  else{
+   const source=await readSource(root,action.path);if(source.digest!==action.beforeDigest)throw new Error('Patch source is stale; read and propose again');
+   if(action.tool==='apply_patch'){if(typeof action.oldText!=='string'||typeof action.newText!=='string'||!action.oldText||Buffer.byteLength(action.newText)>1024*1024||action.newText.includes('\0'))throw new Error('Invalid patch arguments');if(source.text.split(action.oldText).length!==2)throw new Error('Patch oldText must have exactly one unique match');nextText=source.text.replace(action.oldText,()=>action.newText);if(Buffer.byteLength(nextText)>1024*1024)throw new Error('Patch output byte limit');}
+  }
+  return {action,root,rootIdentity,scope,settingsDigest:settings,target,...(nextText!==undefined?{nextText}:{}),identity:digest(JSON.stringify({root,rootIdentity,scope,settings,action,target}))};
  }
  if(action.tool!=='run_command'||!Array.isArray(action.argv)||!action.argv.length||!action.argv.every(a=>typeof a==='string'&&!a.includes('\0'))||!Number.isSafeInteger(action.timeoutMs)||action.timeoutMs<1||action.timeoutMs>300000)throw new Error('Invalid command arguments');
  const cwd=await containedPath(root,action.cwd);if(!(await stat(cwd)).isDirectory())throw new Error('Command cwd must be a directory');
@@ -45,23 +49,23 @@ export async function prepareAction(repository:string,action:Action):Promise<Pre
   if(!isWithin(root,candidate))continue;
   try{const entry=await readSource(root,relative(root,candidate));files[entry.path]=entry.digest;}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT'&&(error as NodeJS.ErrnoException).code!=='ENOTDIR')throw error;}
  }
- return {action,root,settingsDigest:settings,executable,cwd,identity:digest(JSON.stringify({root,settings,action,executable,cwd,files}))};
+ return {action,root,rootIdentity,settingsDigest:settings,executable,cwd,identity:digest(JSON.stringify({root,rootIdentity,settings,action,executable,cwd,files}))};
 }
 export class ExecutionPolicy {
  private once=new Set<string>();private revision=0;
  private development:{commands:string[][];writePaths:string[];settingsDigest:string;revision:number}|null=null;
- readonly repository:string;
- constructor(repository:string){this.repository=realpathSync(repository);}
- approveOnce(action:PreparedAction){if(action.root!==this.repository)throw new Error('Approval checkout mismatch');this.once.add(action.identity);}
+ readonly repository:string;private rootIdentity:FileIdentity;
+ constructor(repository:string){this.repository=realpathSync(repository);this.rootIdentity=identity(statSync(this.repository,{bigint:true}));}
+ approveOnce(action:PreparedAction){if(action.root!==this.repository||JSON.stringify(action.rootIdentity)!==JSON.stringify(this.rootIdentity))throw new Error('Approval checkout mismatch');this.once.add(action.identity);}
  grantDevelopment(scope:{commands:string[][];writePaths:string[];settingsDigest:string}){this.development={...structuredClone(scope),revision:this.revision};}
  revoke(){this.once.clear();this.development=null;this.revision++;}
  allows(action:PreparedAction):boolean {
-  if(action.root!==this.repository)return false;
+  if(action.root!==this.repository||JSON.stringify(action.rootIdentity)!==JSON.stringify(this.rootIdentity))return false;
   if(this.once.has(action.identity))return true;
   const grant=this.development;
   if(grant&&grant.revision===this.revision&&grant.settingsDigest===action.settingsDigest){
    if(action.action.tool==='run_command'&&grant.commands.some(argv=>JSON.stringify(argv)===JSON.stringify(action.action.tool==='run_command'?action.action.argv:[])))return true;
-   if(action.action.tool==='apply_patch'&&grant.writePaths.includes(action.action.path))return true;
+   if(action.action.tool!=='run_command'&&grant.writePaths.includes(action.action.path))return true;
   }
   return false;
  }

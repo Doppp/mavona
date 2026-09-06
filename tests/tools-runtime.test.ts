@@ -44,7 +44,7 @@ test('single worktree owner is enforced and released',async()=>{
 });
 test('patch refuses symlink escapes, stale source and ambiguous replacement',async()=>{
  const root=await fixture();const outside=await fixture();await symlink(join(outside,'app/order.rb'),join(root,'escape.rb'));
- await expect(prepareAction(root,{tool:'apply_patch',path:'escape.rb',beforeDigest:'x',oldText:'old',newText:'new'})).rejects.toThrow('outside');
+ await expect(prepareAction(root,{tool:'apply_patch',path:'escape.rb',beforeDigest:'x',oldText:'old',newText:'new'})).rejects.toThrow('symlink');
  const source=await readSource(root,'app/order.rb');await writeFile(join(root,'app/order.rb'),'old old');
  const policy=new ExecutionPolicy(root);const runtime=new ToolRuntime(root,policy);
  const action={tool:'apply_patch' as const,path:'app/order.rb',beforeDigest:source.digest,oldText:'old',newText:'new'};

@@ -59,3 +59,21 @@ test('headless local HTTP provider performs an approved patch and independent ve
   expect(await Bun.file(join(root,'app/models/order.rb')).text()).toBe('# prior user change\nnew\n');
  }finally{server.stop(true);await rm(dir,{recursive:true,force:true});}
 });
+
+test('headless creates and removes approved source files with recoverable deletion',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'mavona-cli-files-'));const root=join(dir,'repo');let calls=0;const text='class Receipt\nend\n';
+ const server=Bun.serve({hostname:'127.0.0.1',port:0,async fetch(request){
+  await request.json();calls++;
+  const tool=calls===1?{name:'create_file',arguments:JSON.stringify({path:'app/services/receipt.rb',text})}:calls===2?{name:'delete_file',arguments:JSON.stringify({path:'app/services/receipt.rb',beforeDigest:new Bun.CryptoHasher('sha256').update(text).digest('hex')})}:undefined;
+  const delta=tool?{tool_calls:[{index:0,id:'file-'+calls,type:'function',function:tool}]}:{content:'File lifecycle complete.'};
+  return new Response('data: '+JSON.stringify({choices:[{delta,finish_reason:null}]})+'\n\ndata: '+JSON.stringify({choices:[{delta:{},finish_reason:tool?'tool_calls':'stop'}]})+'\n\ndata: [DONE]\n\n',{headers:{'content-type':'text/event-stream'}});
+ }});
+ try{
+  await mkdir(join(root,'config'),{recursive:true});await mkdir(join(root,'app/models'),{recursive:true});await writeFile(join(root,'config/application.rb'),'');await writeFile(join(root,'app/models/order.rb'),'class Order\nend\n');await Bun.spawn(['git','init','-q',root]).exited;
+  const argv=JSON.stringify(['/bin/test','!','-e','app/services/receipt.rb']);
+  const child=Bun.spawn([...command,'run','Update app/models/order.rb','--root',root,'--provider','fixture','--model','test','--endpoint',`http://127.0.0.1:${server.port}/v1`,'--locality','local','--trust-model-tools','--allow-write','app/services/receipt.rb','--allow-command',argv,'--verify',argv,'--data-dir',join(dir,'data'),'--format','jsonl'],{cwd:tmpdir(),env:{PATH:'/usr/bin:/bin'},stdout:'pipe',stderr:'pipe'});
+  const output=await new Response(child.stdout).text();expect(await new Response(child.stderr).text()).toBe('');expect({exit:await child.exited,output}).toMatchObject({exit:0});expect(calls).toBe(3);
+  const events=output.trim().split('\n').map(line=>JSON.parse(line));expect(events.at(-1).result.correctness).toBe('passed');expect(events.filter(e=>e.type==='effect.requested')).toHaveLength(3);
+  const {readdir}=await import('node:fs/promises');const retained=await readdir(join(root,'.mavona/recovery'));expect(retained).toHaveLength(1);expect(await Bun.file(join(root,'.mavona/recovery',retained[0]!)).text()).toBe(text);
+ }finally{server.stop(true);await rm(dir,{recursive:true,force:true});}
+});
