@@ -118,7 +118,7 @@ Native host: Darwin arm64, Ruby 4.0.6, Bundler 4.0.16. Historical source extract
 
 ### External evidence blockers
 
-Paid cloud verification: no spending budget supplied. Local model, other native platform hosts and signing access: not established. No live provider, browser, release signature or cross-platform support is claimed. Continue implementation and deterministic checks independently.
+Paid cloud verification: no spending budget supplied. Local model, other native platform hosts and signing access: not established. No live provider, release signature or cross-platform support is claimed. Browser evidence is recorded in subsequent slices. Continue implementation and deterministic checks independently.
 
 ### Evidence M0-static — initial implementation, not full feature acceptance
 
@@ -167,7 +167,7 @@ Actual checks on Darwin arm64 / Bun 1.4.2:
 
 Provider implementation sources checked: [official Chat Completions reference](https://developers.openai.com/api/reference/resources/chat) and [Ollama compatibility](https://docs.ollama.com/api/openai-compatibility), retrieved 2026-09-06. These describe wire primitives and do not establish live compatibility for Mavona.
 
-### Current verification checkpoint
+### Initial verification checkpoint
 
 `bun install --frozen-lockfile`: exit 0, no lock changes. `bun test`: 31 passed, 1 packaged-only skip, 109 assertions, exit 0. `bun run typecheck`: exit 0. Separate native packaged CLI suite: 4 passed / 14 assertions. The existing Ruby production CI is replaced by Bun test/build/native-smoke jobs and an immutable historical characterization job. Workflow sources are pinned for checkout/setup-bun; CI has not run remotely and provides no Linux/native acceptance evidence. No push or publication occurred.
 
@@ -200,3 +200,7 @@ Actual checks on Darwin arm64: controller tests were red on missing module befor
 `bun run typecheck`: exit 0 after browser API integration. `bun run build`: exit 0. Earlier native packaged CLI suite after loop integration: 5 passed / 20 assertions; `python3 scripts/pty-smoke.py dist/mavona`: exit 0, input/paste/resize/Ctrl+C cleanup and original termios restored. Required all-platform, long-session and complete product matrices are still implementing.
 
 After adding session dispatch, rebuilt and ran `MAVONA_TEST_BINARY=$PWD/dist/mavona bun test tests/cli.test.ts tests/session-cli.test.ts`: 6 passed / 33 assertions / zero skips, exit 0, including compiled export/fork/resume with no effect replay.
+
+### Credential process-argument hardening — 2026-09-07
+
+macOS secure-store writes now use `security -i -q` with correctly quoted private stdin, retaining environment/session/secure-store precedence and scoped deletion. Linux already used stdin. The system `security(1)` manual and harmless interactive `help` commands verified whitespace, quote, backslash, semicolon and dollar-sign argument handling without writing real credentials. A new regression failed on the previous secret-bearing argv; after correction, `bun test tests/providers-credentials.test.ts`: 4 passed / 17 assertions, exit 0. Only fake secure-store writes were performed.
