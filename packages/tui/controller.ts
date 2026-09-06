@@ -17,7 +17,7 @@ import type {Envelope} from '../protocol/events';
 import type {ScreenModel} from './screen';
 export class TuiController {
  model:ScreenModel;verifiers:Verifier[]=[];
- private editor:EditorAdapter|undefined;
+ private traceViewer:{url:string;stop:()=>void}|undefined;private editor:EditorAdapter|undefined;
  private source:SourceNavigator;private references=new Map<string,SourceSelection>();
  private files:string[]=[];private selection:{provider:string;model:string}|undefined;
  private active:AbortController|undefined;private approval:((approved:boolean)=>void)|undefined;
@@ -52,7 +52,7 @@ export class TuiController {
  async pickFile(id:string){const choice=this.model.picker?.items.find(item=>item.id===id);if(!choice){this.add('File choice expired. Refresh the file picker.');return;}if(this.pickerMode==='roots'){if(!this.roots.includes(choice.path))return;this.railsPath=join(this.root,choice.path);this.policy.revoke();if(this.verifiers.length){this.verifiers=[];this.add('Application changed; reconfigure explicit verifier commands for this root.');}this.update({picker:undefined});await this.discover();return;}try{await this.source.open(choice.path);if(choice.line)this.source.goto(Math.min(choice.line,this.source.current!.lineCount));this.update({source:this.source.current,picker:undefined});if(choice.digest&&choice.digest!==this.source.current!.digest)this.add('Source changed since pinning. Showing the current worktree snapshot; prior evidence is not refreshed.');}catch{this.add('Selected file is unavailable, changed or excluded. Refresh the file picker; the current snapshot is retained.');}}
  copySource(){try{const selected=this.source.reference();if(Buffer.byteLength(selected.text)>256*1024)throw new Error('Copy limit');const sent=this.terminal?.copy?.(selected.text)??false;this.add(sent?'Copy request sent to terminal clipboard.':'Terminal clipboard unavailable. Selected text remains visible.');}catch{this.add('Select a source range with /select start:end before copying; maximum 256 KiB.');}}
  closeSource(){this.source.close();this.update({source:null});}
- cancel(){this.active?.abort();this.resolveApproval(false);}
+ cancel(){this.traceViewer?.stop();this.traceViewer=undefined;this.active?.abort();this.resolveApproval(false);}
  resolveApproval(approved:boolean){const resolve=this.approval;this.approval=undefined;this.update({approval:undefined});resolve?.(approved);}
  private approve(action:PreparedAction,signal:AbortSignal):Promise<boolean>{
   if(signal.aborted)return Promise.resolve(false);
@@ -75,7 +75,7 @@ export class TuiController {
   if(this.active)return;
   this.draft(text);
   try{
-   if(text==='/help')this.add('/roots · /files [query] · /open path[:line] · /close\n/find text · /next · /previous · /goto line · /back · /wrap · /refresh · /diff · /source\n/pin · /pins · /unpin ID · /pane 20–40\n/select start:end · /copy · /attach · /references · /detach ID\n/connect provider model · /disconnect · /providers\n/acceptance · /adopt REVIEW_ID explanation\n/verify ["command","argument"] · /checks · /effects · /revoke · /reconcile [EFFECT_ID explanation]\n/app doctor · /app run flow.json\n/editor terminal|gui JSON_ARGV · /edit\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
+   if(text==='/help')this.add('/roots · /files [query] · /open path[:line] · /close\n/find text · /next · /previous · /goto line · /back · /wrap · /refresh · /diff · /source\n/pin · /pins · /unpin ID · /pane 20–40\n/select start:end · /copy · /attach · /references · /detach ID\n/connect provider model · /disconnect · /providers\n/acceptance · /adopt REVIEW_ID explanation\n/verify ["command","argument"] · /checks · /effects · /revoke · /reconcile [EFFECT_ID explanation]\n/app doctor · /app run flow.json · /app replay trace.zip · /app stop\n/editor terminal|gui JSON_ARGV · /edit\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
    else if(text==='/roots')await this.openRoots();
    else if(text==='/files'||text.startsWith('/files ')){await this.openFiles(text.slice(7).trim());}
    else if(text==='/pin'){const source=this.source.current;if(!source||source.diff)throw new Error('Open source before pinning');if(this.pins.size>=64&&!Array.from(this.pins.values()).some(pin=>pin.path===source.path))throw new Error('Pinned source limit');const pin={id:[...this.pins.values()].find(pin=>pin.path===source.path)?.id??digest('source-pin:'+source.path),path:source.path,line:source.line,digest:source.digest};this.store.append('source.pinned',{pinId:pin.id,path:pin.path,line:pin.line,digest:pin.digest});this.pins.set(pin.id,pin);this.add(`Pinned ${pin.path}:${pin.line} · ${pin.id}`);}
@@ -107,6 +107,8 @@ export class TuiController {
      this.add(`Editor returned · ${result.cancelled?'cancelled':result.exitCode}\nSaved changes: ${result.changed.paths.join(', ')||'none observed'}\nPre-existing changes: ${result.changed.preexistingPaths.join(', ')||'none'}\nSource snapshot retained. Use /refresh; all execution grants revoked and prior verification is stale.`);
     }catch(error){if(intent&&this.store.state.effects[effectId]==='unknown')this.store.append('effect.completed',{effectId,state:'unknown'},intent.eventId);throw error;}
    }
+   else if(text==='/app stop'){this.traceViewer?.stop();this.traceViewer=undefined;this.add('Local trace replay stopped.');}
+   else if(text.startsWith('/app replay ')){const {startTraceViewer}=await import('../app-inspection/viewer');const viewer=await startTraceViewer(text.slice(12).trim());this.traceViewer?.stop();this.traceViewer=viewer;this.add('Local offline trace replay: '+viewer.url+'\nUse /app stop or Ctrl+C to stop the owned viewer.');}
    else if(text==='/app doctor'){const {doctor}=await import('../app-inspection/service');this.add(JSON.stringify(await doctor(),null,2));}
    else if(text.startsWith('/app run ')){
     const {readFlow}=await import('../cli/app');const {digestFlow,approveFlow}=await import('../app-inspection/service');const {runInspection}=await import('../agent/inspection');

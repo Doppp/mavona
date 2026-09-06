@@ -1,12 +1,12 @@
 import type {BrowserContext,Page} from 'playwright';
 import {createHash,randomUUID} from 'node:crypto';
-import {readFile,stat,rm,chmod} from 'node:fs/promises';
+import {readFile,stat,rm,chmod,mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {iso,utils} from 'playwright-core/lib/coreBundle';
 
 export type TraceReport={status:'unknown';reason:string}|{status:'passed';path:string;sha256:string;size:number;format:'playwright';sanitizerVersion:1;constrained:true;reason:string};
 type Event=Record<string,unknown>;
-type Recorder={_contextCreatedEvent:Event;_state?:{chunkFiles:Set<string>};_appendTraceEvent(event:Event):void;_appendResource(path:string,bytes:Buffer):void;onEntryFinished(...args:unknown[]):void;flushHarEntries(...args:unknown[]):void;onContentBlobAppend(...args:unknown[]):void};
+type Recorder={_contextCreatedEvent:Event;_state?:{chunkFiles:Set<string>;tracesDir:string};_appendTraceEvent(event:Event):void;_appendResource(path:string,bytes:Buffer):void;onEntryFinished(...args:unknown[]):void;flushHarEntries(...args:unknown[]):void;onContentBlobAppend(...args:unknown[]):void};
 type Client={_connection:{toImpl(value:unknown):{tracing:Recorder;guid:string}}};
 const methods=['_appendTraceEvent','_appendResource','onEntryFinished','flushHarEntries','onContentBlobAppend'] as const;
 const identifier=(value:unknown)=>typeof value==='string'&&/^[A-Za-z0-9_@:. -]{1,120}$/.test(value)?value:undefined;
@@ -34,13 +34,14 @@ export class ConstrainedTrace{
   this.restore=()=>{for(const key of methods)Object.assign(recorder,{[key]:original[key]});tracing._startCollectingStacks=stacks;};
  }
  persistFrame: (page:Page,bytes:Buffer,width:number,height:number)=>void;
- static async start(context:BrowserContext){const trace=new ConstrainedTrace(context);try{await context.tracing.start({screenshots:false,snapshots:false,sources:false});return trace;}catch(error){trace.restore();throw error;}}
- async finish(directory:string):Promise<TraceReport>{if(this.closed)return {status:'unknown',reason:'Trace already closed'};this.closed=true;const path=randomUUID()+'.zip',absolute=join(directory,path);try{await this.context.tracing.stop({path:absolute});await chmod(absolute,0o600);if(this.failed)throw new Error('Constrained trace exceeded its recording budget');const result=await validateTraceArchive(absolute);if(!result.actions)throw new Error('Trace contains no browser actions');const bytes=await readFile(absolute);return {status:'passed',path,sha256:createHash('sha256').update(bytes).digest('hex'),size:bytes.length,format:'playwright',sanitizerVersion:1,constrained:true,reason:'Actions and masked checkpoint frames only; DOM, source, arguments and network payloads omitted'};}catch{await rm(absolute,{force:true});return {status:'unknown',reason:'Constrained trace could not be safely recorded and loaded offline'};}finally{this.restore();}}
+ static async start(context:BrowserContext){const trace=new ConstrainedTrace(context);try{await context.tracing.start({screenshots:false,snapshots:false,sources:false});const state=trace.recorder._state;if(!state)throw new Error('Trace recorder state unavailable');await mkdir(join(state.tracesDir,'screencast'),{mode:0o700,recursive:true});return trace;}catch(error){trace.restore();throw error;}}
+ async finish(directory:string,budget=64*1024*1024):Promise<TraceReport>{if(this.closed)return {status:'unknown',reason:'Trace already closed'};this.closed=true;const path=randomUUID()+'.zip',absolute=join(directory,path);try{await this.context.tracing.stop({path:absolute});await chmod(absolute,0o600);if(this.failed)throw new Error('Constrained trace exceeded its recording budget');const result=await validateTraceArchive(absolute);if(!result.actions)throw new Error('Trace contains no browser actions');const bytes=await readFile(absolute);if(bytes.length>budget)throw new Error('Trace artifact budget exceeded');return {status:'passed',path,sha256:createHash('sha256').update(bytes).digest('hex'),size:bytes.length,format:'playwright',sanitizerVersion:1,constrained:true,reason:'Actions and masked checkpoint frames only; DOM, source, arguments and network payloads omitted'};}catch{await rm(absolute,{force:true});return {status:'unknown',reason:'Constrained trace could not be safely recorded and loaded offline'};}finally{this.restore();}}
 }
 export async function validateTraceArchive(path:string){
  const metadata=await stat(path);if(!metadata.isFile()||metadata.size>64*1024*1024)throw new Error('Trace archive budget exceeded');const zip=new utils.ZipFile(path);
  try{const names=await zip.entries();if(names.length>1024)throw new Error('Trace entry budget exceeded');let total=0;for(const name of names){if(!/^(?:[a-zA-Z0-9_-]+\.(?:trace|network|stacks)|screencast\/[a-zA-Z0-9_-]+\.png)$/.test(name))throw new Error('Unsupported trace entry');const entry=zip._entries.get(name);if(!entry||entry.uncompressedSize>16*1024*1024||(total+=entry.uncompressedSize)>64*1024*1024)throw new Error('Trace expansion budget exceeded');}
  const content=new Map<string,Buffer>();for(const name of names)content.set(name,await zip.read(name));
+ for(const name of names.filter(name=>name.endsWith('.trace')))for(const line of content.get(name)!.toString('utf8').split('\n').filter(Boolean)){const event=JSON.parse(line) as Event;if(event.type==='screencast-frame'&&(typeof event.file!=='string'||!content.get(event.file)?.subarray(0,8).equals(Buffer.from('89504e470d0a1a0a','hex'))))throw new Error('Trace checkpoint image missing or invalid');}
  const loader=new iso.TraceLoader();await loader.load({entryNames:async()=>names,readText:async(name:string)=>content.get(name)?.toString('utf8'),readBlob:async(name:string)=>content.has(name)?new Blob([new Uint8Array(content.get(name)!)]):undefined,isLive:()=>false,traceURL:()=>''});
  return {actions:loader.contextEntries.reduce((n,c)=>n+c.actions.length,0),frames:loader.contextEntries.reduce((n,c)=>n+c.pages.reduce((m,p)=>m+p.screencastFrames.length,0),0),text:names.filter(n=>!n.endsWith('.png')).map(n=>content.get(n)!.toString('utf8')).join('\n')};
  }finally{zip.close();}
