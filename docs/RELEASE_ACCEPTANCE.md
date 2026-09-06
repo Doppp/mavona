@@ -96,12 +96,12 @@ Baseline: master `fdee113`; implementation branch `codex/mavona-v0.1`. No featur
 | CODE-02 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
 | RAILS-01 | implementing | Initial offline discovery/toolchain slice in progress; no release pass. |
 | RAILS-02 | not started | Required full contract pending. |
-| RAILS-03 | not started | Required full contract pending. |
+| RAILS-03 | implementing | Initial routing or compatible transport primitives; full acceptance pending. |
 | AGENT-01 | not started | Required full contract pending. |
 | POLICY-01 | not started | Required full contract pending. |
-| MODEL-01 | not started | Required full contract pending. |
-| MODEL-02 | not started | Required full contract pending. |
-| MODEL-03 | not started | Required full contract pending. |
+| MODEL-01 | implementing | Initial routing or compatible transport primitives; full acceptance pending. |
+| MODEL-02 | implementing | Initial routing or compatible transport primitives; full acceptance pending. |
+| MODEL-03 | implementing | Initial routing or compatible transport primitives; full acceptance pending. |
 | MODEL-04 | not started | Required full contract pending. |
 | APP-01 | not started | Required full contract pending. |
 | APP-02 | not started | Required full contract pending. |
@@ -149,3 +149,20 @@ On Darwin arm64 / Bun 1.4.2 / TypeScript 7.0.2 / OpenTUI 0.5.10 / Solid 1.9.12:
 - `python3 scripts/pty-smoke.py dist/mavona`: exit 0, real packaged startup/input/paste/80×24→60×18 resize/Ctrl+C cleanup, original termios restored. Isolated HOME, PATH only /usr/bin:/bin.
 
 This is an initial local inspection UI, not a streaming coding preview. Plans, approvals, provider streams, comprehensive source controls/editor handoff, crash lock reconciliation, full draft recovery/retention and performance acceptance remain incomplete. UI currently opens a new session; resume/fork are not exposed. No unsupported event may authorize effects.
+
+### Evidence M2/M3-foundations — routing and compatible transport
+
+`packages/rails/routing.ts` and `tests/routing.test.ts`: deterministic subject/path nominations, weak-candidate exclusion, bounded context, direct/light/full routing and explicit unsupported/ambiguous/unmatched/broad outcomes. Candidate identity is checkout/root/path-derived and independent of display text/order. `mavona inspect PATH --task TEXT` exposes routing without inference; its exit code still describes the read-only inspection, while routing has its own typed status. This corrects the observed v1 empty-scope readiness defect, but the reviewed 50-pair parity manifest remains outstanding.
+
+`packages/providers/{security,sse,compatible}.ts` and `tests/providers.test.ts`: compatible HTTP transport with bounded UTF-8/SSE decoding, text/tool/usage normalization, credential-source precedence, config secret rejection, explicit local/remote endpoint enforcement, redirect refusal and cancellation. This transport is not yet wired into a production agent loop and does not implement the full provider interface; native adapters, presets, preflight, secure-store platform implementations and image contracts remain required.
+
+Actual checks on Darwin arm64 / Bun 1.4.2:
+
+- Initial provider test: exit 1, missing implementation module (red).
+- `bun test tests/providers.test.ts`: 6 passed, 23 assertions, exit 0. Actual local HTTP stub, split UTF-8, malformed records and in-flight cancellation; no external inference.
+- `bun test tests/routing.test.ts`: 7 passed, 21 assertions. The first implementation overnominated generic path terms; corrected before acceptance of this slice.
+- `bun run typecheck`: exit 0 after integration.
+- `bun run build`: exit 0.
+- `MAVONA_TEST_BINARY=$PWD/dist/mavona bun test tests/cli.test.ts`: 4 passed, 14 assertions, exit 0, including task routing and hostile preload isolation.
+
+Provider implementation sources checked: [official Chat Completions reference](https://developers.openai.com/api/reference/resources/chat) and [Ollama compatibility](https://docs.ollama.com/api/openai-compatibility), retrieved 2026-09-06. These describe wire primitives and do not establish live compatibility for Mavona.

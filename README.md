@@ -18,6 +18,7 @@ bun test
 bun run start -- inspect /path/to/rails-app --format json
 bun run build
 ./dist/mavona inspect /path/to/rails-app --format json
+./dist/mavona inspect /path/to/rails-app --task "Change order validation"
 ```
 
 `inspect` returns 0 for a selected Rails root, 2 for an unsupported/ambiguous scope, and 5 for an inspection/dependency error. It reports runtime facts as unknown. The development binary has been smoke-tested only on macOS arm64; full clean-install/platform acceptance remains pending.

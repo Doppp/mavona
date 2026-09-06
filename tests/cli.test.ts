@@ -29,3 +29,15 @@ test.skipIf(!process.env.MAVONA_TEST_BINARY)('packaged startup ignores repositor
   expect(await Bun.file(join(root,'PWNED')).exists()).toBe(false);
  }finally{await rm(root,{recursive:true,force:true});}
 });
+
+test('offline inspect exposes task nominations and explicit unmatched decisions',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'mavona-route-cli-'));
+ try {
+  expect(await Bun.spawn(['git','init','-q',root]).exited).toBe(0);
+  await mkdir(join(root,'config'));await writeFile(join(root,'config/application.rb'),'');
+  const child=Bun.spawn([...command,'inspect',root,'--task','Adjust frobnicator behavior'],{stdout:'pipe',stderr:'pipe'});
+  const output=JSON.parse(await new Response(child.stdout).text());
+  expect(output.routing.status).toBe('NEEDS_DECISION');expect(output.routing.contextPaths).toEqual([]);
+  expect(await child.exited).toBe(0);
+ }finally{await rm(root,{recursive:true,force:true});}
+});
