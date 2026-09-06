@@ -8,28 +8,42 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  typescript:
     strategy:
+      fail-fast: false
       matrix:
-        ruby: ["3.2", "3.3", "3.4", "3.5", "4.0"]
+        os: [ubuntu-24.04, macos-14]
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: ruby/setup-ruby@v1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true
-      - run: bundle exec rake test
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun test
+      - run: bun run build
+      - run: env -i PATH=/usr/bin:/bin ./dist/mavona --version
+      - run: MAVONA_TEST_BINARY="$PWD/dist/mavona" bun test tests/cli.test.ts
+      - run: python3 scripts/pty-smoke.py dist/mavona
 
-  package:
-    runs-on: ubuntu-latest
+  ruby-characterization:
+    # Retain the historical oracle without restoring a competing application tree.
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "4.0"
-          bundler-cache: true
-      - run: gem build mavona.gemspec
-      - run: gem install --local mavona-*.gem
-      - run: mavona --version
-      - run: mavona --help
+          ruby-version: 4.0.6
+          bundler-cache: false
+      - name: Extract immutable baseline outside checkout
+        run: |
+          mkdir "$RUNNER_TEMP/mavona-ruby-baseline"
+          git archive fdee1136acd7863885ed20c6760f61674f7e32c5 | tar -x -C "$RUNNER_TEMP/mavona-ruby-baseline"
+      - name: Run historical deterministic suite
+        run: |
+          cd "$RUNNER_TEMP/mavona-ruby-baseline"
+          bundle install
+          MAVONA_BENCHMARK=0 bundle exec rake test

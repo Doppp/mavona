@@ -166,3 +166,9 @@ Actual checks on Darwin arm64 / Bun 1.4.2:
 - `MAVONA_TEST_BINARY=$PWD/dist/mavona bun test tests/cli.test.ts`: 4 passed, 14 assertions, exit 0, including task routing and hostile preload isolation.
 
 Provider implementation sources checked: [official Chat Completions reference](https://developers.openai.com/api/reference/resources/chat) and [Ollama compatibility](https://docs.ollama.com/api/openai-compatibility), retrieved 2026-09-06. These describe wire primitives and do not establish live compatibility for Mavona.
+
+### Current verification checkpoint
+
+`bun install --frozen-lockfile`: exit 0, no lock changes. `bun test`: 31 passed, 1 packaged-only skip, 109 assertions, exit 0. `bun run typecheck`: exit 0. Separate native packaged CLI suite: 4 passed / 14 assertions. The existing Ruby production CI is replaced by Bun test/build/native-smoke jobs and an immutable historical characterization job. Workflow sources are pinned for checkout/setup-bun; CI has not run remotely and provides no Linux/native acceptance evidence. No push or publication occurred.
+
+Required UI, agent, policy, Rails parity, native provider, session recovery, browser and distribution scenarios remain incomplete. See the implementation plan's concrete continuation checkpoint. All capability states above remain honest partial states; foundational tests are not product release acceptance.
