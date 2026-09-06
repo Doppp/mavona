@@ -1,3 +1,4 @@
+import {inspectionSummary} from './inspection-policy';
 import {repositoryEvidence} from '../app-inspection/provenance';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join,relative} from 'node:path';
@@ -17,6 +18,7 @@ export async function runInspection(options:{root:string;taskId?:string;flow:Flo
   // A cancelled or failed browser run may have changed application state; never infer rollback.
   const effect=store.append('effect.completed',{effectId,state:signal.aborted||report.state!=='completed'?'unknown':'passed'},intent.eventId);options.onEvent?.(effect);lease.completeEffect(effectId,signal.aborted||report.state!=='completed'?'unknown':'passed');
   const reportPath=join(directory,'report.html');await writeFile(reportPath,renderReport(report),{flag:'wx',mode:0o600});await writeFile(join(directory,'report.json'),JSON.stringify(report),{flag:'wx',mode:0o600});
+  const summary=store.append('inspection.summary',{inspectionId:report.id,summary:JSON.stringify(inspectionSummary(report,reportPath))});options.onEvent?.(summary);
   const completed=store.append('inspection.completed',{inspectionId:report.id,status:report.status,reportPath});options.onEvent?.(completed);
   return {schemaVersion:1,sessionId:store.sessionId,report,reportPath,exitCode:signal.aborted?130:report.status==='passed'?0:report.status==='failed'?3:4};
  }finally{signal.removeEventListener('abort',cancel);await service.stop(false);if(!options.lease)lease.close();}

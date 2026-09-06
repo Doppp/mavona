@@ -140,3 +140,7 @@ Sample bounded repository commit/dirty fingerprints at observation and capture c
 ### Bounded sanitized request timing evidence
 
 Record a separate bounded request ledger from Playwright lifecycle events: stable request/page/frame/step IDs, sanitized URL, method/resource type, HTTP status, terminal outcome and available timing fields. Do not read headers, cookies or bodies. Preserve null for unavailable timing and unknown for interrupted requests; HTTP500 is an HTTP response, not a transport failure. Keep truncation explicit and independent of the diagnostic-error budget. Include bounded metadata in the local report and coding-loop summary. Test actual delayed responses, HTTP errors and blocked failures across all installed engines, plus deterministic count/unknown-value boundaries.
+
+### Terminal inspection evidence drawer
+
+Add /app and /app history to review bounded canonical inspection summaries, assertions, observations and capture references by stable inspection ID. Persist a sanitized summary at completion for both TUI/headless runs. The drawer explicitly represents recorded evidence, not browser liveness or current verification; expired captures are labelled and unavailable details stay unknown. Retain composer/source state, support keyboard scrolling/Escape and command-palette history selection at80×24 without images. No navigation, inference or effects occur while viewing history. Verify a real flow's controller projection, malformed/expired historical evidence and native PTY resize/focus/draft cleanup.
