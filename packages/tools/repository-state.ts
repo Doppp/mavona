@@ -1,5 +1,5 @@
 import {realpath,open,lstat,readlink} from 'node:fs/promises';
-import {constants} from 'node:fs';import {join,resolve,relative} from 'node:path';import {createHash} from 'node:crypto';
+import {constants} from 'node:fs';import {join,resolve,relative,dirname} from 'node:path';import {createHash} from 'node:crypto';
 import {containedPath,digest,excluded,isWithin} from './source';
 export interface RepositoryState {version:1;root:string;status:'passed'|'unknown';head:string|null;indexDigest:string;digest:string;files:Record<string,{digest:string;mode:number;state:'present'|'absent'|'unknown'}>;preexistingPaths:string[]}
 async function gitRead(root:string,args:string[]):Promise<string>{
@@ -7,6 +7,9 @@ async function gitRead(root:string,args:string[]):Promise<string>{
  let failure=false;const timer=setTimeout(()=>{failure=true;child.kill(9);},5000);const reader=child.stdout.getReader();let size=0;const chunks:Uint8Array[]=[];
  try{for(;;){const part=await reader.read();if(part.done)break;size+=part.value.length;if(size>4*1024*1024){failure=true;child.kill(9);break;}chunks.push(part.value);}if(await child.exited!==0||failure)throw new Error('Git metadata unavailable or bounded');return new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks));}
  finally{clearTimeout(timer);await reader.cancel();}
+}
+export async function canonicalWorktreeRoot(repository:string):Promise<string>{
+ const requested=await realpath(repository);try{const root=await realpath((await gitRead(requested,['rev-parse','--show-toplevel'])).trim());if(!isWithin(root,requested))throw new Error('Git root does not contain requested directory');return root;}catch(error){let directory=requested;for(;;){try{await lstat(join(directory,'.git'));throw new Error('Git worktree ownership unavailable');}catch(candidate){if((candidate as NodeJS.ErrnoException).code!=='ENOENT')throw candidate;}const parent=dirname(directory);if(parent===directory)return requested;directory=parent;}}
 }
 export async function captureRepositoryState(repository:string):Promise<RepositoryState>{
  const root=await realpath(repository);let head:string|null=null,status:'passed'|'unknown'='passed';

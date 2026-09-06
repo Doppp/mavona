@@ -1,0 +1,15 @@
+import {test,expect} from 'bun:test';import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';import {join} from 'node:path';import {tmpdir} from 'node:os';import {selectVerifiers} from '../packages/verification/selection';import {inspectRepository} from '../packages/rails/discovery';import {routeTask} from '../packages/rails/routing';
+async function fixture(files:Record<string,string>){const root=await mkdtemp(join(tmpdir(),'mavona-verifier-'));await Bun.spawn(['git','init','-q',root]).exited;for(const [path,text] of Object.entries({'config/application.rb':'',...files})){await mkdir(join(root,path,'..'),{recursive:true});await writeFile(join(root,path),text);}return root;}
+test('configured verification overrides nominations without executing commands and included settings remain contained',async()=>{
+ const root=await fixture({'app/models/order.rb':'class Order;end','.mavona.yml':'include: [checks.yml]\nverification:\n  lint:\n    command: [bundle, exec, rubocop]\n    required: false\n','checks.yml':'verification:\n  test:\n    command: [bin/rails, test]\n'});
+ try{const inspection=await inspectRepository(root);const result=await selectVerifiers(inspection,routeTask('Change order',inspection));expect(result.status).toBe('selected');expect(result.verifiers.map(item=>item.argv)).toEqual([['bundle','exec','rubocop'],['bin/rails','test']]);expect(result.verifiers.find(item=>item.argv.includes('rubocop'))?.required).toBe(false);expect(result.verifiers.every(item=>item.execution==='approval_required')).toBe(true);await writeFile(join(root,'.mavona.yml'),'include: [../outside.yml]\n');await expect(selectVerifiers(inspection,routeTask('Change order',inspection))).rejects.toThrow();}
+ finally{await rm(root,{recursive:true,force:true});}
+});
+test('namespaced corresponding Minitest and RSpec checks are selected as separate required scopes',async()=>{
+ const root=await fixture({'app/models/admin/order.rb':'class Admin::Order;end','test/models/admin/order_test.rb':'# accepted test','spec/models/admin/order_spec.rb':'# accepted spec','test/models/preorder_test.rb':'# unrelated','bin/rails':'# executable entry'});
+ try{const inspection=await inspectRepository(root);const result=await selectVerifiers(inspection,routeTask('Change app/models/admin/order.rb',inspection));expect(result.verifiers.map(item=>item.argv)).toEqual([['bin/rails','test','test/models/admin/order_test.rb'],['bundle','exec','rspec','spec/models/admin/order_spec.rb']]);expect(result.verifiers.every(item=>item.required)).toBe(true);expect(result.verifiers.flatMap(item=>item.criteria.map(file=>file.path))).toContain('test/models/admin/order_test.rb');}
+ finally{await rm(root,{recursive:true,force:true});}
+});
+test('no configured or evidenced test framework leaves verification unknown',async()=>{
+ const root=await fixture({'app/models/order.rb':'class Order;end'});try{const inspection=await inspectRepository(root);expect((await selectVerifiers(inspection,routeTask('Change order',inspection))).status).toBe('unknown');}finally{await rm(root,{recursive:true,force:true});}
+});

@@ -14,7 +14,7 @@ export async function main(args:string[]):Promise<number> {
   const formatIndex=rest.indexOf('--format');
   if(formatIndex>=0) {if(rest[formatIndex+1]!=='json')throw new Error('Only --format json is currently supported');rest.splice(formatIndex,2);}
   if(rest.length>1||rest.some(a=>a.startsWith('-')))throw new Error('Usage: mavona inspect [PATH] [--format json]');
-  const result=await inspectRepository(rest[0]??process.cwd()); console.log(JSON.stringify(task?{...result,routing:routeTask(task,result)}:result,null,2));return result.status==='selected'?0:2;
+  const result=await inspectRepository(rest[0]??process.cwd());const routing=task?routeTask(task,result):undefined;const {selectVerifiers}=await import('../verification/selection');console.log(JSON.stringify(routing?{...result,routing,verification:await selectVerifiers(result,routing)}:result,null,2));return result.status==='selected'?0:2;
  }
  console.error('Command unavailable in this development slice. Use --help.');return 2;
 }

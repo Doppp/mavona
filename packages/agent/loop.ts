@@ -1,3 +1,4 @@
+import {selectVerifiers,criteriaUnchanged,type Criterion} from '../verification/selection';
 import {UnreconciledWorktreeEffects} from '../tools/worktree';
 import {captureRepositoryState,changesSince,type RepositoryState} from '../tools/repository-state';
 import {realpath,readdir} from 'node:fs/promises';
@@ -12,7 +13,7 @@ import {SessionStore} from '../sessions/store';
 import {correctness,type Check} from '../domain/task';
 import {collectTurn,requireChangeCapabilities,ProviderError,type Provider,type ProviderMessage,type ModelCapabilities,type ToolDefinition,type ProviderEvent} from '../providers/types';
 import type {EventType,Payloads,Envelope} from '../protocol/events';
-export interface Verifier {id:string;argv:string[];required:boolean;provenance:Check['provenance'];timeoutMs:number}
+export interface Verifier {id:string;argv:string[];required:boolean;provenance:Check['provenance'];timeoutMs:number;cwd?:string;criteria?:Criterion[];scope?:string[];rationale?:string}
 export interface TaskResult {schemaVersion:1;sessionId:string;taskId:string;status:string;correctness:'passed'|'failed'|'unknown';exitCode:number;checks:(Check&{result:ToolResult})[];artifacts:string[];changes?:ReturnType<typeof changesSince>;error?:{category:string;message:string}}
 export interface RunOptions {root:string;task:string;provider:Provider;providerId:string;model:string;capabilities:ModelCapabilities;store:SessionStore;policy:ExecutionPolicy;signal:AbortSignal;verifiers:Verifier[];references?:SourceSelection[];maxTurns?:number;maxToolCalls?:number;maxDurationMs?:number;onEvent?:(event:Envelope)=>void;approve?:(action:PreparedAction)=>Promise<boolean>}
 const string={type:'string',maxLength:1024*1024};
@@ -28,7 +29,7 @@ export const tools:ToolDefinition[]=[
 ];
 export async function runTask(options:RunOptions):Promise<TaskResult>{
  let baseline:RepositoryState|undefined;let latest:RepositoryState|undefined;
- const {store}=options;const taskId=Bun.randomUUIDv7();const checks:TaskResult['checks']=options.verifiers.map(v=>({id:v.id,required:v.required,provenance:v.provenance,state:'unknown',fresh:false,result:{state:'unknown',durationMs:0,reason:'not run'}}));
+ const {store}=options;let verifiers=[...options.verifiers];const taskId=Bun.randomUUIDv7();const checks:TaskResult['checks']=verifiers.map(v=>({id:v.id,required:v.required,provenance:v.provenance,state:'unknown',fresh:false,result:{state:'unknown',durationMs:0,reason:'not run'}}));
  const emit=<T extends EventType>(type:T,payload:Payloads[T],causedBy?:string)=>{const event=store.append(type,payload,causedBy);options.onEvent?.(event);return event;};
  const finish=(status:string,exitCode:number,error?:TaskResult['error']):TaskResult=>{
   const result:TaskResult={schemaVersion:1,sessionId:store.sessionId,taskId,status,correctness:correctness(checks),exitCode,checks,artifacts:[],...(baseline&&latest?{changes:changesSince(baseline,latest)}:{}),...(error?{error}:{})};
@@ -37,7 +38,7 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
  const signal=AbortSignal.any([options.signal,AbortSignal.timeout(options.maxDurationMs??300000)]);
  let lease:WorktreeLease|undefined;
  try{
-  signal.throwIfAborted();if(new Set(options.verifiers.map(v=>v.id)).size!==options.verifiers.length)throw new Error('Duplicate verifier IDs');requireChangeCapabilities(options.capabilities);
+  signal.throwIfAborted();if(new Set(verifiers.map(v=>v.id)).size!==verifiers.length)throw new Error('Duplicate verifier IDs');requireChangeCapabilities(options.capabilities);
   if(!store.state.mutationAllowed)throw new Error('Session contains unreconciled effects');
   const root=await realpath(options.root);const references=options.references??[];if(references.length>16)throw new Error('Source reference budget');for(const reference of references)if(!await selectionIsCurrent(root,reference))throw new Error('Source reference changed');const inspection=await inspectRepository(root);const routing=routeTask([options.task,...references.map(r=>r.path)].join(' '),inspection);
   if(!store.events.length)emit('session.opened',{repository:root});
@@ -48,6 +49,7 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
   const prior=store.events.findLast(event=>event.type==='repository.snapshot');
   if(prior){const saved=JSON.parse(String(prior.payload.snapshot)) as RepositoryState;if(saved.root!==baseline.root||saved.digest!==baseline.digest)return finish('repository_changed',2,{category:'decision',message:'Repository changed since the recorded state; inspect and explicitly reconcile before continuing'});}
   emit('repository.snapshot',{snapshot:JSON.stringify(baseline),reason:'task-start'});
+  if(!verifiers.length){const selection=await selectVerifiers(inspection,routing);emit('verification.selected',{selection:JSON.stringify(selection)});verifiers=selection.verifiers;checks.push(...verifiers.map(verifier=>({id:verifier.id,required:verifier.required,provenance:verifier.provenance,state:'unknown' as const,fresh:false,result:{state:'unknown' as const,durationMs:0,reason:'not run'}})));}
   emit('provider.selected',{provider:options.providerId,model:options.model,locality:options.capabilities.locality});
   emit('user.message',{text:options.task});
   const sources=await Promise.all(routing.contextPaths.map(path=>readSource(root,path,128*1024)));
@@ -100,8 +102,10 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
   if(!concluded)return finish('turn_budget',4);
   const verificationState=await captureRepositoryState(root);latest=verificationState;
   emit('repository.snapshot',{snapshot:JSON.stringify(verificationState),reason:'verification-start'});
-  for(const verifier of options.verifiers){
-   signal.throwIfAborted();const outcome=await execute({tool:'run_command',argv:verifier.argv,cwd:'.',timeoutMs:verifier.timeoutMs});
+  const changedCriteria=Object.entries(baseline.files).filter(([path,file])=>/(?:^|\/)(?:test|spec)\//.test(path)&&verificationState.files[path]?.digest!==file.digest).map(([path])=>path);
+  if(changedCriteria.length||(await Promise.all(verifiers.map(verifier=>criteriaUnchanged(root,verifier.criteria??[])))).some(unchanged=>!unchanged)){emit('verification.invalidated',{reason:'Pre-existing acceptance criteria changed; explicit review/adoption is required'});return finish('acceptance_changed',2,{category:'verification',message:'Acceptance criteria changed. Current checks remain diagnostic until explicitly adopted; review '+changedCriteria.join(', ')});}
+  for(const verifier of verifiers){
+   signal.throwIfAborted();const outcome=await execute({tool:'run_command',argv:verifier.argv,cwd:verifier.cwd??'.',timeoutMs:verifier.timeoutMs});
    const check={id:verifier.id,required:verifier.required,state:outcome.state,fresh:verificationState.status==='passed'&&latest?.status==='passed'&&verificationState.digest===latest.digest,provenance:verifier.provenance,result:outcome};const index=checks.findIndex(c=>c.id===verifier.id);checks[index]=check;
    emit('verification.completed',{checkId:check.id,state:check.state,provenance:check.provenance,required:check.required,result:JSON.stringify(outcome)});
    if(!check.fresh){for(const recorded of checks)recorded.fresh=false;emit('verification.invalidated',{reason:'Repository changed during verification or fingerprint unavailable'});break;}

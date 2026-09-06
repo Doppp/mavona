@@ -14,3 +14,8 @@ test('explicit reconciliation preserves unknown outcome and invalidates verifica
  try{store.append('session.opened',{repository});const lease=await WorktreeLease.acquire(repository,store.sessionId);store.append('effect.requested',{effectId:'pending',kind:'command'});lease.beginEffect('pending','command');lease.close();await reconcileEffect(store,'pending','I inspected the worktree and accept its current state');expect(store.state.effects.pending).toBe('unknown');expect(store.state.mutationAllowed).toBe(true);expect(store.events.some(event=>event.type==='verification.invalidated')).toBe(true);store.close();expect(readHistory(join(root,'session'),'original').state.mutationAllowed).toBe(true);const next=await WorktreeLease.acquire(repository,'other');next.close();}
  finally{store.close();await rm(root,{recursive:true,force:true});}
 });
+test('Rails subdirectories share the enclosing Git worktree mutation owner',async()=>{
+ const {mkdir}=await import('node:fs/promises');const root=await mkdtemp(join(tmpdir(),'mavona-nested-owner-'));await Bun.spawn(['git','init','-q',root]).exited;await mkdir(join(root,'apps/one'),{recursive:true});await mkdir(join(root,'apps/two'),{recursive:true});
+ try{const lease=await WorktreeLease.acquire(join(root,'apps/one'),'one');try{await expect(WorktreeLease.acquire(join(root,'apps/two'),'two')).rejects.toThrow('owned');}finally{lease.close();}}
+ finally{await rm(root,{recursive:true,force:true});}
+});
