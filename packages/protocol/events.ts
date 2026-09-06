@@ -1,4 +1,6 @@
 export interface Payloads {
+ 'repair.policy':{maxAttempts:number};
+ 'task.repair.started':{taskId:string;attempt:number;failedCheckIds:string};
  'provider.configured':{configuration:string};
  'provider.disconnected':{reason:string};
  'app_observation':{inspectionId:string;observationId:string;evidence:string};
@@ -47,6 +49,8 @@ export type EventType=keyof Payloads;
 export interface Envelope {protocolVersion:1;eventId:string;sessionId:string;sequence:number;timestamp:string;type:string;schemaVersion:number;payload:Record<string,unknown>;causedBy?:string}
 export type KnownEvent = {[T in EventType]:Omit<Envelope,'type'|'payload'>&{type:T;payload:Payloads[T]}}[EventType];
 const shapes:Record<EventType,Record<string,readonly string[]|null|'number'|'boolean'>>={
+ 'repair.policy':{maxAttempts:'number'},
+ 'task.repair.started':{taskId:null,attempt:'number',failedCheckIds:null},
  'provider.configured':{configuration:null},'provider.disconnected':{reason:null},
  'app_observation':{inspectionId:null,observationId:null,evidence:null},'app_assertion':{inspectionId:null,checkId:null,evidence:null},
  'acceptance.baseline':{snapshot:null},'acceptance.review.requested':{review:null},'acceptance.adopted':{reviewId:null,reason:null},

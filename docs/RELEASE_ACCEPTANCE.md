@@ -15,12 +15,12 @@ Maintain a ledger per capability with requirement ID, code entry points, test ID
 | UI-01–03 | Real streaming transcript; multiline/paste/Unicode/IME input; responsive focus/cancellation; tool details, approvals, plans/pickers, themes and 80×24 resize/recovery PTY checks |
 | CODE-01–02 | Open real file from test failure, navigate/search/select, source/diff revision identity, attach/remove draft without provider traffic, detect drift, editor handoff and saved-change reconciliation |
 | RAILS-01–03 | Conventional/namespaced/multi-root/boot-failure fixtures, declared/resolved facts, cache invalidation, routing/refusal/widening and parity/fallback coverage |
-| AGENT-01 | implementing | Actual source/tool/verification loop and approved App Inspection integration tested; compaction/repair/full canonical scenarios pending. |
+| AGENT-01 | implementing | Actual source/tool/verification loop and approved App Inspection integration tested; compaction and full canonical scenarios pending; one objective repair attempt is tested. |
 | POLICY-01 | implementing | Canonical worktree ownership, durable effect guard, exact grants, drift/refusal and secret boundaries tested; full adversarial matrix pending. |
 | MODEL-01–03 | Native OpenAI/Anthropic plus every compatible preset contract; local endpoints; discovery/explicit ID, secure credential/session/env resolution, no fallback, stream cancellation and model switching |
 | MODEL-04 | implementing | Official subscription capability assessed; explicit unsupported own-loop state implemented without token extraction. |
 | APP-01–04 | All 14 cases in docs/specs/APP_INSPECTION_SPEC.md; actual Playwright/Rails flow, multi-engine/profile tests, comparison/baseline review, diagnostics, trace/report, opt-in video and recovery |
-| VERIFY-01 | implementing | Independent verifiers, exact acceptance adoption and stale/unknown truth tested; bounded repair/widening and canonical outcomes pending. |
+| VERIFY-01 | implementing | Independent verifiers, exact acceptance adoption and stale/unknown truth tested; one objective repair attempt tested; progressive widening and full canonical outcomes pending. |
 | SESSION-01 | implementing | Durable JSONL/replay, lifecycle, retention and crash effect guard tested; full migration/compaction/recovery matrix pending. |
 | CLI-01 | implementing | Native headless/event projections tested, including source, browser and evaluation paths; complete command/UX parity pending. |
 | DIST-01 | implementing | Darwin arm64 binary/native/parser/browser/viewer assets tested; installers, release provenance/signing and all-host evidence pending. |
@@ -97,7 +97,7 @@ Baseline: master `fdee113`; implementation branch `codex/mavona-v0.1`. No featur
 | RAILS-01 | implementing | Static Git/Rails facts, explicit multi-root scope and instructions implemented; full declared/resolved fact matrix pending. |
 | RAILS-02 | implementing | No-boot versioned Prism structure/route probe and cache implemented; older/container Ruby and full runtime tier pending. |
 | RAILS-03 | implementing | 50 observed legacy projection pairs and reviewed routing differences pass; full profile parity, widening and protected smoke outcomes pending. |
-| AGENT-01 | implementing | Actual source/tool/verification loop and approved App Inspection integration tested; compaction/repair/full canonical scenarios pending. |
+| AGENT-01 | implementing | Actual source/tool/verification loop and approved App Inspection integration tested; compaction and full canonical scenarios pending; one objective repair attempt is tested. |
 | POLICY-01 | implementing | Canonical worktree ownership, durable effect guard, exact grants, drift/refusal and secret boundaries tested; full adversarial matrix pending. |
 | MODEL-01 | implementing | Native/compatible provider contracts and all specified presets implemented; paid live demonstrations remain unverified. |
 | MODEL-02 | implementing | Loopback/custom endpoint contracts implemented; full local-model demonstration and connection UX pending. |
@@ -107,7 +107,7 @@ Baseline: master `fdee113`; implementation branch `codex/mavona-v0.1`. No featur
 | APP-02 | implementing | Masked captures, bounded DOM/ARIA hints, diagnostics, imports and annotations tested; complete image/model/evidence review workflow pending. |
 | APP-03 | implementing | All three engines and nine responsive profiles tested with real touch; comparison/baseline primitives implemented, full review workflow pending. |
 | APP-04 | implementing | Saved flows, canonical assertions/observations, constrained trace, masked checkpoint video and packaged offline viewer tested; full14-case acceptance pending. |
-| VERIFY-01 | implementing | Independent verifiers, exact acceptance adoption and stale/unknown truth tested; bounded repair/widening and canonical outcomes pending. |
+| VERIFY-01 | implementing | Independent verifiers, exact acceptance adoption and stale/unknown truth tested; one objective repair attempt tested; progressive widening and full canonical outcomes pending. |
 | SESSION-01 | implementing | Durable JSONL/replay, lifecycle, retention and crash effect guard tested; full migration/compaction/recovery matrix pending. |
 | CLI-01 | implementing | Native headless/event projections tested, including source, browser and evaluation paths; complete command/UX parity pending. |
 | DIST-01 | implementing | Darwin arm64 binary/native/parser/browser/viewer assets tested; installers, release provenance/signing and all-host evidence pending. |
@@ -362,3 +362,10 @@ A new rejected-endpoint test exposed URL userinfo persisting in an invalid comma
 Actual terminal/model/session suites:18passed,89assertions, zero failures. The real TUI controller used an owned local compatible HTTP endpoint for model discovery, explicit model selection, synthetic capability preflight, model-proposed browser flow, actual terminal approval and real browser evidence. With no independent verifier configured, task correctness remained unknown. Reopening retained the selected model; disconnect cleared it. Native `python3 scripts/pty-models.py dist/mavona`: passed metadata-only GET, keyboard filtering/selection, no inference,80×24→60×18 resize and original terminal-mode restoration. Its first attempt sent input before renderer readiness; the harness now waits for actual discovery/render readiness before interacting. Strict typecheck/build/diff check passed. CI includes the new native model/viewer/agent paths but has not run remotely.
 
 Actual `bun scripts/rails-browser-acceptance.ts`:3passed,12assertions, zero failures, using the owned Rails8.1.3.1/Turbo/Stimulus fixture and independent SQLite persistence/authorization assertions across all three engines. The helper stopped its owned server. This is the existing browser-flow scenario, not yet the entire prompt-to-Rails-code canonical scenario.
+
+
+### One objective repair attempt with shared budgets — 2026-09-07
+
+The task loop now permits at most one configured repair pass after a required, fresh, non-model-proposed verifier exits nonzero. The same session/task/worktree lease, provider/model, grants, acceptance baseline and global turn/tool/time budget continue. Verifier executions now count toward the tool budget. Actual bounded failure evidence goes back to the model; prior checks become stale and independent checks rerun after repair. Missing, unknown, cancelled or stale evidence cannot trigger repair. Permanent failure returns failed with repair-budget evidence; criteria edits still require exact acceptance adoption. `--repair-attempts0|1` and durable `/repair0|1` configure the limit; default1. Canonical task.repair.started events and TUI status expose the attempt.
+
+The initial defining suite had3expected failures before integration. Actual subsequent native agent-repair/agent-loop/agent-inspection/TUI-model/CLI run:33passed,179assertions, zero skips/failures. It repaired an actual source defect and independently verified the result while preserving the prior edit; permanent failure made exactly one further model pass; disabled CLI/TUI policies made no extra inference; exhausted turns and unknown command outcomes did not repair; weakened test criteria were blocked for adoption. Strict typecheck, native build and targeted diff check passed. Full compaction/widening and canonical release scenarios remain implementing.
