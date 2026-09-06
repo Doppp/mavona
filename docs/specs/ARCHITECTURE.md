@@ -197,10 +197,10 @@ See `docs/specs/RETENTION.md` for artifact budgets, archival and explicit eviden
 | Tier | Responsibility | Execution |
 | --- | --- | --- |
 | 1 | Git, file inventory, data-only lockfile/YAML/SQL inspection, naming heuristics, scoring and selection | TypeScript, no target runtime |
-| 2 | Declared Ruby classes/modules, associations, validations, callbacks, actions and constants | No-boot parser adapter: Prism candidate versus Tree-sitter candidate |
+| 2 | Declared Ruby classes/modules, associations, validations, callbacks, actions and constants | No-boot Prism adapter (ADR003) |
 | 3 | Resolved routes, effective configuration, resolved Zeitwerk paths and runtime associations/schema facts | Explicit target Ruby/Bundler Rails boot |
 
-Milestone 0 measures a no-boot Prism subprocess against the current/reference structural approach. Parser selection is pending that ADR; do not implement two full semantic analyzers in advance. Tree-sitter may remain useful for TUI highlighting independently of the Rails fact parser. `schema.rb` and Ruby configuration are code: parse them, never evaluate them in Tier 1.
+[ADR003](../adr/003-browser-and-probe-runtime.md) records the current no-boot Prism adapter and its measured fixture evidence. Broader parity and representative parser performance remain required. Tree-sitter serves TUI highlighting independently of the Rails fact parser (ADR005). `schema.rb` and Ruby configuration are code: parse them, never evaluate them in Tier 1.
 
 No-boot means no application requires, Bundler setup, initializers or user Ruby evaluation. It still requires a working configured Ruby executable and compatible parser; neither is guaranteed by having a checkout. Support configured container execution where already declared, or degrade to Tier 1 with explicit unknown structural facts. Do not silently install gems into the target app. Probe availability/version first; test older-Ruby and Docker-only fixtures. Distinguish syntactic declarations from effective runtime behavior.
 
