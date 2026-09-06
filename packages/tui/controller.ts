@@ -115,7 +115,7 @@ export class TuiController {
     const flow=await readFlow(text.slice(9).trim());const grant=approveFlow(flow,this.root,'explicit-user');this.active=new AbortController();this.update({running:true});
     if(!await this.requestApproval(digestFlow(flow),JSON.stringify({checkout:this.root,origins:grant.origins,flow},null,2)+'\nBrowser navigation and actions can mutate the development application.',this.active.signal)){this.add('Browser flow denied. No browser was started.');return;}
     const result=await runInspection({root:this.root,flow,store:this.store,signal:this.active.signal,onEvent:event=>{if(event.type==='inspection.event')this.update({status:'App Inspection · '+JSON.parse(String(event.payload.event)).operation});}});
-    this.add(`App Inspection · ${result.report.status}\n${result.report.checks.map(check=>`${check.id} · ${check.status} · ${check.provenance}`).join('\n')}\nLocal report: ${result.reportPath}`);
+    this.add(`App Inspection · ${result.report.status}\nProfile: ${result.report.profile?.id??'unknown'} · ${result.report.profile?.status??'unknown'} · other profiles unchecked: ${result.report.profile?.unchecked.join(', ')??'unknown'}\n${result.report.checks.map(check=>`${check.id} · ${check.status} · ${check.provenance}`).join('\n')}\nLocal report: ${result.reportPath}`);
     if(result.exitCode!==0)return;
    }
    else if(text==='/providers')this.add(presets.map(p=>`${p.id} · ${p.locality.toUpperCase()} · ${new URL(p.baseUrl).host}`).join('\n'));
