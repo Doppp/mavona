@@ -1,0 +1,8 @@
+id: ffcrm_task_literal_search
+repo: fat_free_crm
+commit: 059c4d0c79d5628bed33026372d17390965bdad5
+prompt: |
+  Task.text_search must treat SQL LIKE metacharacters in the user's query as literal characters. Searching for an underscore or percent sign should match names containing that character, not names where it acts as a wildcard. Preserve case-insensitive substring search and add focused specs.
+budget:
+  max_duration_seconds: 900
+grader: graders/ffcrm_task_literal_search.rb

@@ -23,6 +23,12 @@ jobs:
         with:
           ruby-version: 4.0.6
           bundler-cache: false
+      - name: Provision pinned Linux evaluation boundary
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bubblewrap=0.9.0-1ubuntu0.1
+          bwrap --version
       - run: bun install --frozen-lockfile
       - name: Provision explicit fixture and browser test dependencies
         run: |

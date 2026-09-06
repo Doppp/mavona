@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "fdee1136acd7863885ed20c6760f61674f7e32c5",
+  "runtime": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +PRISM [arm64-darwin25]",
+  "scope": "Pure result normalization using recorded process-result fixtures; no grader execution",
+  "observations": [
+    {
+      "input": {
+        "id": "pass",
+        "stdout": "{\"grader_status\":\"passed\",\"tests_status\":\"passed\"}",
+        "exitCode": 0,
+        "timedOut": false
+      },
+      "observed": {
+        "grader_status": "passed",
+        "tests_status": "passed",
+        "notes": "",
+        "output": "{\"grader_status\":\"passed\",\"tests_status\":\"passed\"}"
+      }
+    },
+    {
+      "input": {
+        "id": "failure",
+        "stdout": "{\"grader_status\":\"failed\",\"tests_status\":\"failed\"}",
+        "exitCode": 1,
+        "timedOut": false
+      },
+      "observed": {
+        "grader_status": "failed",
+        "tests_status": "failed",
+        "notes": "",
+        "output": "{\"grader_status\":\"failed\",\"tests_status\":\"failed\"}"
+      }
+    },
+    {
+      "input": {
+        "id": "nonzero-pass-claim",
+        "stdout": "{\"grader_status\":\"passed\",\"tests_status\":\"passed\"}",
+        "exitCode": 1,
+        "timedOut": false
+      },
+      "observed": {
+        "grader_status": "passed",
+        "tests_status": "passed",
+        "notes": "",
+        "output": "{\"grader_status\":\"passed\",\"tests_status\":\"passed\"}"
+      }
+    },
+    {
+      "input": {
+        "id": "not-run",
+        "stdout": "{\"grader_status\":\"not_run\",\"tests_status\":\"not_run\"}",
+        "exitCode": 0,
+        "timedOut": false
+      },
+      "observed": {
+        "grader_status": "not_run",
+        "tests_status": "not_run",
+        "notes": "",
+        "output": "{\"grader_status\":\"not_run\",\"tests_status\":\"not_run\"}"
+      }
+    },
+    {
+      "input": {
+        "id": "error",
+        "stdout": "{\"grader_status\":\"error\",\"tests_status\":\"error\"}",
+        "exitCode": 2,
+        "timedOut": false
+      },
+      "observed": {
+        "grader_status": "error",
+        "tests_status": "error",
+        "notes": "",
+        "output": "{\"grader_status\":\"error\",\"tests_status\":\"error\"}"
+      }
+    },
+    {
+      "input": {
+        "id": "timeout",
+        "stdout": "{\"grader_status\":\"passed\",\"tests_status\":\"passed\"}",
+        "exitCode": null,
+        "timedOut": true
+      },
+      "observed": {
+        "grader_status": "error",
+        "tests_status": "error",
+        "notes": "",
+        "output": "{\"grader_status\":\"passed\",\"tests_status\":\"passed\"}"
+      }
+    },
+    {
+      "input": {
+        "id": "malformed",
+        "stdout": "not JSON",
+        "exitCode": 0,
+        "timedOut": false
+      },
+      "observed": {
+        "grader_status": "error",
+        "tests_status": "not_run",
+        "notes": "invalid grader output: unexpected token 'not' at line 1 column 1",
+        "output": "not JSON"
+      }
+    },
+    {
+      "input": {
+        "id": "missing-tests",
+        "stdout": "{\"grader_status\":\"passed\"}",
+        "exitCode": 0,
+        "timedOut": false
+      },
+      "observed": {
+        "grader_status": "passed",
+        "tests_status": "not_run",
+        "notes": "",
+        "output": "{\"grader_status\":\"passed\"}"
+      }
+    },
+    {
+      "input": {
+        "id": "unknown-state",
+        "stdout": "{\"grader_status\":\"maybe\"}",
+        "exitCode": 0,
+        "timedOut": false
+      },
+      "observed": {
+        "grader_status": "error",
+        "tests_status": "not_run",
+        "notes": "",
+        "output": "{\"grader_status\":\"maybe\"}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+id: demo_comment_length
+repo: sqlite_on_rails_demo
+commit: 478c9ab1d2429123a0e56be7ce6ca427236191de
+prompt: |
+  Limit Comment bodies to 1,000 characters. Exactly 1,000 characters must be valid and 1,001 invalid, while the existing presence and five-character minimum requirements remain unchanged. Add focused model tests.
+budget:
+  max_duration_seconds: 900
+grader: graders/demo_comment_length.rb

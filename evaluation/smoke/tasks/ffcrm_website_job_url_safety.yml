@@ -1,0 +1,8 @@
+id: ffcrm_website_job_url_safety
+repo: fat_free_crm
+commit: 059c4d0c79d5628bed33026372d17390965bdad5
+prompt: |
+  AccountWebsiteJob must safely ignore malformed website values and URLs whose scheme is not HTTP or HTTPS. These inputs must not raise and must not make a network request. Preserve the existing behavior for blank and valid HTTP(S) websites, and add focused specs.
+budget:
+  max_duration_seconds: 900
+grader: graders/ffcrm_website_job_url_safety.rb

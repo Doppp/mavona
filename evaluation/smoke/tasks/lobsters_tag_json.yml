@@ -1,0 +1,8 @@
+id: lobsters_tag_json
+repo: lobsters
+commit: 2f385d149e67f5ff78643dcf6d3cab0b24c0117c
+prompt: |
+  Tag JSON should expose the `permit_by_new_users` boolean under that exact key. It must not emit the misspelled singular key, and existing fields such as tag and description must remain present. Add a focused repository test.
+budget:
+  max_duration_seconds: 900
+grader: graders/lobsters_tag_json.rb

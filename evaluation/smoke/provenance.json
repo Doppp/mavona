@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "fdee1136acd7863885ed20c6760f61674f7e32c5",
+  "sourceDirectory": "eval",
+  "sha256": {
+    "repos.yml": "aa2292f57a70262a34b8f316abadee82ad2eb926f785efe520226bcadef74993",
+    "tasks/demo_comment_length.yml": "4d5c21655a46052a1e3dabd543c790c644a1280510cc2c348f1bdcddc0900083",
+    "tasks/demo_post_title_normalization.yml": "b6e931482417b0df50e117d0a33dabefe69645364172d4e0a001520aa3283069",
+    "tasks/demo_public_post_index.yml": "b41a3a9bcd4a0cfd55b5ff7d4294441650b93bda976f41869f8bf9a6c4349abc",
+    "tasks/ffcrm_account_name_normalization.yml": "41f7855b48d0d557da01210ce792dd4492a894b36db512783aefb9d2e7c17674",
+    "tasks/ffcrm_task_literal_search.yml": "c5223c52b57920a3082db5de132422588c5d9dc75c58d49912881a54ce6fc45f",
+    "tasks/ffcrm_website_job_url_safety.yml": "55c2b3dd3112101542cc521e19a220bdc94c20b84f30243481a08d4e85ec16bf",
+    "tasks/lobsters_message_subject.yml": "7dd1cb741eeab1f4b8bf89a20409f0f3b8701fffb8db1e8e47df3eb58fd0514d",
+    "tasks/lobsters_notify_message_idempotent.yml": "0942ada9570f885a6251d299f0fd3e1ebc5eb3dcb1d3e33eef56363512e98326",
+    "tasks/lobsters_tag_json.yml": "6cf69ee032db1526675ca03aa154364fdf472c02dc91fa56dc22e954ae7ec53a",
+    "graders/demo_comment_length.rb": "77c0debf0bd1f0e8e33c9c0244f4075307ef96edcfb0624bbd3ff52b8c9a9b08",
+    "graders/demo_post_title_normalization.rb": "9e14faf3b85284fb25a3191bf68abe73cd2def67b031a84a1635b8e49f06dc89",
+    "graders/demo_public_post_index.rb": "ed3b58401f2fcdf7626ccb4c4985f84aa9b8d6a30d0496746a477836e1ce85b3",
+    "graders/ffcrm_account_name_normalization.rb": "8202ef24ec0990fa1598e47e7ddb28a9f4f0adc4f5084d688311771142c465ab",
+    "graders/ffcrm_task_literal_search.rb": "cf4aa6adf774b7a3741c4bf4f07ea7f622a7090aeb38f690caf1091405c11052",
+    "graders/ffcrm_website_job_url_safety.rb": "aacb1110f2a20a4733d7f2a27f407d3242fd86472c4f59901498f1fc24ad23cb",
+    "graders/lobsters_message_subject.rb": "23e1295de9cad3192b5178d79bc6699c923c1f47bcb1fd6f268872e14df53720",
+    "graders/lobsters_notify_message_idempotent.rb": "5abe9ee978a24190f49978d1b26b171eb54b206b74a84aedd5fab3e66d838d63",
+    "graders/lobsters_tag_json.rb": "0f4811046cf8d2869fea709a43c096f928231a030de91c40e0b2f9487beaa33b",
+    "graders/support.rb": "5687b83271c447ae62bfe68ff3535a73004ae7a6dd7a8d9b5b3ca4ee4a417747"
+  }
+}

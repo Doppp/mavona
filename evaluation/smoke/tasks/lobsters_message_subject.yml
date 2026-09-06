@@ -1,0 +1,8 @@
+id: lobsters_message_subject
+repo: lobsters
+commit: 2f385d149e67f5ff78643dcf6d3cab0b24c0117c
+prompt: |
+  Private-message subjects containing only whitespace are currently accepted. Make them invalid while preserving the existing 1-to-100-character subject boundary for nonblank subjects. Add a focused repository test.
+budget:
+  max_duration_seconds: 900
+grader: graders/lobsters_message_subject.rb
