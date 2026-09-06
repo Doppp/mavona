@@ -17,15 +17,20 @@
   "devDependencies": {
     "@types/bun": "1.4.1",
     "@types/node": "26.4.1",
+    "@types/pngjs": "6.0.5",
     "typescript": "7.0.2"
   },
   "dependencies": {
     "@opentui/core": "0.5.10",
     "@opentui/solid": "0.5.10",
+    "playwright": "1.63.0",
+    "playwright-core": "1.63.0",
+    "pngjs": "7.0.0",
     "solid-js": "1.9.12",
     "web-tree-sitter": "0.25.10"
   },
   "patchedDependencies": {
-    "@opentui/core@0.5.10": "patches/@opentui%2Fcore@0.5.10.patch"
+    "@opentui/core@0.5.10": "patches/@opentui%2Fcore@0.5.10.patch",
+    "playwright-core@1.63.0": "patches/playwright-core@1.63.0.patch"
   }
 }

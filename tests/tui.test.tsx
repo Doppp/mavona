@@ -25,3 +25,9 @@ test('approval owns focus and streamed state renders while preserving the draft'
   setup.mockInput.pressKey('c',{ctrl:true});await setup.renderOnce();expect(cancelled).toBe(true);expect(model().draft).toBe('keep this');
  }finally{setup.renderer.destroy();}
 });
+test('source opens at the requested line and background output preserves its snapshot and draft',async()=>{
+ const text=Array.from({length:100},(_,i)=>`source-line-${i+1}`).join('\n');const [model,setModel]=createSignal<ScreenModel>({repository:'orders',status:'ready',draft:'preserved',messages:[],source:{path:'注文.rb',text,digest:'snapshot',line:40,wrap:false}});
+ const setup=await testRender(()=> <Screen model={model} actions={{draft:value=>setModel(m=>({...m,draft:value})),async submit(){},closeSource:()=>setModel(m=>({...m,source:null})),close(){}}}/>,{width:80,height:24});
+ try{await setup.renderOnce();await setup.renderOnce();expect(setup.captureCharFrame()).toContain('source-line-40');setModel(m=>({...m,messages:[{id:'new-output',text:'Background stream'}]}));await setup.renderOnce();expect(setup.captureCharFrame()).toContain('source-line-40');expect(model().draft).toBe('preserved');expect(model().source?.digest).toBe('snapshot');}
+ finally{setup.renderer.destroy();}
+});

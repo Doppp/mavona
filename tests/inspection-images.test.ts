@@ -1,0 +1,9 @@
+import { expect, test } from 'bun:test';
+import { PNG } from 'pngjs';
+import { compareImages, normalizePng, type CaptureConditions } from '../packages/app-inspection/images';
+const png=(red:number)=>{const p=new PNG({width:4,height:4});for(let i=0;i<p.data.length;i+=4){p.data[i]=red;p.data[i+3]=255;}return PNG.sync.write(p);};
+const conditions:CaptureConditions={engine:'chromium-1243',viewport:{width:4,height:4},fixtureRevision:'seed-1',fontsDigest:'known-fonts',captureSettingsDigest:'same-settings'};
+test('reviewed deterministic PNG baseline detects regression without rewriting',()=>{const baseline=png(0),after=png(255);expect(compareImages(baseline,after,conditions,conditions,{reviewedBy:'user',maxChangedPixelRatio:0}).status).toBe('failed');expect(compareImages(baseline,baseline,conditions,conditions,{reviewedBy:'user',maxChangedPixelRatio:0}).status).toBe('passed');expect(compareImages(baseline,after,conditions,{...conditions,fixtureRevision:'seed-2'},{reviewedBy:'user',maxChangedPixelRatio:0}).status).toBe('unknown');expect(compareImages(baseline,after,conditions,conditions).status).toBe('unknown');expect(baseline).toEqual(png(0));});
+test('imports strip metadata, validate PNG and retain unknown runtime provenance',()=>{const imported=normalizePng(png(42));expect(imported.provenance).toBe('imported');expect(imported.runtimeProvenance).toBe('unknown');expect(()=>normalizePng(Buffer.from('<svg/>'))).toThrow();});
+
+test('comparison viewer is self-contained and keeps untrusted strings inert',async()=>{const {renderComparisonView}=await import('../packages/app-inspection/images');const html=renderComparisonView(png(0),png(255),{status:'unknown',reason:'<script>exfiltrate()</script>'});expect(html).toContain('data:image/png;base64,');expect(html).toContain('&lt;script&gt;');expect(html).not.toContain('<script>');expect(html).toContain('Overlay captures');});

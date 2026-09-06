@@ -1,5 +1,6 @@
 import {inspectRepository} from '../rails/discovery';
-import {readSource} from '../tools/source';
+import {SourceNavigator} from '../tools/source-navigation';
+import type {SourceSelection} from '../tools/source';
 import {SessionStore} from '../sessions/store';
 import {ExecutionPolicy,type PreparedAction} from '../tools/policy';
 import {runTask,type Verifier} from '../agent/loop';
@@ -10,23 +11,29 @@ import type {Envelope} from '../protocol/events';
 import type {ScreenModel} from './screen';
 export class TuiController {
  model:ScreenModel;verifiers:Verifier[]=[];
+ private source:SourceNavigator;private references=new Map<string,SourceSelection>();
  private files:string[]=[];private selection:{provider:string;model:string}|undefined;
  private active:AbortController|undefined;private approval:((approved:boolean)=>void)|undefined;
  private policy:ExecutionPolicy;private vault=new CredentialVault();
  constructor(private root:string,private store:SessionStore,private changed:(model:ScreenModel)=>void){
-  this.policy=new ExecutionPolicy(root);
+  this.policy=new ExecutionPolicy(root);this.source=new SourceNavigator(root);
+  for(const [id,value] of Object.entries(store.state.references))this.references.set(id,JSON.parse(value) as SourceSelection);
   this.model={repository:root.split('/').pop()??root,status:'Discovering Rails application…',draft:store.state.draft,messages:store.state.messages.map(m=>({id:m.id,text:`${m.role}: ${m.text}`})),source:null};
  }
  private update(change:Partial<ScreenModel>){this.model={...this.model,...change};this.changed(this.model);}
  private add(text:string,id=Bun.randomUUIDv7()){this.update({messages:[...this.model.messages,{id,text:this.store.sanitizeText(text)}]});}
  async discover(){const result=await inspectRepository(this.root);this.files=result.files;this.update({status:result.status==='selected'?`Rails ${result.facts.railsVersion??'unknown'} · ${result.facts.testFrameworks.join(', ')||'tests unknown'} · runtime unchecked`:'Choose a Git-backed Rails application; static inspection remains available.'});}
  draft(text:string){if(text===this.model.draft)return;const event=this.store.append('draft.changed',{text});this.update({draft:String(event.payload.text)});}
- closeSource(){this.update({source:null});}
+ closeSource(){this.source.close();this.update({source:null});}
  cancel(){this.active?.abort();this.resolveApproval(false);}
  resolveApproval(approved:boolean){const resolve=this.approval;this.approval=undefined;this.update({approval:undefined});resolve?.(approved);}
  private approve(action:PreparedAction,signal:AbortSignal):Promise<boolean>{
   if(signal.aborted)return Promise.resolve(false);
-  return new Promise(resolve=>{const cancelled=()=>this.resolveApproval(false);signal.addEventListener('abort',cancelled,{once:true});this.approval=value=>{signal.removeEventListener('abort',cancelled);resolve(value);};this.update({approval:{id:action.identity,text:JSON.stringify({checkout:action.root,action:action.action,executable:action.executable,settingsDigest:action.settingsDigest},null,2)+'\nRepository commands execute application code; not an OS sandbox.'}});});
+  return this.requestApproval(action.identity,JSON.stringify({checkout:action.root,action:action.action,executable:action.executable,settingsDigest:action.settingsDigest},null,2)+'\nRepository commands execute application code; not an OS sandbox.',signal);
+ }
+ private requestApproval(id:string,text:string,signal:AbortSignal):Promise<boolean>{
+  if(signal.aborted)return Promise.resolve(false);
+  return new Promise(resolve=>{const cancelled=()=>this.resolveApproval(false);signal.addEventListener('abort',cancelled,{once:true});this.approval=value=>{signal.removeEventListener('abort',cancelled);resolve(value);};this.update({approval:{id,text:this.store.sanitizeText(text)}});});
  }
  private event(event:Envelope){
   if(event.type==='assistant.delta'){
@@ -40,10 +47,29 @@ export class TuiController {
   if(this.active)return;
   this.draft(text);
   try{
-   if(text==='/help')this.add('/files [query] · /open path[:line] · /close\n/connect provider model · /disconnect · /providers\n/verify ["command","argument"] · /checks · /revoke\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
+   if(text==='/help')this.add('/files [query] · /open path[:line] · /close\n/find text · /next · /previous · /goto line · /back · /wrap · /refresh\n/select start:end · /attach · /references · /detach ID\n/connect provider model · /disconnect · /providers\n/verify ["command","argument"] · /checks · /revoke\n/app doctor · /app run flow.json\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
    else if(text==='/files'||text.startsWith('/files ')){const query=text.slice(7).trim().toLowerCase();this.add(this.files.filter(p=>p.toLowerCase().includes(query)).slice(0,200).join('\n')||'No matching Rails files.');}
    else if(text==='/close')this.closeSource();
-   else if(text.startsWith('/open ')){const match=/^(.*?)(?::([1-9]\d*))?$/.exec(text.slice(6).trim())!;const source=await readSource(this.root,match[1]!);const line=Number(match[2]??1);if(line>source.text.split('\n').length)throw new Error('Line outside source');this.update({source:{...source,line}});}
+   else if(text.startsWith('/open ')){const match=/^(.*?)(?::([1-9]\d*))?$/.exec(text.slice(6).trim())!;await this.source.open(match[1]!,Number(match[2]??1));this.update({source:this.source.current});}
+   else if(text.startsWith('/find ')){this.source.search(text.slice(6));this.update({source:this.source.current});}
+   else if(text.startsWith('/goto ')){this.source.goto(Number(text.slice(6)));this.update({source:this.source.current});}
+   else if(text==='/next'||text==='/previous'){this.source.next(text==='/next'?1:-1);this.update({source:this.source.current});}
+   else if(text==='/back'){this.source.back();this.update({source:this.source.current});}
+   else if(text==='/wrap'){this.source.toggleWrap();this.update({source:this.source.current});}
+   else if(text==='/refresh'){await this.source.refresh();this.update({source:this.source.current});}
+   else if(text.startsWith('/select ')){const match=/^(\d+)(?::(\d+))?$/.exec(text.slice(8).trim());if(!match)throw new Error('Use /select start:end');this.source.select(Number(match[1]),Number(match[2]??match[1]));this.update({source:this.source.current});}
+   else if(text==='/attach'){const reference=this.source.reference();const id=Bun.randomUUIDv7();this.references.set(id,reference);this.store.append('draft.reference.added',{referenceId:id,reference:JSON.stringify(reference)});this.add(`Draft reference ${id} · ${reference.path}:${reference.start}–${reference.end} · ${reference.digest.slice(0,12)}. /detach ID removes it. No model request made.`);}
+   else if(text.startsWith('/detach ')){const id=text.slice(8).trim();if(!this.references.has(id))throw new Error('Unknown reference ID');this.references.delete(id);this.store.append('draft.reference.removed',{referenceId:id});}
+   else if(text==='/references')this.add([...this.references].map(([id,r])=>`${id} · ${r.path}:${r.start}–${r.end}`).join('\n')||'No selected context.');
+   else if(text==='/app doctor'){const {doctor}=await import('../app-inspection/service');this.add(JSON.stringify(await doctor(),null,2));}
+   else if(text.startsWith('/app run ')){
+    const {readFlow}=await import('../cli/app');const {digestFlow,approveFlow}=await import('../app-inspection/service');const {runInspection}=await import('../agent/inspection');
+    const flow=await readFlow(text.slice(9).trim());const grant=approveFlow(flow,this.root,'explicit-user');this.active=new AbortController();this.update({running:true});
+    if(!await this.requestApproval(digestFlow(flow),JSON.stringify({checkout:this.root,origins:grant.origins,flow},null,2)+'\nBrowser navigation and actions can mutate the development application.',this.active.signal)){this.add('Browser flow denied. No browser was started.');return;}
+    const result=await runInspection({root:this.root,flow,store:this.store,signal:this.active.signal,onEvent:event=>{if(event.type==='inspection.event')this.update({status:'App Inspection · '+JSON.parse(String(event.payload.event)).operation});}});
+    this.add(`App Inspection · ${result.report.status}\n${result.report.checks.map(check=>`${check.id} · ${check.status} · ${check.provenance}`).join('\n')}\nLocal report: ${result.reportPath}`);
+    if(result.exitCode!==0)return;
+   }
    else if(text==='/providers')this.add(presets.map(p=>`${p.id} · ${p.locality.toUpperCase()} · ${new URL(p.baseUrl).host}`).join('\n'));
    else if(text.startsWith('/connect ')){
     const parts=text.trim().split(/\s+/);if(parts.length!==3)throw new Error('Use /connect provider model');const preset=presets.find(p=>p.id===parts[1]);if(!preset)throw new Error('Unknown provider; use /providers');
@@ -55,12 +81,13 @@ export class TuiController {
    else if(text.startsWith('/'))throw new Error('Unknown command; use /help');
    else {
     if(!this.selection){this.add('Choose /connect provider model before submitting a task. Draft retained.');return;}
+    for(const reference of this.references.values())if(!await this.source.currentReference(reference)){this.add('Selected source changed. Detach the stale reference, refresh the file and select again before submission. No model request made.');return;}
     const selection=this.selection;const preset=presets.find(p=>p.id===selection.provider)!;
     this.active=new AbortController();this.update({running:true});this.add(`You · ${text}`);
     const credential=await this.vault.resolve(preset.id,preset.credentialNames);if(credential)this.store.addSecret(credential.value);
     const provider=createProvider(preset.id,credential?.value);
     const capabilities=await preflightCapabilities(provider,selection.model,preset.locality,this.active.signal);
-    const result=await runTask({root:this.root,task:text,provider,providerId:preset.id,model:selection.model,capabilities,store:this.store,policy:this.policy,signal:this.active.signal,verifiers:this.verifiers,onEvent:event=>this.event(event),approve:action=>this.approve(action,this.active!.signal)});
+    const result=await runTask({root:this.root,task:text,provider,providerId:preset.id,model:selection.model,capabilities,store:this.store,policy:this.policy,signal:this.active.signal,verifiers:this.verifiers,references:[...this.references.values()],onEvent:event=>this.event(event),approve:action=>this.approve(action,this.active!.signal)});
     this.add(`Task · ${result.status} · correctness ${result.correctness}`);
     if(result.exitCode!==0)return;
    }

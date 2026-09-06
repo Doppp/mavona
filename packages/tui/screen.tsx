@@ -1,11 +1,13 @@
 import { createSignal, createEffect, For, Show } from 'solid-js';
 import { useKeyboard, useRenderer } from '@opentui/solid';
-import type { TextareaRenderable } from '@opentui/core';
-export interface ScreenModel {repository:string;status:string;draft:string;messages:{id:string;text:string}[];connection?:string|undefined;running?:boolean;usage?:string;approval?:{id:string;text:string}|undefined;source:{path:string;text:string;digest:string;line?:number}|null}
+import type { TextareaRenderable,ScrollBoxRenderable } from '@opentui/core';
+export interface ScreenModel {repository:string;status:string;draft:string;messages:{id:string;text:string}[];connection?:string|undefined;running?:boolean;usage?:string;approval?:{id:string;text:string}|undefined;source:{path:string;text:string;digest:string;line?:number;wrap?:boolean;query?:string;matches?:number[];selection?:{start:number;end:number}}|null}
 export interface ScreenActions {draft(text:string):void;submit(text:string):Promise<void>;closeSource():void;close():void;cancel?():void;approve?(approved:boolean):void}
 export function Screen(props:{model:()=>ScreenModel;actions:ScreenActions}) {
  const renderer=useRenderer(); let input:TextareaRenderable|undefined;const [busy,setBusy]=createSignal(false);
  createEffect(()=>{const draft=props.model().draft;if(input&&input.plainText!==draft)input.setText(draft);});
+ let sourceScroll:ScrollBoxRenderable|undefined;let lastSourcePosition='';
+ const positionSource=()=>{const source=props.model().source;const key=source?`${source.path}:${source.digest}:${source.line}`:'';if(sourceScroll&&source&&key!==lastSourcePosition&&sourceScroll.scrollHeight>0){sourceScroll.scrollTo({x:0,y:Math.max(0,(source.line??1)-1)});lastSourcePosition=key;}};
  let lastInterrupt=0;let lastEscape=0;
  useKeyboard(key=>{
   if(props.model().approval){
@@ -25,8 +27,8 @@ export function Screen(props:{model:()=>ScreenModel;actions:ScreenActions}) {
   <box height={3} borderStyle="single" border={['bottom']}><text><strong>Mavona</strong>  {props.model().repository}  ·  {props.model().connection??'NO PROVIDER'}</text></box>
   <Show when={props.model().source} fallback={<scrollbox flexGrow={1}><text>{props.model().status}</text><For each={props.model().messages}>{m=><box paddingY={1}><text>{m.text}</text></box>}</For></scrollbox>}>
    <box flexDirection="column" flexGrow={1}>
-    <text>Source · worktree · {props.model().source?.path} · Esc close</text>
-    <scrollbox flexGrow={1}><text>{props.model().source?.text.split('\n').map((line,i)=>`${String(i+1).padStart(4)}  ${line}`).join('\n')}</text></scrollbox>
+    <text height={1} flexShrink={0}>Source · worktree · {props.model().source?.path} · line {props.model().source?.line??1} · {props.model().source?.selection?`selected ${props.model().source?.selection?.start}–${props.model().source?.selection?.end}`:'Esc close'}</text>
+    <scrollbox ref={value=>{sourceScroll=value;lastSourcePosition='';}} renderBefore={positionSource} scrollX={!props.model().source?.wrap} flexGrow={1}><text wrapMode={props.model().source?.wrap?'word':'none'}>{props.model().source?.text.split('\n').map((line,i)=>`${String(i+1).padStart(4)}  ${line}`).join('\n')}</text></scrollbox>
    </box>
   </Show>
   <Show when={props.model().approval} fallback={<box height={0}/>}><box flexDirection="column" border borderStyle="double" maxHeight={14}><text>Approve exact action? · Y approve once · N deny · Esc deny</text><scrollbox><text>{props.model().approval?.text}</text></scrollbox></box></Show>

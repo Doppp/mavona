@@ -1,0 +1,13 @@
+diff --git a/lib/coreBundle.js b/lib/coreBundle.js
+index 8ed8bb5de1b12c7c050191123b22a119298826bb..8283e9ff3bbf1a4990e7120b389ec30ee3e846a5 100644
+--- a/lib/coreBundle.js
++++ b/lib/coreBundle.js
+@@ -32414,7 +32414,7 @@ async function downloadBrowserWithProgressBar(title, browserDirectory, executabl
+   logPolitely(`${title} downloaded to ${browserDirectory}`);
+ }
+ function downloadBrowserWithProgressBarOutOfProcess(title, browserDirectory, url3, zipPath, executablePath, socketTimeout) {
+-  const cp = childProcess3.fork(libPath("entry", "oopBrowserDownload.js"));
++  const cp = childProcess3.fork(process.env.MAVONA_COMPILED === "1" ? "--mavona-browser-download-worker" : libPath("entry", "oopBrowserDownload.js"));
+   const promise = new ManualPromise();
+   const progress2 = getDownloadProgress();
+   cp.on("message", (message) => {

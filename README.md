@@ -2,26 +2,66 @@
 
 A Rails-specific coding harness being rewritten in TypeScript 7, Bun and OpenTUI/Solid.
 
-**Development status:** v0.1 is incomplete. This checkout contains the maintained product contracts and the beginning of the replacement implementation. There is no supported v0.1 release or installation claim yet. A development OpenTUI screen supports `/files`, `/open <path>`, `/close` and `/help`, plus multiline drafts. It has no coding provider integration yet. The previous Ruby implementation remains in Git history at `fdee113`.
-
-Mavona's required workflow is Inspect → Focus → Plan when warranted → Change → Verify. It will provide source viewing, explicit model/locality selection, policy-bound tools, durable sessions and full Rails browser inspection. Planned capabilities are not verified features; see the [acceptance ledger](docs/RELEASE_ACCEPTANCE.md).
+**Development status:** v0.1 is incomplete and has no supported release yet. The replacement now runs configured coding tasks through native/compatible providers, explicit execution approvals and independent checks. It includes persistent sessions, a streaming terminal, local source navigation and scoped Playwright flows. Full source/editor UX, parity, recovery/performance and App Inspection recording acceptance remain in progress. See the [acceptance ledger](docs/RELEASE_ACCEPTANCE.md) for observed evidence and outstanding requirements. The former Ruby implementation remains in Git history at `fdee113`.
 
 ## Development
 
-Use Bun 1.4.2 and the exact dependencies in the lockfile. TypeScript 7 strict mode checks application code. The current implemented command performs offline Git/Rails discovery; it does not boot the application or run coding tasks.
+Use Bun 1.4.2 and the exact lockfile. TypeScript 7 strict mode checks application code. Structural parsing uses Ruby 4.0.6 with built-in Prism 1.8.1; unavailable parsing remains unknown and never boots the target application.
 
 ```sh
 bun install --frozen-lockfile
-bun run start                    # development TUI in a terminal
 bun run typecheck
-bun test
-bun run start -- inspect /path/to/rails-app --format json
 bun run build
-./dist/mavona inspect /path/to/rails-app --format json
-./dist/mavona inspect /path/to/rails-app --task "Change order validation"
+./dist/mavona                         # terminal
+./dist/mavona inspect /path/to/app --format json
+./dist/mavona inspect /path/to/app --task "Change order validation"
 ```
 
-`inspect` returns 0 for a selected Rails root, 2 for an unsupported/ambiguous scope, and 5 for an inspection/dependency error. It reports runtime facts as unknown. The development binary has been smoke-tested only on macOS arm64; full clean-install/platform acceptance remains pending.
+The terminal supports `/providers`, `/connect provider model`, `/files [query]`, `/open path[:line]`, `/find text`, `/goto line`, `/select start:end`, `/attach`, `/references`, `/detach ID`, `/refresh`, `/back` and `/help`. Connection selection makes no inference call; task submission performs a bounded capability preflight. Credentials come from the provider's environment variable or OS secure store. Never enter credentials into the composer. Each effect requests exact-action approval; `/revoke` clears execution grants. `/verify ["ruby","bin/rails","test"]` configures a required check whose execution also requires approval.
+
+Headless tasks require explicit provider/model selection and execution scope:
+
+```sh
+./dist/mavona run "Change order validation" --provider ollama --model YOUR_MODEL \
+  --allow-write app/models/order.rb \
+  --allow-command '["ruby","bin/rails","test","test/models/order_test.rb"]' \
+  --verify '["ruby","bin/rails","test","test/models/order_test.rb"]' --format jsonl
+./dist/mavona sessions list
+./dist/mavona sessions show SESSION_ID
+./dist/mavona sessions export SESSION_ID
+./dist/mavona resume SESSION_ID
+```
+
+A configured remote provider receives repository context when a task is submitted and can incur charges. Locality never changes automatically. Required checks report passed, failed or unknown independently of assistant prose. Task exit codes are 0 verified, 2 decision/approval required, 3 verification failed, 4 unknown/budget exhausted, 5 execution error, and 130 cancelled. Read-only `inspect` returns 0 for a selected Rails root or 2 for unsupported/ambiguous scope.
+
+## Browser inspection and tests
+
+Browser engines are separate from the executable. Provision explicitly; startup never downloads them. Installation prints target/cache/download information and does not install privileged OS packages. Set `PLAYWRIGHT_BROWSERS_PATH` for a pre-provisioned offline cache.
+
+```sh
+./dist/mavona app doctor
+./dist/mavona app install --browser chromium --dry-run
+./dist/mavona app install --browser chromium
+./dist/mavona app run --flow path/to/flow.json
+# Review the returned complete flow and digest, then approve that exact digest:
+./dist/mavona app run --flow path/to/flow.json --approve-flow DIGEST --format jsonl
+```
+
+Only explicit loopback development origins are supported. `/app doctor` and `/app run path/to/flow.json` expose the same service in the terminal. Reports and masked captures live under the host-managed session artifact directory. Screenshots do not establish correctness. Raw Playwright trace/video export remains unavailable while its required sanitizer is unfinished.
+
+Default Bun tests use local fixtures, fake providers and local HTTP servers; no paid models or external Rails repository. Provision browsers first for actual engine tests. The real Rails/Turbo/Stimulus acceptance fixture has its own isolated SQLite test databases:
+
+```sh
+bun node_modules/playwright/cli.js install chromium firefox webkit
+bundle install --gemfile fixtures/rails-dogfood/Gemfile
+ruby fixtures/rails-dogfood/bin/check
+bun test
+bun scripts/rails-browser-acceptance.ts
+MAVONA_TEST_BINARY="$PWD/dist/mavona" bun test tests/cli.test.ts tests/session-cli.test.ts tests/inspection-cli.test.ts
+python3 scripts/pty-smoke.py dist/mavona
+```
+
+Only Darwin arm64 has observed native packaging evidence so far. Clean isolated browser installation and execution were tested there without Node/Bun on PATH. CI is prepared for Linux and macOS but has not run remotely. Cross-platform support, signing and publication are not claimed.
 
 ## Maintained contracts
 

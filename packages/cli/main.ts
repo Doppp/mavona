@@ -4,6 +4,7 @@ export async function main(args:string[]):Promise<number> {
  if (args[0]==='--version') {console.log('mavona 0.1.0-dev.1');return 0;}
  if(args.length===0 && process.stdin.isTTY){const {startTui}=await import('../tui/start');await startTui();return 0;}
  if (args[0]==='--help'||args.length===0) {console.log('Mavona v0.1 development build\n\n  mavona inspect [PATH] [--format json]\n  mavona --version\n\nRun without arguments for the terminal. Use run TASK --provider ID --model ID with explicit execution grants.\n  mavona sessions list|show|export|fork|archive [ID]\n  mavona resume ID [--format json]');return 0;}
+ if(args[0]==='app'){const {appCommand}=await import('./app');return appCommand(args.slice(1));}
  if(args[0]==='run'){const {runCommand}=await import('./run');return runCommand(args.slice(1));}
  if(args[0]==='sessions'||args[0]==='resume'){const {sessionCommand}=await import('./sessions');return sessionCommand(args.slice(1),args[0]==='resume');}
  if(args[0]==='providers'){const {presets}=await import('../providers/registry');console.log(JSON.stringify({schemaVersion:1,providers:presets.map(p=>({id:p.id,locality:p.locality,endpoint:p.baseUrl,status:'configurable',liveVerified:false}))},null,2));return 0;}

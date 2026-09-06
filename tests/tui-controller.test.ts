@@ -21,3 +21,11 @@ test('connection selection and verifier configuration make no inference calls',a
  await controller.submit('/connect missing model');expect(controller.model.connection).toContain('ollama');
  }finally{store.close();await rm(root,{recursive:true,force:true});}
 });
+test('selected context persists and stale source blocks submission before capability inference',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'mavona-ui-reference-'));const store=new SessionStore(join(root,'.sessions'),'test');
+ try{await writeFile(join(root,'order.rb'),'class Order\nend');const controller=new TuiController(root,store,()=>{});
+  await controller.submit('/open order.rb');await controller.submit('/select 1:2');await controller.submit('/attach');expect(Object.keys(store.state.references)).toHaveLength(1);
+  await writeFile(join(root,'order.rb'),'changed');await controller.submit('/connect ollama fixture');await controller.submit('Change selected code');expect(controller.model.messages.at(-1)?.text).toContain('Selected source changed');expect(store.events.some(e=>e.type==='task.started')).toBe(false);
+  const restored=new TuiController(root,store,()=>{});await restored.submit('/references');expect(restored.model.messages.at(-1)?.text).toContain('order.rb:1–2');
+ }finally{store.close();await rm(root,{recursive:true,force:true});}
+});

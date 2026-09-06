@@ -19,12 +19,22 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 4.0.6
+          bundler-cache: false
       - run: bun install --frozen-lockfile
+      - name: Provision explicit fixture and browser test dependencies
+        run: |
+          bundle install --gemfile fixtures/rails-dogfood/Gemfile
+          bun node_modules/playwright/cli.js install --with-deps chromium firefox webkit
+      - run: ruby fixtures/rails-dogfood/bin/check
       - run: bun run typecheck
       - run: bun test
+      - run: bun scripts/rails-browser-acceptance.ts
       - run: bun run build
       - run: env -i PATH=/usr/bin:/bin ./dist/mavona --version
-      - run: MAVONA_TEST_BINARY="$PWD/dist/mavona" bun test tests/cli.test.ts
+      - run: MAVONA_TEST_BINARY="$PWD/dist/mavona" bun test tests/cli.test.ts tests/session-cli.test.ts tests/inspection-cli.test.ts
       - run: python3 scripts/pty-smoke.py dist/mavona
 
   ruby-characterization:

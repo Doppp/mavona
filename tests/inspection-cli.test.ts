@@ -1,0 +1,20 @@
+import {test,expect} from 'bun:test';import {mkdtemp,writeFile,rm} from 'node:fs/promises';import {join} from 'node:path';import {tmpdir} from 'node:os';
+import {digestFlow,type Flow} from '../packages/app-inspection/service';
+const command=process.env.MAVONA_TEST_BINARY?[process.env.MAVONA_TEST_BINARY]:[process.execPath,join(import.meta.dir,'../apps/mavona/main.ts')];
+test('browser CLI requires exact flow review and emits actual checks and managed report',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'mavona-app-cli-'));let hits=0;
+ const server=Bun.serve({hostname:'127.0.0.1',port:0,fetch(){hits++;return new Response('<h1>Local order</h1>',{headers:{'content-type':'text/html'}});}});
+ const flow:Flow={version:1,url:`http://127.0.0.1:${server.port}`,steps:[{op:'observe'},{op:'assert',id:'order-visible',kind:'visible',locator:{kind:'role',value:'heading',name:'Local order'},required:true,provenance:'user-approved'},{op:'capture'}]};const path=join(root,'flow.json');await writeFile(path,JSON.stringify(flow));
+ const run=async(extra:string[])=>{const child=Bun.spawn([...command,'app','run','--flow',path,'--root',root,'--data-dir',join(root,'data'),...extra],{stdout:'pipe',stderr:'pipe'});const output=await new Response(child.stdout).text();return {code:await child.exited,output:JSON.parse(output)};};
+ try{const refused=await run([]);expect(refused.code).toBe(2);expect(refused.output.approval.flowDigest).toBe(digestFlow(flow));expect(hits).toBe(0);
+  const actual=await run(['--approve-flow',digestFlow(flow)]);expect(actual.code).toBe(0);expect(actual.output.report.status).toBe('passed');expect(actual.output.report.checks[0].status).toBe('passed');expect(await Bun.file(actual.output.reportPath).exists()).toBe(true);expect(hits).toBeGreaterThan(0);
+ }finally{server.stop(true);await rm(root,{recursive:true,force:true});}
+},30000);
+test.skipIf(!process.env.MAVONA_TEST_BINARY)('compiled browser download worker uses IPC and extracts a local archive without Node',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'mavona-download-worker-'));
+ const zip=Buffer.from('UEsDBBQAAAAAAAAAIVzRp3jPFQAAABUAAAAKAAAAbWFya2VyLnR4dG5hdGl2ZS13b3JrZXItZml4dHVyZVBLAQIUAxQAAAAAAAAAIVzRp3jPFQAAABUAAAAKAAAAAAAAAAAAAACAAQAAAABtYXJrZXIudHh0UEsFBgAAAAABAAEAOAAAAD0AAAAAAA==','base64');
+ const server=Bun.serve({hostname:'127.0.0.1',port:0,fetch:()=>new Response(zip,{headers:{'content-length':String(zip.length)}})});
+ try{const child=Bun.spawn([process.env.MAVONA_TEST_BINARY!,'--mavona-browser-download-worker'],{cwd:dir,env:{PATH:'/usr/bin:/bin'},stdout:'pipe',stderr:'pipe',ipc(){}});child.send({method:'download',params:{title:'Local packaged fixture',browserDirectory:join(dir,'browser'),url:server.url.href,zipPath:join(dir,'archive.zip'),socketTimeout:3000,userAgent:'mavona-local-test'}});
+  const timer=setTimeout(()=>child.kill(),5000);try{expect(await child.exited).toBe(0);expect(await Bun.file(join(dir,'browser/marker.txt')).text()).toBe('native-worker-fixture');}finally{clearTimeout(timer);}
+ }finally{server.stop(true);await rm(dir,{recursive:true,force:true});}
+},10000);

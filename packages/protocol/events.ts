@@ -1,4 +1,8 @@
 export interface Payloads {
+ 'draft.reference.added':{referenceId:string;reference:string};
+ 'draft.reference.removed':{referenceId:string};
+ 'inspection.event':{inspectionId:string;event:string};
+ 'inspection.completed':{inspectionId:string;status:'passed'|'failed'|'unknown';reportPath:string};
  'session.opened':{repository:string};
  'draft.changed':{text:string};
  'user.message':{text:string};
@@ -26,6 +30,8 @@ export type EventType=keyof Payloads;
 export interface Envelope {protocolVersion:1;eventId:string;sessionId:string;sequence:number;timestamp:string;type:string;schemaVersion:number;payload:Record<string,unknown>;causedBy?:string}
 export type KnownEvent = {[T in EventType]:Omit<Envelope,'type'|'payload'>&{type:T;payload:Payloads[T]}}[EventType];
 const shapes:Record<EventType,Record<string,readonly string[]|null|'number'|'boolean'>>={
+ 'draft.reference.added':{referenceId:null,reference:null},'draft.reference.removed':{referenceId:null},
+ 'inspection.event':{inspectionId:null,event:null},'inspection.completed':{inspectionId:null,status:['passed','failed','unknown'],reportPath:null},
  'session.opened':{repository:null},'draft.changed':{text:null},'user.message':{text:null},'assistant.delta':{text:null},
  'effect.requested':{effectId:null,kind:['command','patch','browser']},
  'effect.completed':{effectId:null,state:['passed','failed','unknown']},'session.closed':{reason:null},
