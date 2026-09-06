@@ -31,3 +31,8 @@ test('source opens at the requested line and background output preserves its sna
  try{await setup.renderOnce();await setup.renderOnce();expect(setup.captureCharFrame()).toContain('source-line-40');setModel(m=>({...m,messages:[{id:'new-output',text:'Background stream'}]}));await setup.renderOnce();expect(setup.captureCharFrame()).toContain('source-line-40');expect(model().draft).toBe('preserved');expect(model().source?.digest).toBe('snapshot');}
  finally{setup.renderer.destroy();}
 });
+test('native fuzzy picker owns keyboard focus and opens the selected stable identity without altering draft',async()=>{
+ const [model,setModel]=createSignal<ScreenModel>({repository:'orders',status:'ready',draft:'unfinished task',messages:[],source:null,picker:{query:'',items:[{id:'id-order',path:'app/models/order.rb'},{id:'id-customer',path:'app/models/customer.rb'}]}});const picked:string[]=[];
+ const setup=await testRender(()=> <Screen model={model} actions={{draft:text=>setModel(m=>({...m,draft:text})),async submit(){throw Error('Picker must not submit a task');},closeSource(){},close(){},filterFiles:query=>setModel(m=>({...m,picker:{...m.picker!,query}})),pickFile:async id=>{picked.push(id);setModel(m=>({...m,picker:undefined}));},closePicker:()=>setModel(m=>({...m,picker:undefined}))}}/>,{width:80,height:24});
+ try{await setup.renderOnce();setup.mockInput.pressArrow('down');setup.mockInput.pressEnter();await setup.renderOnce();expect(picked).toEqual(['id-customer']);expect(model().draft).toBe('unfinished task');expect(setup.captureCharFrame()).toContain('unfinished task');}finally{setup.renderer.destroy();}
+});

@@ -1,3 +1,4 @@
+import {fuzzyFiles} from '../tools/file-picker';
 import {pendingWorktreeEffects} from '../tools/worktree';
 import {inspectRepository} from '../rails/discovery';
 import {SourceNavigator} from '../tools/source-navigation';
@@ -18,7 +19,7 @@ export class TuiController {
  private files:string[]=[];private selection:{provider:string;model:string}|undefined;
  private active:AbortController|undefined;private approval:((approved:boolean)=>void)|undefined;
  private policy:ExecutionPolicy;private vault=new CredentialVault();
- constructor(private root:string,private store:SessionStore,private changed:(model:ScreenModel)=>void,private terminal?:{suspend:()=>void|Promise<void>;resume:()=>void|Promise<void>}){
+ constructor(private root:string,private store:SessionStore,private changed:(model:ScreenModel)=>void,private terminal?:{copy?:(text:string)=>boolean;suspend:()=>void|Promise<void>;resume:()=>void|Promise<void>}){
   this.policy=new ExecutionPolicy(root);this.source=new SourceNavigator(root);
   for(const [id,value] of Object.entries(store.state.references))this.references.set(id,JSON.parse(value) as SourceSelection);
   const editor=store.events.findLast(event=>event.type==='editor.configured');if(editor)this.editor={argv:argvJSON(String(editor.payload.argv)),terminal:editor.payload.terminal===true};
@@ -28,6 +29,11 @@ export class TuiController {
  private add(text:string,id=Bun.randomUUIDv7()){this.update({messages:[...this.model.messages,{id,text:this.store.sanitizeText(text)}]});}
  async discover(){const result=await inspectRepository(this.root);this.files=result.files;this.update({status:result.status==='selected'?`Rails ${result.facts.railsVersion??'unknown'} · ${result.facts.testFrameworks.join(', ')||'tests unknown'} · runtime unchecked`:'Choose a Git-backed Rails application; static inspection remains available.'});}
  draft(text:string){if(text===this.model.draft)return;const event=this.store.append('draft.changed',{text});this.update({draft:String(event.payload.text)});}
+ async openFiles(query=''){if(!this.files.length)await this.discover();this.filterFiles(query);}
+ filterFiles(query:string){this.update({picker:{query,items:fuzzyFiles(this.files,query)}});}
+ closePicker(){this.update({picker:undefined});}
+ async pickFile(id:string){const choice=this.model.picker?.items.find(item=>item.id===id);if(!choice){this.add('File choice expired. Refresh the file picker.');return;}try{await this.source.open(choice.path);this.update({source:this.source.current,picker:undefined});}catch{this.add('Selected file is unavailable, changed or excluded. Refresh the file picker; the current snapshot is retained.');}}
+ copySource(){try{const selected=this.source.reference();if(Buffer.byteLength(selected.text)>256*1024)throw new Error('Copy limit');const sent=this.terminal?.copy?.(selected.text)??false;this.add(sent?'Copy request sent to terminal clipboard.':'Terminal clipboard unavailable. Selected text remains visible.');}catch{this.add('Select a source range with /select start:end before copying; maximum 256 KiB.');}}
  closeSource(){this.source.close();this.update({source:null});}
  cancel(){this.active?.abort();this.resolveApproval(false);}
  resolveApproval(approved:boolean){const resolve=this.approval;this.approval=undefined;this.update({approval:undefined});resolve?.(approved);}
@@ -51,8 +57,9 @@ export class TuiController {
   if(this.active)return;
   this.draft(text);
   try{
-   if(text==='/help')this.add('/files [query] · /open path[:line] · /close\n/find text · /next · /previous · /goto line · /back · /wrap · /refresh · /diff · /source\n/select start:end · /attach · /references · /detach ID\n/connect provider model · /disconnect · /providers\n/verify ["command","argument"] · /checks · /effects · /revoke · /reconcile [EFFECT_ID explanation]\n/app doctor · /app run flow.json\n/editor terminal|gui JSON_ARGV · /edit\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
-   else if(text==='/files'||text.startsWith('/files ')){const query=text.slice(7).trim().toLowerCase();this.add(this.files.filter(p=>p.toLowerCase().includes(query)).slice(0,200).join('\n')||'No matching Rails files.');}
+   if(text==='/help')this.add('/files [query] · /open path[:line] · /close\n/find text · /next · /previous · /goto line · /back · /wrap · /refresh · /diff · /source\n/select start:end · /copy · /attach · /references · /detach ID\n/connect provider model · /disconnect · /providers\n/verify ["command","argument"] · /checks · /effects · /revoke · /reconcile [EFFECT_ID explanation]\n/app doctor · /app run flow.json\n/editor terminal|gui JSON_ARGV · /edit\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
+   else if(text==='/files'||text.startsWith('/files ')){await this.openFiles(text.slice(7).trim());}
+   else if(text==='/copy')this.copySource();
    else if(text==='/close')this.closeSource();
    else if(text.startsWith('/open ')){const match=/^(.*?)(?::([1-9]\d*))?$/.exec(text.slice(6).trim())!;await this.source.open(match[1]!,Number(match[2]??1));this.update({source:this.source.current});}
    else if(text.startsWith('/find ')){this.source.search(text.slice(6));this.update({source:this.source.current});}

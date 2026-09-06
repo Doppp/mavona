@@ -1,0 +1,25 @@
+{
+  "name": "tree-sitter-ruby",
+  "version": "0.23.1",
+  "purpose": "Ruby source highlighting only; Rails facts remain Prism",
+  "files": [
+    {
+      "path": "tree-sitter-ruby.wasm",
+      "source": "https://github.com/tree-sitter/tree-sitter-ruby/releases/download/v0.23.1/tree-sitter-ruby.wasm",
+      "sha256": "09a96427d7c72f0613ed470cd9812223fc4a91d6a9c025c0235cc6bd59ff96f4",
+      "bytes": 2106352
+    },
+    {
+      "path": "highlights.scm",
+      "source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-ruby/v0.23.1/queries/highlights.scm",
+      "sha256": "0858de9feece6dcd3408a541f995a34918d587ac2c552096026b0e47e2b332e6",
+      "bytes": 2377
+    },
+    {
+      "path": "LICENSE",
+      "source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-ruby/v0.23.1/LICENSE",
+      "sha256": "ee006f02a3d856df282e409be2a86e24a65bb573a98b9c28343771141351bb6b",
+      "bytes": 1075
+    }
+  ]
+}

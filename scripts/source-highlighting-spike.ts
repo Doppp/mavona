@@ -1,0 +1,4 @@
+import {mkdtemp,rm} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';import {sourceHighlighter} from '../packages/tui/source-highlighting';
+const root=await mkdtemp(join(tmpdir(),'mavona-native-highlighting-'));const client=sourceHighlighter(root);
+try{const result=await client.highlightOnce('# 注文\nclass Order < ApplicationRecord\n validates :name, presence: true\nend\n','ruby');if(result.error||!result.highlights?.some(([, ,group])=>group==='keyword')||!result.highlights.some(([, ,group])=>group==='comment'))throw new Error('Native Ruby highlighting failed');console.log(JSON.stringify({status:'passed',language:'ruby',highlights:result.highlights.length,network:'no parser download',runtime:Bun.version,platform:process.platform,architecture:process.arch}));}
+finally{await client.destroy();await rm(root,{recursive:true,force:true});}
