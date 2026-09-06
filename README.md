@@ -8,7 +8,18 @@ Mavona's required workflow is Inspect → Focus → Plan when warranted → Chan
 
 ## Development
 
-Use Bun 1.4.2 and the exact dependencies in the lockfile. TypeScript 7 strict mode checks application code. Development commands are added alongside working slices; packaged executables and clean-install instructions remain pending acceptance.
+Use Bun 1.4.2 and the exact dependencies in the lockfile. TypeScript 7 strict mode checks application code. The current implemented command performs offline Git/Rails discovery; it does not boot the application or run coding tasks.
+
+```sh
+bun install --frozen-lockfile
+bun run typecheck
+bun test
+bun run start -- inspect /path/to/rails-app --format json
+bun run build
+./dist/mavona inspect /path/to/rails-app --format json
+```
+
+`inspect` returns 0 for a selected Rails root, 2 for an unsupported/ambiguous scope, and 5 for an inspection/dependency error. It reports runtime facts as unknown. The development binary has been smoke-tested only on macOS arm64; full clean-install/platform acceptance remains pending.
 
 ## Maintained contracts
 

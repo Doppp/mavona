@@ -119,3 +119,18 @@ Native host: Darwin arm64, Ruby 4.0.6, Bundler 4.0.16. Historical source extract
 ### External evidence blockers
 
 Paid cloud verification: no spending budget supplied. Local model, other native platform hosts and signing access: not established. No live provider, browser, release signature or cross-platform support is claimed. Continue implementation and deterministic checks independently.
+
+### Evidence M0-static — initial implementation, not full feature acceptance
+
+Code: `packages/rails/discovery.ts`, `packages/tools/source.ts`, `packages/cli/main.ts`, `apps/mavona/main.ts`. Tests: `tests/discovery.test.ts`, `tests/cli.test.ts`. RAILS-01, CLI-01, DIST-01 remain implementing; CODE-01/02 now have tested read/selection primitives but no viewer acceptance.
+
+Darwin arm64, Bun 1.4.2, TypeScript 7.0.2. Commands used the development Bun directory on PATH:
+
+- `bun test tests/discovery.test.ts` before implementation: exit 1, missing discovery module (expected red).
+- `bun test`: exit 0, 8 tests, 33 assertions; hostile startup config remains inert, root ambiguity, containment/exclusion, UTF-8 source selection/drift, binary/size refusal and CLI truth checked.
+- `bun run typecheck`: exit 0, TypeScript 7 strict.
+- `bun run build`: initial exit 127 (Bun missing from script PATH), then exit 0 with corrected PATH.
+- `env -i PATH=/usr/bin:/bin dist/mavona --version`: exit 0, `mavona 0.1.0-dev.1`.
+- `MAVONA_TEST_BINARY=$PWD/dist/mavona bun test tests/cli.test.ts`: native packaged fixture inspection/refusal checks; results recorded with this slice.
+
+No provider request, browser execution or Rails boot occurs in this slice. Structural parsing, full instruction scope, cache, routing/parity, interactive source viewing and runtime facts remain required. The user-supplied Ruby deletions remain unstaged; retirement acceptance has not passed.
