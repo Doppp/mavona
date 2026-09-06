@@ -1,3 +1,4 @@
+import {UnreconciledWorktreeEffects} from '../tools/worktree';
 import {captureRepositoryState,changesSince,type RepositoryState} from '../tools/repository-state';
 import {realpath,readdir} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -42,7 +43,7 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
   if(!store.events.length)emit('session.opened',{repository:root});
   emit('task.started',{taskId,text:options.task});
   if(routing.status!=='PLAN_READY')return finish(routing.status,2,{category:'decision',message:routing.reason});
-  lease=await WorktreeLease.acquire(root,taskId);
+  lease=await WorktreeLease.acquire(root,store.sessionId);
   baseline=await captureRepositoryState(root);latest=baseline;
   const prior=store.events.findLast(event=>event.type==='repository.snapshot');
   if(prior){const saved=JSON.parse(String(prior.payload.snapshot)) as RepositoryState;if(saved.root!==baseline.root||saved.digest!==baseline.digest)return finish('repository_changed',2,{category:'decision',message:'Repository changed since the recorded state; inspect and explicitly reconcile before continuing'});}
@@ -64,7 +65,7 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
    }
    signal.throwIfAborted();
    const effectId=Bun.randomUUIDv7();const intent=emit('effect.requested',{effectId,kind:action.tool==='run_command'?'command':'patch'});
-   const outcome=await runtime.execute(action,signal);emit('effect.completed',{effectId,state:outcome.state},intent.eventId);latest=await captureRepositoryState(root);emit('repository.snapshot',{snapshot:JSON.stringify(latest),reason:'effect-result'});return outcome;
+   lease!.beginEffect(effectId,action.tool==='run_command'?'command':'patch');const outcome=await runtime.execute(action,signal);emit('effect.completed',{effectId,state:outcome.state},intent.eventId);lease!.completeEffect(effectId,outcome.state);latest=await captureRepositoryState(root);emit('repository.snapshot',{snapshot:JSON.stringify(latest),reason:'effect-result'});return outcome;
   };
   let calls=0;let concluded=false;
   for(let turn=0;turn<(options.maxTurns??8);turn++){
@@ -108,6 +109,7 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
   }
   const truth=correctness(checks);return finish(truth==='passed'?'verified':truth==='failed'?'verification_failed':'verification_unknown',truth==='passed'?0:truth==='failed'?3:4);
  }catch(error){
+  if(error instanceof UnreconciledWorktreeEffects)return finish('reconciliation_required',2,{category:'recovery',message:error.message});
   if(error instanceof ApprovalRequired)return finish('approval_required',2,{category:'approval',message:error.message});
   if(signal.aborted)return finish('cancelled',options.signal.aborted?130:4,{category:'cancelled',message:'Operation cancelled or task duration exhausted; effects may be unknown'});
   const category=error instanceof ProviderError?error.category:'execution';

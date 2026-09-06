@@ -1,3 +1,4 @@
+import {pendingWorktreeEffects} from '../tools/worktree';
 import {join} from 'node:path';
 import {homedir} from 'node:os';
 import {realpath} from 'node:fs/promises';
@@ -15,6 +16,7 @@ export async function runCommand(raw:string[]):Promise<number>{
  const format=single(args,'format','json');if(!['json','jsonl','text'].includes(format!))throw new Error('Unsupported output format');
  if(!task||!providerId||!model){console.error('run requires a task, --provider and --model; no request was made.');return 2;}
  const root=await realpath(single(args,'root',process.cwd())!);const preset=presets.find(p=>p.id===providerId);
+ const pending=await pendingWorktreeEffects(root);if(pending.length){const result={schemaVersion:1,status:'reconciliation_required',correctness:'unknown',exitCode:2,pendingEffects:pending,recovery:'Inspect the owning session; use sessions reconcile ID --effect EFFECT_ID --reason inspected-current-state'};console.log(format==='text'?result.recovery+' '+JSON.stringify(pending):JSON.stringify(format==='jsonl'?{schemaVersion:1,type:'result',result}:result));return 2;}
  const endpoint=single(args,'endpoint');let custom:Connection|undefined;
  if(endpoint){const locality=single(args,'locality');if(locality!=='local'&&locality!=='remote')throw new Error('Custom endpoint requires explicit locality');custom={id:providerId,baseUrl:endpoint,locality};}
  const connection=custom??preset;if(!connection)throw new Error('Provider configuration required');

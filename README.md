@@ -78,3 +78,5 @@ Input mockups and historical review material are design inputs outside tracked s
 ## License
 
 [MIT](LICENSE) — Copyright (c) 2026 Daryl Yeo.
+
+Interrupted effects can be inspected with terminal `/effects` or `mavona sessions show ID`. After inspecting the worktree and any affected application state, explicitly acknowledge it with `/reconcile EFFECT_ID explanation` in the owning session, or `mavona sessions reconcile ID --effect EFFECT_ID --reason "Inspected current state"`. This preserves an unknown outcome and makes prior verification stale; it does not retry the effect. A pending worktree effect blocks new sessions before model preflight.

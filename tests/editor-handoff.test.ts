@@ -18,6 +18,6 @@ test('GUI launch keeps the worktree lease until explicit saved-file return confi
 });
 test('partial terminal suspension failure still restores ownership and terminal',async()=>{
  const root=await mkdtemp(join(tmpdir(),'mavona-editor-suspend-'));await Bun.spawn(['git','init','-q',root]).exited;await writeFile(join(root,'order.rb'),'original');let restored=false;
- try{await expect(editorHandoff({root,path:'order.rb',line:1,adapter:{argv:[process.execPath,'-e','process.exit(0)'],terminal:true},policy:new ExecutionPolicy(root),signal:new AbortController().signal,approve:async()=>true,suspend:()=>{throw Error('suspend failed');},resume:()=>{restored=true;}})).rejects.toThrow('suspend failed');expect(restored).toBe(true);const lease=await WorktreeLease.acquire(root,'next');lease.close();}
+ try{await expect(editorHandoff({root,path:'order.rb',line:1,adapter:{argv:[process.execPath,'-e','process.exit(0)'],terminal:true},policy:new ExecutionPolicy(root),signal:new AbortController().signal,approve:async()=>true,suspend:()=>{throw Error('suspend failed');},resume:()=>{restored=true;}})).rejects.toThrow('suspend failed');expect(restored).toBe(true);await expect(WorktreeLease.acquire(root,'next')).rejects.toThrow('Unreconciled');const lease=await WorktreeLease.acquire(root,'next',{reconcile:true});expect(lease.pendingEffects()).toHaveLength(1);lease.close();}
  finally{await rm(root,{recursive:true,force:true});}
 });

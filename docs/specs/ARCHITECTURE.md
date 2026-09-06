@@ -184,6 +184,8 @@ Writes use append, flush policy and atomic checkpoint replacement. On startup:
 4. reconcile SQLite projection offsets;
 5. compare stored repository/worktree fingerprint with current Git state.
 
+A separate durable pending-effect record under the worktree lock directory survives loss of the owning process and blocks other sessions before mutation. Record canonical intent and the worktree guard before executing an effect; persist the canonical result before clearing the guard. Unknown outcomes retain it. Explicit reconciliation by the owning session records an explanation and accepts the current repository/application state without changing an unknown outcome into success. Invalidate prior verification, then clear the guard. Reconciliation never replays the effect.
+
 Compaction creates a summary artifact and checkpoint event; it never destroys the original evidence needed for audit until an explicit retention policy permits archival.
 
 See `docs/specs/RETENTION.md` for artifact budgets, archival and explicit evidence expiry. Discovery cache is stored alongside rebuildable SQLite projections, never mixed with credentials.

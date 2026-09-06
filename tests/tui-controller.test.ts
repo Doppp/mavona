@@ -29,3 +29,8 @@ test('selected context persists and stale source blocks submission before capabi
   const restored=new TuiController(root,store,()=>{});await restored.submit('/references');expect(restored.model.messages.at(-1)?.text).toContain('order.rb:1–2');
  }finally{store.close();await rm(root,{recursive:true,force:true});}
 });
+test('terminal reconciliation records an explanation while preserving unknown effect truth',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'mavona-ui-reconcile-'));await Bun.spawn(['git','init','-q',root]).exited;const store=new SessionStore(join(root,'.mavona','sessions','test'),'test');store.append('session.opened',{repository:root});store.append('effect.requested',{effectId:'interrupted',kind:'command'});
+ try{const controller=new TuiController(root,store,()=>{});await controller.submit('/reconcile interrupted Inspected current worktree and application state');expect(store.state.effects.interrupted).toBe('unknown');expect(store.state.mutationAllowed).toBe(true);expect(controller.model.messages.at(-1)?.text).toContain('prior verification is stale');}
+ finally{store.close();await rm(root,{recursive:true,force:true});}
+});

@@ -1,0 +1,24 @@
+import {Database} from 'bun:sqlite';import {mkdir,lstat,realpath} from 'node:fs/promises';import {join} from 'node:path';
+export interface PendingWorktreeEffect {effectId:string;owner:string;kind:'command'|'patch'|'browser'}
+export class UnreconciledWorktreeEffects extends Error {constructor(readonly effects:PendingWorktreeEffect[]){super('Unreconciled worktree effects: '+effects.map(item=>item.owner+'/'+item.effectId).join(', '));}}
+export async function pendingWorktreeEffects(repository:string):Promise<PendingWorktreeEffect[]>{const root=await realpath(repository);let path=root;for(const part of ['.mavona','locks','effects.sqlite']){path=join(path,part);try{const entry=await lstat(path);if(entry.isSymbolicLink()||(part==='effects.sqlite'&&(!entry.isFile()||entry.nlink!==1||entry.size>16*1024*1024)))throw new Error('Worktree recovery file unavailable');}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return [];throw error;}}const database=new Database(path,{readonly:true});try{const effects=database.query('SELECT effectId, owner, kind FROM pending LIMIT 2').all() as PendingWorktreeEffect[];if(effects.length>1||effects.some(item=>!item.effectId||!item.owner||!/^[-\w]+$/.test(item.effectId)||!/^[-\w]+$/.test(item.owner)||!['command','patch','browser'].includes(item.kind)))throw new Error('Invalid worktree recovery record');return effects;}finally{database.close();}}
+export class WorktreeLease {
+ private closed=false;
+ private constructor(private database:Database,private effects:Database,private owner:string,private reconciliation:boolean){}
+ static async acquire(repository:string,owner:string,options:{reconcile?:boolean}={}):Promise<WorktreeLease>{
+  if(!/^[\w-]+$/.test(owner))throw new Error('Invalid worktree owner');const root=await realpath(repository);let parent=root;
+  for(const segment of ['.mavona','locks']){parent=join(parent,segment);await mkdir(parent,{recursive:true,mode:0o700});const metadata=await lstat(parent);if(metadata.isSymbolicLink()||!metadata.isDirectory())throw new Error('Worktree lock symlink refused');}
+  for(const file of ['mutable.sqlite','effects.sqlite'])for(const suffix of ['','-journal','-wal','-shm']){try{const metadata=await lstat(join(parent,file+suffix));if(metadata.isSymbolicLink()||!metadata.isFile()||metadata.nlink!==1)throw new Error('Worktree lock linked file refused');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}
+  const db=new Database(join(parent,'mutable.sqlite'),{create:true});let effects:Database|undefined;
+  try{
+   try{db.exec('PRAGMA busy_timeout=0; CREATE TABLE IF NOT EXISTS owner (id TEXT NOT NULL); BEGIN IMMEDIATE;');db.query('INSERT INTO owner VALUES (?)').run(owner);}catch{throw new Error('Worktree already owned by another mutable task');}
+   effects=new Database(join(parent,'effects.sqlite'),{create:true});effects.exec('PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS pending (effectId TEXT PRIMARY KEY, owner TEXT NOT NULL, kind TEXT NOT NULL)');
+   const lease=new WorktreeLease(db,effects,owner,options.reconcile===true);const pending=lease.pendingEffects();if(pending.length&&!options.reconcile)throw new UnreconciledWorktreeEffects(pending);return lease;
+  }catch(error){effects?.close();db.close();throw error;}
+ }
+ pendingEffects():PendingWorktreeEffect[]{if(this.closed)throw new Error('Worktree lease closed');return this.effects.query('SELECT effectId, owner, kind FROM pending ORDER BY effectId').all() as PendingWorktreeEffect[];}
+ beginEffect(effectId:string,kind:PendingWorktreeEffect['kind']){if(this.closed||this.reconciliation)throw new Error('Worktree not open for effects');if(!/^[\w-]+$/.test(effectId)||!['command','patch','browser'].includes(kind))throw new Error('Invalid worktree effect');if(this.pendingEffects().length)throw new Error('Unreconciled worktree effect prevents mutation');this.effects.query('INSERT INTO pending VALUES (?, ?, ?)').run(effectId,this.owner,kind);}
+ completeEffect(effectId:string,state:'passed'|'failed'|'unknown'){if(this.closed||this.reconciliation)throw new Error('Worktree not open for effects');if(!this.pendingEffects().some(effect=>effect.effectId===effectId&&effect.owner===this.owner))throw new Error('Worktree effect without owned intent');if(state!=='unknown')this.effects.query('DELETE FROM pending WHERE effectId = ? AND owner = ?').run(effectId,this.owner);}
+ reconcileEffect(effectId:string,owner:string){if(!this.reconciliation||this.closed)throw new Error('Explicit reconciliation lease required');const effect=this.pendingEffects().find(item=>item.effectId===effectId);if(!effect||effect.owner!==owner||owner!==this.owner)throw new Error('Worktree effect owner mismatch');this.effects.query('DELETE FROM pending WHERE effectId = ? AND owner = ?').run(effectId,owner);}
+ close(){if(this.closed)return;this.closed=true;try{this.effects.close();}finally{try{this.database.exec('ROLLBACK');}finally{this.database.close();}}}
+}

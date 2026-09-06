@@ -8,9 +8,9 @@ export function correctness(checks:readonly Check[]):Correctness {
  if(!required.length||required.some(c=>!accepted(c)||c.state!=='passed'))return 'unknown';
  return 'passed';
 }
-export interface SessionState {references:Record<string,string>;draft:string;repository:string|null;effects:Record<string,Correctness>;mutationAllowed:boolean;unsupported:boolean;messages:{id:string;role:'user'|'assistant';text:string}[]}
+export interface SessionState {reconciledEffects:Record<string,string>;references:Record<string,string>;draft:string;repository:string|null;effects:Record<string,Correctness>;mutationAllowed:boolean;unsupported:boolean;messages:{id:string;role:'user'|'assistant';text:string}[]}
 export function replay(events:readonly Envelope[]):SessionState {
- const state:SessionState={references:{},draft:'',repository:null,effects:{},mutationAllowed:true,unsupported:false,messages:[]};
+ const state:SessionState={reconciledEffects:{},references:{},draft:'',repository:null,effects:{},mutationAllowed:true,unsupported:false,messages:[]};
  for(const event of events){
   if(!isKnown(event)){state.unsupported=true;continue;}
   switch(event.type){
@@ -20,6 +20,9 @@ export function replay(events:readonly Envelope[]):SessionState {
    case 'draft.changed':state.draft=event.payload.text;break;
    case 'user.message':state.messages.push({id:event.eventId,role:'user',text:event.payload.text});break;
    case 'assistant.delta':state.messages.push({id:event.eventId,role:'assistant',text:event.payload.text});break;
+   case 'effect.reconciled':
+    if(!Object.hasOwn(state.effects,event.payload.effectId))throw new Error('Reconciliation without effect intent');
+    state.reconciledEffects[event.payload.effectId]=event.payload.reason;break;
    case 'effect.requested':
     if(Object.hasOwn(state.effects,event.payload.effectId))throw new Error('Duplicate effect identity');
     state.effects[event.payload.effectId]='unknown';break;
@@ -28,6 +31,6 @@ export function replay(events:readonly Envelope[]):SessionState {
     state.effects[event.payload.effectId]=event.payload.state;break;
   }
  }
- state.mutationAllowed=!state.unsupported&&!Object.values(state.effects).includes('unknown');
+ state.mutationAllowed=!state.unsupported&&!Object.entries(state.effects).some(([id,outcome])=>outcome==='unknown'&&!Object.hasOwn(state.reconciledEffects,id));
  return state;
 }

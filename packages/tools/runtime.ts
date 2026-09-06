@@ -1,21 +1,8 @@
 import {mutateFile} from './file-mutations';
-import {Database} from 'bun:sqlite';
+export {WorktreeLease} from './worktree';
 import {spawn} from 'node:child_process';
-import {mkdir,lstat,realpath} from 'node:fs/promises';
-import {join} from 'node:path';
 import {ExecutionPolicy,prepareAction,type Action} from './policy';
 export interface ToolResult {state:'passed'|'failed'|'unknown';stdout?:string;stderr?:string;exitCode?:number|null;signal?:string|null;reason?:string;path?:string;digest?:string;recoveryPath?:string;durationMs:number}
-export class WorktreeLease {
- private constructor(private database:Database){}
- static async acquire(repository:string,owner:string):Promise<WorktreeLease>{
-  const root=await realpath(repository);let parent=root;
-  for(const segment of ['.mavona','locks']){parent=join(parent,segment);await mkdir(parent,{recursive:true,mode:0o700});if((await lstat(parent)).isSymbolicLink())throw new Error('Worktree lock symlink refused');}
-  const path=join(parent,'mutable.sqlite');try{if((await lstat(path)).isSymbolicLink())throw new Error('Worktree lock symlink refused');}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
-  const db=new Database(path,{create:true});
-  try{db.exec('PRAGMA busy_timeout=0; CREATE TABLE IF NOT EXISTS owner (id TEXT NOT NULL); BEGIN IMMEDIATE;');db.query('INSERT INTO owner VALUES (?)').run(owner);return new WorktreeLease(db);}catch{db.close();throw new Error('Worktree already owned by another mutable task');}
- }
- close(){try{this.database.exec('ROLLBACK');}finally{this.database.close();}}
-}
 export class ToolRuntime {
  constructor(readonly root:string,readonly policy:ExecutionPolicy,private secrets:readonly string[]=[]){ }
  private sanitize(text:string){for(const secret of this.secrets)if(secret)text=text.split(secret).join('[REDACTED]');return text.replace(/Bearer\s+\S+/gi,'Bearer [REDACTED]');}

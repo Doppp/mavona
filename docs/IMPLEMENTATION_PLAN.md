@@ -57,15 +57,14 @@ Effort ranges are currently unknown rather than invented. Measure elapsed implem
 
 ## Active integration plan — 2026-09-07
 
-The native provider adapters, tool assembly, capability checks, secure-store APIs, session lifecycle/checkpoints/retention, exact-action policy, command/patch runtime, provider-neutral task loop, no-boot Prism probe/cache and real Rails fixture now have executable tests. The terminal controller is being connected to this same loop and event stream. No full milestone or capability is acceptance-passed.
+The provider adapters, CLI/TUI task loop, three-engine inspection flow runner, Rails probe/fixture, source references/diffs/editor, anchored create/delete/patch operations and repository fingerprints are integrated. Session files now have bounded reads, link refusal and active-log drift checks. Worktree effect records survive process death across sessions; explicit CLI/TUI reconciliation preserves unknown outcomes and invalidates verification. These are tested implementation slices; no full milestone or capability is acceptance-passed.
 
 Continue in these concrete slices:
 
-1. Commit the verified provider/session, Rails probe/fixture and policy/agent/UI slices separately. Preserve all inherited Ruby deletions unstaged until parity retirement evidence is complete.
-2. Finish terminal/headless integration: durable draft, explicit connection, streamed events, focus-trapped exact-action approval, cancellation, independent verifier truth and session commands. Test reactive rendering and actual local HTTP CLI calls. Provider choice alone must make no inference request.
-3. Extend source controls, context references, diff identity and external-editor lifecycle. Add bounded create/delete operations and Git fingerprints before claiming complete repository tools or fresh resumed verification.
-4. Integrate the actual three-engine inspection service into CLI/TUI and agent boundaries. Complete authentication, multi-page/frame scopes, sanitized recording/report flows and all 14 acceptance scenarios. Provision browser engines explicitly in development/CI, never at product startup.
-5. Complete the reviewed 50-pair parity/divergence manifest and nine-task smoke result semantics. Finish deterministic context widening, compaction and long-session/PTY recovery scenarios.
-6. Run affected checks, native package tests and canonical real Rails scenarios, then reconcile docs/CI and distribution artifacts. Continue through every milestone without routine reauthorization.
+1. Complete source highlighting, fuzzy navigation, clipboard/selection, responsive layout, theme and connection/model/session pickers. Preserve native editor and multiline input behavior with PTY tests.
+2. Complete reviewed 50-pair parity/divergence evidence and nine-task smoke semantics. Preserve inherited Ruby deletions until the retirement evidence is complete.
+3. Integrate structural probe/context widening, required verifier selection, bounded repair and context compaction into the task loop. Verify long-session replay/rendering and complete recovery crash transitions.
+4. Complete inspection trace/video sanitization, profiles/comparisons, agent image use and all 14 acceptance scenarios through the shared service. Browser engines remain explicit installs.
+5. Run canonical real Rails scenarios and target-native packaging checks; prepare installer/Homebrew, checksums, provenance/SBOM and signing inputs without publishing. Continue through every milestone without routine reauthorization.
 
 Development Bun is `/tmp/mavona-toolchain/node_modules/.bin/bun` (1.4.2); Ruby is `/Users/daryl/.local/share/mise/installs/ruby/4.0.6/bin/ruby`. Temporary development installations are not product runtime fallbacks. The real Rails fixture owns only isolated test SQLite files. Browser engines were installed explicitly for local testing. Paid inference has no budget; other native hosts and signing access remain unconfirmed. These rows stay unknown/blocked while independent implementation continues. No push, merge or publication is authorized.
