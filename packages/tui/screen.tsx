@@ -4,7 +4,7 @@ import { createSignal, createEffect, Show } from 'solid-js';
 import { useKeyboard, useRenderer, useTerminalDimensions } from '@opentui/solid';
 import type { TextareaRenderable,ScrollBoxRenderable,SelectRenderable } from '@opentui/core';
 export interface ScreenModel {sourcePanePercent?:number;picker?:{title?:string;query:string;items:{id:string;path:string;line?:number;digest?:string}[]}|undefined;repository:string;status:string;draft:string;messages:{id:string;text:string}[];connection?:string|undefined;running?:boolean;usage?:string;approval?:{id:string;text:string}|undefined;source:{path:string;text:string;digest:string;line?:number;wrap?:boolean;query?:string;matches?:number[];selection?:{start:number;end:number};diff?:{text:string;beforeDigest:string;afterDigest:string;additions:number;deletions:number}}|null}
-export interface ScreenActions {copySource?():void;openFiles?():Promise<void>;filterFiles?(query:string):void;pickFile?(id:string):Promise<void>;closePicker?():void;draft(text:string):void;submit(text:string):Promise<void>;closeSource():void;close():void;cancel?():void;approve?(approved:boolean):void}
+export interface ScreenActions {openCommands?():void;command?(text:string):Promise<void>;copySource?():void;openFiles?():Promise<void>;filterFiles?(query:string):void;pickFile?(id:string):Promise<void>;closePicker?():void;draft(text:string):void;submit(text:string):Promise<void>;closeSource():void;close():void;cancel?():void;approve?(approved:boolean):void}
 export function Screen(props:{model:()=>ScreenModel;actions:ScreenActions}) {
  const renderer=useRenderer();const dimensions=useTerminalDimensions();const wide=()=>dimensions().width>=120; let input:TextareaRenderable|undefined;const [busy,setBusy]=createSignal(false);
  createEffect(()=>{const draft=props.model().draft;if(input&&input.plainText!==draft)input.setText(draft);});
@@ -19,7 +19,8 @@ export function Screen(props:{model:()=>ScreenModel;actions:ScreenActions}) {
   if(props.model().picker){if(key.name==='escape'||key.ctrl&&key.name==='c'){key.preventDefault();props.actions.closePicker?.();}else if(key.name==='down'||key.name==='up'){key.preventDefault();if(key.name==='down')picker?.moveDown();else picker?.moveUp();}else if(key.name==='return'){key.preventDefault();const option=picker?.getSelectedOption();if(typeof option?.value==='string')void props.actions.pickFile?.(option.value);}return;}
   if(key.ctrl&&key.name==='end'&&!props.model().source){key.preventDefault();transcriptScroll?.scrollTo(transcriptScroll.scrollHeight);return;}
   if(key.ctrl&&key.shift&&key.name==='c'&&props.model().source){key.preventDefault();props.actions.copySource?.();return;}
-  if(key.ctrl&&key.name==='p'){key.preventDefault();void props.actions.openFiles?.();return;}
+  if(key.ctrl&&key.name==='p'){key.preventDefault();props.actions.openCommands?.();return;}
+  if(key.ctrl&&(key.name==='d'||key.name==='r')){key.preventDefault();void props.actions.command?.(key.name==='d'?'/diff':'/rails');return;}
   if(key.name==='escape'&&props.model().running&&!props.model().source){key.preventDefault();if(Date.now()-lastEscape<1000)props.actions.cancel?.();lastEscape=Date.now();return;}
   if(key.name==='escape'&&props.model().source){props.actions.closeSource();return;}
   if(key.ctrl&&key.name==='c'){

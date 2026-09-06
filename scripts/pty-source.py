@@ -20,7 +20,7 @@ with tempfile.TemporaryDirectory(prefix='mavona-source-pty-') as directory:
   if multiple:
    assert b'Rails roots' in output,bytes(output).decode(errors='replace')
    os.write(master,b'shop\r');collect(.3)
-  os.write(master,b'unfinished task');collect(.2);os.write(master,b'\x10');collect(.2);os.write(master,b'amord');collect(.2);os.write(master,b'\r');collect(.6)
+  os.write(master,b'unfinished task');collect(.2);os.write(master,b'\x10');collect(.2);os.write(master,b'files');collect(.2);os.write(master,b'\r');collect(.3);os.write(master,b'amord');collect(.2);os.write(master,b'\r');collect(.6)
   assert child.poll() is None,bytes(output).decode(errors='replace')
   assert b'order.rb' in output and b'Source' in output,bytes(output).decode(errors='replace')
   logs=list(root.glob('Library/Application Support/Mavona/sessions/*/events.jsonl'))+list(root.glob('.local/share/mavona/sessions/*/events.jsonl'))

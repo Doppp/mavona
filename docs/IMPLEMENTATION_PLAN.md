@@ -108,3 +108,7 @@ Replace context-limit-only stopping with a bounded local compiler that preserves
 ### Agent no-boot structural evidence and instruction widening
 
 Expose the existing versioned Prism parse operation through one bounded parse_ruby tool. Keep its Ruby executable and parser policy harness-owned; accept only explicit contained Ruby paths, never model-provided argv or runtime boot. Preserve declared-versus-runtime provenance, failed/unknown results, full file digests and canonical output retrieval. When reads or parsing widen to a new path, load its applicable instruction ancestry into pinned context so compaction cannot erase newly discovered constraints. Prove a real provider turn receives actual parsed association/method declarations without executing hostile top-level Ruby, and retains newly encountered instructions after widening.
+
+### Command palette and argument entry
+
+Use a stable local command catalog for a searchable Ctrl+P palette and generated help. Choosing a command with required arguments opens a bounded argument field in the existing picker; commands use the existing controller paths and approval rules. Keep the composer draft intact through filtering, cancellation and execution. File search remains /files. Add Ctrl+D for the existing revision-labelled diff and Ctrl+R for Rails evidence. Verify controller actions and native keyboard interaction at80×24, including cancel, resize and terminal cleanup; palette navigation must make no inference request.

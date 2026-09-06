@@ -47,6 +47,7 @@ jobs:
       - run: python3 scripts/pty-source.py dist/mavona
       - run: python3 scripts/pty-source.py dist/mavona --multiple-roots
       - run: python3 scripts/pty-models.py dist/mavona
+      - run: python3 scripts/pty-commands.py dist/mavona
       - run: python3 scripts/pty-smoke.py dist/mavona
       - run: python3 scripts/pty-editor.py dist/mavona
       - run: python3 scripts/pty-editor.py dist/mavona --cancel
