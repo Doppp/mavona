@@ -49,7 +49,7 @@ Browser engines are separate from the executable. Provision explicitly; startup 
 ./dist/mavona app run --flow path/to/flow.json --approve-flow DIGEST --format jsonl
 ```
 
-Only explicit loopback development origins are supported. `/app doctor` and `/app run path/to/flow.json` expose the same service in the terminal. Reports and masked captures live under the host-managed session artifact directory. Screenshots do not establish correctness. Raw Playwright trace/video export remains unavailable while its required sanitizer is unfinished.
+Only explicit loopback development origins are supported. `/app doctor` and `/app run path/to/flow.json` expose the same service in the terminal. Reports and masked captures live under the host-managed session artifact directory. Screenshots do not establish correctness. Use `--trace` and `--video` (or flow `evidence` flags) before reviewing the approval digest to record constrained Playwright traces and masked checkpoint video. Traces omit DOM, source, arguments and network payloads; the pinned upstream offline loader validates each archive. Videos play masked checkpoint frames at 2 fps and do not preserve pauses. Artifact success does not verify application behavior. An integrated offline trace-viewer UI remains unfinished.
 
 Default Bun tests use local fixtures, fake providers and local HTTP servers; no paid models or external Rails repository. Provision browsers first for actual engine tests. The real Rails/Turbo/Stimulus acceptance fixture has its own isolated SQLite test databases:
 
