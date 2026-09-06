@@ -68,3 +68,8 @@ test('acceptance changes survive retry and require adoption of the exact reviewe
   await writeFile(join(root,path),'assert true\n');store.append('repository.snapshot',{snapshot:JSON.stringify(await captureRepositoryState(root)),reason:'explicit-reconciliation'});const drift=await runTask({...options,adoptAcceptance:async()=>{await writeFile(join(root,path),'assert false\n');return true;}});expect(drift.correctness).toBe('unknown');expect(calls).toBe(2);
  }finally{store.close();await rm(dir,{recursive:true,force:true});}
 });
+
+test('a repeated call ID across turns is rejected before a second effect or result',async()=>{
+ const {dir,root}=await fixture();const store=new SessionStore(join(dir,'session'),'duplicate');let turns=0;const repeated:Provider={async *stream(){turns++;yield{type:'tool.delta',index:0,callId:'same',name:'read_file',argumentsDelta:JSON.stringify({path:'app/models/order.rb'})};yield{type:'completed',finishReason:'tool_calls'};}};
+ try{const result=await runTask({root,task:'Read order behavior',provider:repeated,providerId:'fixture',model:'test',capabilities,store,policy:new ExecutionPolicy(root),signal:new AbortController().signal,verifiers:[]});expect(turns).toBe(2);expect(result.error?.category).toBe('malformed_response');expect(store.events.filter(e=>e.type==='tool.completed')).toHaveLength(1);expect(store.events.filter(e=>e.type==='effect.requested')).toHaveLength(0);}finally{store.close();await rm(dir,{recursive:true,force:true});}
+});

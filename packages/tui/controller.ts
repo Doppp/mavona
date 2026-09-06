@@ -72,6 +72,7 @@ export class TuiController {
   if(event.type==='assistant.delta'){
    const last=this.model.messages.at(-1);const id=last?.id.startsWith('assistant:')?last.id:`assistant:${event.eventId}`;
    const messages=last?.id===id?[...this.model.messages.slice(0,-1),{id,text:last.text+String(event.payload.text)}]:[...this.model.messages,{id,text:String(event.payload.text)}];this.update({messages});
+  }else if(event.type==='context.compacted'){this.add('Context compacted locally · '+String(event.payload.beforeBytes)+' → '+String(event.payload.afterBytes)+' bytes. Canonical evidence retained.');
   }else if(event.type==='task.repair.started'){this.add('Repair attempt '+String(event.payload.attempt)+' / 1 · objective verifier failure. Prior checks are stale until rerun.');}
   else if(event.type==='inspection.completed'){this.add('App Inspection · '+String(event.payload.status)+'\nLocal report: '+String(event.payload.reportPath));}
   else if(event.type==='verification.selected'){this.add('Verifier selection · execution still requires approval\n'+String(event.payload.selection));}
