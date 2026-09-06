@@ -96,6 +96,7 @@ export class TuiController {
   try{
    if(text==='/help')this.add(commandHelp()+'\nEffects require existing approval. Never paste credentials into the composer.');
    else if(text==='/app')this.openInspection();
+   else if(text==='/app report'){const drawer=this.model.inspection??inspectionDrawer(this.store.events);if(!drawer.id)throw new Error('No selected inspection');const {loadReportBundle,startReportViewer}=await import('../app-inspection/report-viewer');const bundle=await loadReportBundle(this.store.directory,this.store.events,drawer.id);const viewer=startReportViewer(bundle);this.traceViewer?.stop();this.traceViewer=viewer;this.update({inspection:{...drawer,text:'Local full-resolution viewer: '+viewer.url+'\nStop with /app stop or exit.\n\n'+inspectionDrawer(this.store.events,drawer.id).text}});this.add('Local inspection report: '+viewer.url);}
    else if(text==='/app history')this.openInspectionHistory();
    else if(text.startsWith('/app show '))this.openInspection(text.slice(10).trim());
    else if(text==='/sessions')await this.openSessions();
@@ -132,7 +133,7 @@ export class TuiController {
      this.add(`Editor returned · ${result.cancelled?'cancelled':result.exitCode}\nSaved changes: ${result.changed.paths.join(', ')||'none observed'}\nPre-existing changes: ${result.changed.preexistingPaths.join(', ')||'none'}\nSource snapshot retained. Use /refresh; all execution grants revoked and prior verification is stale.`);
     }catch(error){if(intent&&this.store.state.effects[effectId]==='unknown')this.store.append('effect.completed',{effectId,state:'unknown'},intent.eventId);throw error;}
    }
-   else if(text==='/app stop'){this.traceViewer?.stop();this.traceViewer=undefined;this.add('Local trace replay stopped.');}
+   else if(text==='/app stop'){this.traceViewer?.stop();this.traceViewer=undefined;if(this.model.inspection?.id)this.update({inspection:{...inspectionDrawer(this.store.events,this.model.inspection.id),text:'Local viewer stopped.\n\n'+inspectionDrawer(this.store.events,this.model.inspection.id).text}});this.add('Local viewer stopped.');}
    else if(text.startsWith('/app replay ')){const {startTraceViewer}=await import('../app-inspection/viewer');const viewer=await startTraceViewer(text.slice(12).trim());this.traceViewer?.stop();this.traceViewer=viewer;this.add('Local offline trace replay: '+viewer.url+'\nUse /app stop or Ctrl+C to stop the owned viewer.');}
    else if(text==='/app doctor'){const {doctor}=await import('../app-inspection/service');this.add(JSON.stringify(await doctor(),null,2));}
    else if(text.startsWith('/app run ')){
