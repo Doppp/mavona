@@ -38,12 +38,13 @@ begin
     parsed = Prism.parse(file['source'])
     declarations = []
     if parsed.success?
-      stack = [[parsed.value, '', false]]
+      stack = [[parsed.value, '', false, false]]
       until stack.empty?
-        node, scope, inside_method = stack.pop
+        node, scope, inside_method, inside_routes = stack.pop
         declaration = nil
         next_scope = scope
         next_method = inside_method
+        next_routes = inside_routes
         case node
         when Prism::ClassNode, Prism::ModuleNode
           raw = node.constant_path.location.slice
@@ -55,9 +56,11 @@ begin
           end
           next_scope = name
           next_method = false
+          next_routes = false
         when Prism::DefNode
           declaration = { kind: 'method', name: node.name.to_s }
           next_method = true
+          next_routes = false
         when Prism::ConstantWriteNode
           declaration = { kind: 'constant', name: [scope, node.name.to_s].reject(&:empty?).join('::') }
         when Prism::ConstantPathWriteNode
@@ -65,6 +68,16 @@ begin
           declaration = { kind: 'constant', name: raw.start_with?('::') ? raw.delete_prefix('::') : [scope, raw].reject(&:empty?).join('::') }
         when Prism::CallNode
           name = node.name.to_s
+          receiver = node.receiver
+          routes = receiver.is_a?(Prism::CallNode) && receiver.name == :routes ? receiver : nil
+          application = routes&.receiver
+          rails = application.is_a?(Prism::CallNode) && application.name == :application ? application.receiver : nil
+          next_routes = true if name == 'draw' && rails.is_a?(Prism::ConstantReadNode) && rails.name == :Rails
+          if inside_routes && !inside_method && node.receiver.nil? && %w[resources resource].include?(name)
+            argument = node.arguments&.arguments&.first
+            literal = argument.is_a?(Prism::SymbolNode) || argument.is_a?(Prism::StringNode) ? argument.unescaped : nil
+            declaration = { kind: 'route', name: literal, macro: name }
+          end
           kind = if %w[belongs_to has_one has_many has_and_belongs_to_many].include?(name) then 'association'
                  elsif %w[validates validate validates_with validates_each].include?(name) then 'validation'
                  elsif name.match?(/\A(?:before|after|around)_(?:validation|save|create|update|destroy|commit|rollback|action|perform)\z/) then 'callback' end
@@ -80,7 +93,7 @@ begin
           declarations << declaration
           raise ArgumentError if declarations.length > 10_000
         end
-        node.compact_child_nodes.reverse_each { |child| stack << [child, next_scope, next_method] }
+        node.compact_child_nodes.reverse_each { |child| stack << [child, next_scope, next_method, next_routes] }
       end
     end
     { path: path, digest: file['digest'], status: parsed.success? ? 'passed' : 'failed', declarations: declarations,

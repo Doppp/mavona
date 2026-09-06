@@ -1,0 +1,208 @@
+{
+  "schemaVersion": 1,
+  "normalizerVersion": 1,
+  "fixtureId": "non-git",
+  "caseId": "routing",
+  "fixtureDigest": "6f5fc0dccf5b639ee4344a644f4a45a89abcebb8b5740ef93a4cffbb25e780de",
+  "v1Commit": "fdee1136acd7863885ed20c6760f61674f7e32c5",
+  "input": {
+    "task": "Change order",
+    "requested": ".",
+    "boot": false
+  },
+  "exitCode": 0,
+  "observation": {
+    "analysis": {
+      "evidence": [
+        {
+          "confidence": {
+            "basis": "Git repository",
+            "label": "unknown",
+            "score": null
+          },
+          "id": "<ID_0>",
+          "kind": "repository_fact",
+          "metadata": {
+            "reason": "git rev-parse could not identify a repository"
+          },
+          "observation": "unknown",
+          "session_id": "<SESSION_ID_1>",
+          "sources": [
+            {
+              "line": null,
+              "path": "<FIXTURE_ROOT>"
+            }
+          ],
+          "subject": "repository",
+          "task_id": null
+        }
+      ],
+      "known_scope": [],
+      "next_step": "Run Mavona from a Rails repository root",
+      "reason": "repository unavailable",
+      "status": "UNSUPPORTED",
+      "summary": "Task execution requires a Git-backed Rails repository",
+      "task_id": "<TASK_ID_2>"
+    },
+    "app_boot": "not_run",
+    "discovery": {
+      "boot": {
+        "command": "unknown",
+        "elapsed_ms": 0,
+        "error": "repository unavailable",
+        "exit_status": null,
+        "status": "unknown"
+      },
+      "evidence": [
+        {
+          "confidence": {
+            "basis": "Git repository",
+            "label": "unknown",
+            "score": null
+          },
+          "id": "<ID_0>",
+          "kind": "repository_fact",
+          "metadata": {
+            "reason": "git rev-parse could not identify a repository"
+          },
+          "observation": "unknown",
+          "session_id": "<SESSION_ID_1>",
+          "sources": [
+            {
+              "line": null,
+              "path": "<FIXTURE_ROOT>"
+            }
+          ],
+          "subject": "repository",
+          "task_id": null
+        }
+      ],
+      "instructions": [],
+      "inventory": {
+        "channels": {
+          "count": 0,
+          "paths": []
+        },
+        "components": {
+          "count": 0,
+          "paths": []
+        },
+        "concerns": {
+          "count": 0,
+          "paths": []
+        },
+        "controllers": {
+          "count": 0,
+          "paths": []
+        },
+        "custom_autoload_eager_load_paths": {
+          "count": 0,
+          "entries": []
+        },
+        "engines": {
+          "count": 0,
+          "paths": []
+        },
+        "factories_fixtures": {
+          "count": 0,
+          "paths": []
+        },
+        "forms": {
+          "count": 0,
+          "paths": []
+        },
+        "initializers": {
+          "count": 0,
+          "paths": []
+        },
+        "jobs": {
+          "count": 0,
+          "paths": []
+        },
+        "mailers": {
+          "count": 0,
+          "paths": []
+        },
+        "migrations": {
+          "count": 0,
+          "paths": []
+        },
+        "models": {
+          "count": 0,
+          "paths": []
+        },
+        "policies": {
+          "count": 0,
+          "paths": []
+        },
+        "presenters": {
+          "count": 0,
+          "paths": []
+        },
+        "queries": {
+          "count": 0,
+          "paths": []
+        },
+        "rake_tasks": {
+          "count": 0,
+          "paths": []
+        },
+        "routes": {
+          "count": 0,
+          "paths": []
+        },
+        "schema_tables": {
+          "count": 0,
+          "names": [],
+          "source": "unknown"
+        },
+        "services": {
+          "count": 0,
+          "paths": []
+        },
+        "tests_specs": {
+          "count": 0,
+          "paths": []
+        }
+      },
+      "profile": {
+        "bundler_version": "unknown",
+        "ci_commands": "unknown",
+        "database_adapter": "unknown",
+        "frontend_approach": "unknown",
+        "job_backend": "unknown",
+        "lint_security_tools": "unknown",
+        "project_type": "unknown",
+        "rails_version": "unknown",
+        "ruby_version": "unknown",
+        "safe_boot_commands": "unknown",
+        "safe_test_commands": "unknown",
+        "schema_format": "unknown",
+        "test_framework": "unknown"
+      },
+      "rails": {
+        "candidate_roots": [],
+        "reason": "repository unavailable",
+        "selected_root": "unknown",
+        "status": "unknown"
+      },
+      "repository": {
+        "current_branch": "unknown",
+        "default_branch": "unknown",
+        "default_branch_source": "unknown",
+        "head_sha": "unknown",
+        "remote_default_branch": "unknown",
+        "root": "unknown",
+        "working_tree": "unknown"
+      },
+      "schema_version": "0.1.0",
+      "session_id": "<SESSION_ID_1>",
+      "status": "UNSUPPORTED",
+      "timing": "<VOLATILE_MEASUREMENT>"
+    },
+    "runtime": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +PRISM [arm64-darwin25]",
+    "verification_execution": "not_run",
+    "verifier_recommendations": {}
+  },
+  "rawArtifact": "observation.raw.json"
+}

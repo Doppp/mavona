@@ -33,3 +33,17 @@ test('probe output and execution are bounded, malformed responses never become f
 test('probe diagnostics cannot forward arbitrary executable output as evidence',async()=>{
  const result=await probeAvailability({ruby:[process.execPath,'-e','console.log(JSON.stringify({schemaVersion:1,status:"unknown",reason:"credential-canary"}))','--']});expect(result).toEqual({schemaVersion:1,status:'unknown',reason:'invalid_response'});
 });
+test('declared resource routes require parsed Rails draw scope and never execute or interpret comments',async()=>{
+ const root=await fixture('# placeholder');await mkdir(join(root,'config'));await writeFile(join(root,'config/routes.rb'),`File.write("PWNED", "bad")
+# resources :commented
+resources :outside
+text = "resources :string_only"
+Rails.application.routes.draw do
+ resources :orders
+ namespace :admin do
+  resource :invoice
+ end
+ resources computed_name
+end
+`);const parsed=await parseRubyFiles(root,['config/routes.rb']);expect(parsed.status).toBe('passed');expect(parsed.files[0]?.declarations.filter(declaration=>declaration.kind==='route').map(declaration=>[declaration.name,declaration.line])).toEqual([['orders',6],['invoice',8],[null,10]]);expect(await Bun.file(join(root,'PWNED')).exists()).toBe(false);
+});

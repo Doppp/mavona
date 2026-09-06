@@ -16,7 +16,7 @@ export async function runCommand(raw:string[]):Promise<number>{
  const task=args.positionals.join(' ');const providerId=single(args,'provider');const model=single(args,'model');
  const format=single(args,'format','json');if(!['json','jsonl','text'].includes(format!))throw new Error('Unsupported output format');
  if(!task||!providerId||!model){console.error('run requires a task, --provider and --model; no request was made.');return 2;}
- const requestedRoot=await realpath(single(args,'root',process.cwd())!);const inspection=await inspectRepository(requestedRoot);const root=inspection.repository;const preset=presets.find(p=>p.id===providerId);
+ const requestedRoot=await realpath(single(args,'root',process.cwd())!);const inspection=await inspectRepository(requestedRoot,{declaredRoutes:true});const root=inspection.repository;const preset=presets.find(p=>p.id===providerId);
  const pending=await pendingWorktreeEffects(root);if(pending.length){const result={schemaVersion:1,status:'reconciliation_required',correctness:'unknown',exitCode:2,pendingEffects:pending,recovery:'Inspect the owning session; use sessions reconcile ID --effect EFFECT_ID --reason inspected-current-state'};console.log(format==='text'?result.recovery+' '+JSON.stringify(pending):JSON.stringify(format==='jsonl'?{schemaVersion:1,type:'result',result}:result));return 2;}
  const routing=routeTask(task,inspection);if(routing.status!=='PLAN_READY'){const result={schemaVersion:1,status:routing.status,correctness:'unknown',exitCode:2,reason:routing.reason,roots:inspection.roots};console.log(format==='text'?result.reason:JSON.stringify(format==='jsonl'?{schemaVersion:1,type:'result',result}:result));return 2;}
  const endpoint=single(args,'endpoint');let custom:Connection|undefined;

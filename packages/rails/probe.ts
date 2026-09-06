@@ -6,7 +6,7 @@ import { readSource } from '../tools/source';
 export const PARSER_VERSION='1.8.1';
 export interface ProbeOptions { ruby?:string[]; timeoutMs?:number; maxOutputBytes?:number; signal?:AbortSignal }
 export type ProbeAvailability={schemaVersion:1;status:'passed';rubyVersion:string;parserVersion:string}|{schemaVersion:1;status:'unknown';reason:string};
-export interface RubyDeclaration {kind:'class'|'module'|'method'|'constant'|'association'|'validation'|'callback';name:string|null;line:number;scope:string;superclass?:string|null;macro?:string}
+export interface RubyDeclaration {kind:'class'|'module'|'method'|'constant'|'association'|'validation'|'callback'|'route';name:string|null;line:number;scope:string;superclass?:string|null;macro?:string}
 export interface RubyFileFacts {path:string;digest:string;status:'passed'|'failed';declarations:RubyDeclaration[];errorLines:number[]}
 export interface RubyStructure {schemaVersion:1;status:'passed'|'failed'|'unknown';parserVersion:string;files:RubyFileFacts[];reason?:string}
 const unknown=(reason:string):ProbeAvailability=>({schemaVersion:1,status:'unknown',reason});
@@ -39,7 +39,7 @@ export async function probeAvailability(options:ProbeOptions={}):Promise<ProbeAv
 }
 function validDeclaration(value:unknown):value is RubyDeclaration{
  if(!record(value)||!keys(value,['kind','name','line','scope','superclass','macro']))return false;
- return ['class','module','method','constant','association','validation','callback'].includes(String(value.kind))&&(value.name===null||clean(value.name))&&Number.isSafeInteger(value.line)&&Number(value.line)>0&&clean(value.scope)&&(!('superclass'in value)||value.superclass===null||clean(value.superclass))&&(!('macro'in value)||clean(value.macro));
+ return ['class','module','method','constant','association','validation','callback','route'].includes(String(value.kind))&&(value.name===null||clean(value.name))&&Number.isSafeInteger(value.line)&&Number(value.line)>0&&clean(value.scope)&&(!('superclass'in value)||value.superclass===null||clean(value.superclass))&&(!('macro'in value)||clean(value.macro));
 }
 export function validateRubyFileFacts(value:unknown,path:string,digest:string,lineCount:number):value is RubyFileFacts{
  if(!record(value)||!keys(value,['path','digest','status','declarations','errorLines'])||value.path!==path||value.digest!==digest||!['passed','failed'].includes(String(value.status))||!Array.isArray(value.declarations)||value.declarations.length>10000||!value.declarations.every(validDeclaration)||!Array.isArray(value.errorLines)||value.errorLines.length>100||!value.errorLines.every(line=>Number.isSafeInteger(line)&&line>0&&line<=lineCount)||value.declarations.some(d=>d.line>lineCount))return false;

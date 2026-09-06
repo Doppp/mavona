@@ -14,7 +14,7 @@ async function gitRoot(path:string):Promise<string|null> {
  const timer=setTimeout(()=>child.kill(),3000);
  try { const output=await new Response(child.stdout).text(); await new Response(child.stderr).text(); return await child.exited===0 ? await realpath(output.trim()):null; } finally {clearTimeout(timer);}
 }
-export interface InspectionOptions { structuralPaths?:string[]; probe?:ProbeOptions }
+export interface InspectionOptions { structuralPaths?:string[]; declaredRoutes?:boolean; probe?:ProbeOptions }
 export async function inspectRepository(path:string,options:InspectionOptions={}):Promise<RepositoryInspection> {
  const requested=await realpath(path); const repository=await gitRoot(requested);
  const result:RepositoryInspection={schemaVersion:1,status:'unsupported',repository:repository??requested,roots:[],selectedRoot:null,files:[],facts:{railsVersion:null,testFrameworks:[],databaseAdapters:[],frontend:[]},runtime:'unknown',warnings:[]};
@@ -46,9 +46,10 @@ export async function inspectRepository(path:string,options:InspectionOptions={}
  result.facts.testFrameworks=[...(relativeFiles.some(f=>f.startsWith('test/'))?['minitest']:[]),...(relativeFiles.some(f=>f.startsWith('spec/'))?['rspec']:[])];
  result.facts.databaseAdapters=['pg','mysql2','sqlite3'].filter(g=>gems.has(g));
  result.facts.frontend=['turbo-rails','stimulus-rails','importmap-rails','jsbundling-rails','cssbundling-rails'].filter(g=>gems.has(g));
- if(options.structuralPaths?.length){
-  if(options.structuralPaths.some(path=>!result.files.includes(path)))throw new Error('Structural source must belong to selected Rails root inventory');
-  result.structure=await parseRubyFiles(repository,options.structuralPaths,options.probe);
+ const structuralPaths=[...new Set([...(options.structuralPaths??[]),...(options.declaredRoutes?result.files.filter(path=>path===join(result.selectedRoot!,'config/routes.rb')||path.startsWith(join(result.selectedRoot!,'config/routes')+'/')&&path.endsWith('.rb')).slice(0,16):[])])];
+ if(structuralPaths.length){
+  if(structuralPaths.some(path=>!result.files.includes(path)))throw new Error('Structural source must belong to selected Rails root inventory');
+  result.structure=await parseRubyFiles(repository,structuralPaths,options.probe);
   if(result.structure.status==='unknown')result.warnings.push('Structural facts unknown: '+result.structure.reason);
  }
  return result;

@@ -1,0 +1,1500 @@
+{
+  "schemaVersion": 1,
+  "projectionVersion": 1,
+  "differences": [
+    {
+      "id": "model-direct:frameworks",
+      "fixtureId": "model-direct",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#model-direct",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "model-direct:verifiers",
+      "fixtureId": "model-direct",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#model-direct",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "unknown-subject:status",
+      "fixtureId": "unknown-subject",
+      "caseId": "routing",
+      "jsonPointer": "/status",
+      "v1Value": "PLAN_READY",
+      "expectedV2Value": "NEEDS_DECISION",
+      "classification": "v1 defect",
+      "rationale": "No Rails root or no primary task evidence must produce an explicit unsupported/decision state instead of the legacy empty-scope ready result.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#unknown-subject",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "unknown-subject:mode",
+      "fixtureId": "unknown-subject",
+      "caseId": "routing",
+      "jsonPointer": "/mode",
+      "v1Value": "direct_change",
+      "expectedV2Value": null,
+      "classification": "v1 defect",
+      "rationale": "An unsupported or unevidenced task has no executable plan; the old empty-scope direct plan is not a valid accepted route.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#unknown-subject",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "unknown-subject:verifiers",
+      "fixtureId": "unknown-subject",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#unknown-subject",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "generic-subject:status",
+      "fixtureId": "generic-subject",
+      "caseId": "routing",
+      "jsonPointer": "/status",
+      "v1Value": "PLAN_READY",
+      "expectedV2Value": "NEEDS_DECISION",
+      "classification": "v1 defect",
+      "rationale": "No Rails root or no primary task evidence must produce an explicit unsupported/decision state instead of the legacy empty-scope ready result.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#generic-subject",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "generic-subject:mode",
+      "fixtureId": "generic-subject",
+      "caseId": "routing",
+      "jsonPointer": "/mode",
+      "v1Value": "direct_change",
+      "expectedV2Value": null,
+      "classification": "v1 defect",
+      "rationale": "An unsupported or unevidenced task has no executable plan; the old empty-scope direct plan is not a valid accepted route.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#generic-subject",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "generic-subject:verifiers",
+      "fixtureId": "generic-subject",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#generic-subject",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "whole-rewrite:frameworks",
+      "fixtureId": "whole-rewrite",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#whole-rewrite",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "every-controller:frameworks",
+      "fixtureId": "every-controller",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#every-controller",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "substring:frameworks",
+      "fixtureId": "substring",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#substring",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "substring:nominatedPaths",
+      "fixtureId": "substring",
+      "caseId": "routing",
+      "jsonPointer": "/nominatedPaths",
+      "v1Value": [
+        "app/models/order.rb",
+        "app/models/preorder.rb",
+        "config/routes.rb"
+      ],
+      "expectedV2Value": [
+        "app/models/order.rb",
+        "config/routes.rb"
+      ],
+      "classification": "v1 defect",
+      "rationale": "Whole-word primary nomination excludes preorder for order. Parsed resource route evidence is retained. The legacy substring match added an unrelated model.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#substring",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "substring:verifiers",
+      "fixtureId": "substring",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#substring",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "controller:mode",
+      "fixtureId": "controller",
+      "caseId": "routing",
+      "jsonPointer": "/mode",
+      "v1Value": "direct_change",
+      "expectedV2Value": "lightweight_plan",
+      "classification": "deliberate change",
+      "rationale": "Restored task-evidenced source surfaces cross three affected Rails areas, so the proportional plan is lightweight. Direct plans remain for narrow cases; the mode is not selected by token availability.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#controller",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "controller:nominatedPaths",
+      "fixtureId": "controller",
+      "caseId": "routing",
+      "jsonPointer": "/nominatedPaths",
+      "v1Value": [
+        "app/controllers/orders_controller.rb",
+        "test/controllers/orders_controller_test.rb"
+      ],
+      "expectedV2Value": [
+        "app/controllers/orders_controller.rb",
+        "app/models/order.rb",
+        "test/controllers/orders_controller_test.rb",
+        "config/routes.rb"
+      ],
+      "classification": "v1 defect",
+      "rationale": "Underscore-separated controller subjects now match whole path words, retaining the corresponding model and parsed declared route rather than omitting related evidenced source. No same-surface-only path is promoted.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#controller",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "view:mode",
+      "fixtureId": "view",
+      "caseId": "routing",
+      "jsonPointer": "/mode",
+      "v1Value": "direct_change",
+      "expectedV2Value": "lightweight_plan",
+      "classification": "deliberate change",
+      "rationale": "Restored task-evidenced source surfaces cross three affected Rails areas, so the proportional plan is lightweight. Direct plans remain for narrow cases; the mode is not selected by token availability.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#view",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "view:nominatedPaths",
+      "fixtureId": "view",
+      "caseId": "routing",
+      "jsonPointer": "/nominatedPaths",
+      "v1Value": [
+        "app/models/order.rb",
+        "test/models/order_test.rb",
+        "config/routes.rb"
+      ],
+      "expectedV2Value": [
+        "app/views/orders/show.html.erb",
+        "app/models/order.rb",
+        "test/models/order_test.rb",
+        "config/routes.rb"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The explicitly requested ERB source is included and ranked first. Remaining task-name matches retain order and parsed route evidence stays after primary source matches. Legacy inventory omitted the actual requested template.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#view",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "mailer:frameworks",
+      "fixtureId": "mailer",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest",
+        "rspec"
+      ],
+      "expectedV2Value": [
+        "rspec"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#mailer",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "channel:frameworks",
+      "fixtureId": "channel",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#channel",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "channel:verifiers",
+      "fixtureId": "channel",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#channel",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "component:frameworks",
+      "fixtureId": "component",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#component",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "component:verifiers",
+      "fixtureId": "component",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#component",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "service:frameworks",
+      "fixtureId": "service",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#service",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "service:verifiers",
+      "fixtureId": "service",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#service",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "policy:frameworks",
+      "fixtureId": "policy",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#policy",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "policy:verifiers",
+      "fixtureId": "policy",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#policy",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "helper:nominatedPaths",
+      "fixtureId": "helper",
+      "caseId": "routing",
+      "jsonPointer": "/nominatedPaths",
+      "v1Value": [
+        "test/helpers/currency_helper_test.rb"
+      ],
+      "expectedV2Value": [
+        "app/helpers/currency_helper.rb",
+        "test/helpers/currency_helper_test.rb"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The replacement includes the explicitly selected or whole-word task-matched Rails source surface which the legacy inventory/token matching omitted. Files remain contained; no weak same-surface candidate enters context.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#helper",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "stimulus:frameworks",
+      "fixtureId": "stimulus",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#stimulus",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "stimulus:nominatedPaths",
+      "fixtureId": "stimulus",
+      "caseId": "routing",
+      "jsonPointer": "/nominatedPaths",
+      "v1Value": [],
+      "expectedV2Value": [
+        "app/javascript/controllers/reschedule_controller.js"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The replacement includes the explicitly selected or whole-word task-matched Rails source surface which the legacy inventory/token matching omitted. Files remain contained; no weak same-surface candidate enters context.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#stimulus",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "stimulus:verifiers",
+      "fixtureId": "stimulus",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#stimulus",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "styles:frameworks",
+      "fixtureId": "styles",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#styles",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "styles:nominatedPaths",
+      "fixtureId": "styles",
+      "caseId": "routing",
+      "jsonPointer": "/nominatedPaths",
+      "v1Value": [],
+      "expectedV2Value": [
+        "app/assets/stylesheets/checkout.css"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The replacement includes the explicitly selected or whole-word task-matched Rails source surface which the legacy inventory/token matching omitted. Files remain contained; no weak same-surface candidate enters context.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#styles",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "styles:verifiers",
+      "fixtureId": "styles",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#styles",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "initializer:frameworks",
+      "fixtureId": "initializer",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#initializer",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "initializer:verifiers",
+      "fixtureId": "initializer",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#initializer",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "migration:frameworks",
+      "fixtureId": "migration",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#migration",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "migration:verifiers",
+      "fixtureId": "migration",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#migration",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "schema-ruby:frameworks",
+      "fixtureId": "schema-ruby",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#schema-ruby",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "schema-ruby:nominatedPaths",
+      "fixtureId": "schema-ruby",
+      "caseId": "routing",
+      "jsonPointer": "/nominatedPaths",
+      "v1Value": [],
+      "expectedV2Value": [
+        "db/schema.rb"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The replacement includes the explicitly selected or whole-word task-matched Rails source surface which the legacy inventory/token matching omitted. Files remain contained; no weak same-surface candidate enters context.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#schema-ruby",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "schema-ruby:verifiers",
+      "fixtureId": "schema-ruby",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#schema-ruby",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "schema-sql:frameworks",
+      "fixtureId": "schema-sql",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#schema-sql",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "schema-sql:nominatedPaths",
+      "fixtureId": "schema-sql",
+      "caseId": "routing",
+      "jsonPointer": "/nominatedPaths",
+      "v1Value": [],
+      "expectedV2Value": [
+        "db/structure.sql"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The replacement includes the explicitly selected or whole-word task-matched Rails source surface which the legacy inventory/token matching omitted. Files remain contained; no weak same-surface candidate enters context.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#schema-sql",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "schema-sql:verifiers",
+      "fixtureId": "schema-sql",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#schema-sql",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "mixed-frameworks:verifiers",
+      "fixtureId": "mixed-frameworks",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test",
+            "test/models/order_test.rb"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test",
+            "test/models/order_test.rb"
+          ],
+          "cwd": "."
+        },
+        {
+          "argv": [
+            "bundle",
+            "exec",
+            "rspec",
+            "spec/models/order_spec.rb"
+          ],
+          "cwd": "."
+        }
+      ],
+      "classification": "v1 defect",
+      "rationale": "The legacy elsif dropped RSpec whenever corresponding Minitest existed. Both evidenced frameworks remain independent required candidates.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#mixed-frameworks",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "rspec-only:frameworks",
+      "fixtureId": "rspec-only",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest",
+        "rspec"
+      ],
+      "expectedV2Value": [
+        "rspec"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#rspec-only",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "broad-rspec:frameworks",
+      "fixtureId": "broad-rspec",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest",
+        "rspec"
+      ],
+      "expectedV2Value": [
+        "rspec"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#broad-rspec",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "broad-rspec:verifiers",
+      "fixtureId": "broad-rspec",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [
+        {
+          "argv": [
+            "bundle",
+            "exec",
+            "rspec"
+          ],
+          "cwd": "."
+        }
+      ],
+      "classification": "v1 defect",
+      "rationale": "The legacy Rails-implies-Minitest inference selected an unrelated absent Minitest suite. Only the evidenced RSpec framework is recommended.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#broad-rspec",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "configured-argv:verifiers",
+      "fixtureId": "configured-argv",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test",
+            "test/models/order_test.rb"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [
+        {
+          "argv": [
+            "bin/check",
+            "order"
+          ],
+          "cwd": "."
+        }
+      ],
+      "classification": "deliberate change",
+      "rationale": "The maintained v0.1 verification mapping and bounded includes select these explicit argv candidates; legacy inferred-only recommendations do not implement this configuration contract.",
+      "authorityReference": "docs/specs/PRD.md#8-evidence-and-completion",
+      "testReference": "tests/parity.test.ts#configured-argv",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "configured-include:verifiers",
+      "fixtureId": "configured-include",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test",
+            "test/models/order_test.rb"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [
+        {
+          "argv": [
+            "bin/check",
+            "scoped"
+          ],
+          "cwd": "."
+        }
+      ],
+      "classification": "deliberate change",
+      "rationale": "The maintained v0.1 verification mapping and bounded includes select these explicit argv candidates; legacy inferred-only recommendations do not implement this configuration contract.",
+      "authorityReference": "docs/specs/PRD.md#8-evidence-and-completion",
+      "testReference": "tests/parity.test.ts#configured-include",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "configured-two:verifiers",
+      "fixtureId": "configured-two",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test",
+            "test/models/order_test.rb"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [
+        {
+          "argv": [
+            "bin/lint"
+          ],
+          "cwd": "."
+        },
+        {
+          "argv": [
+            "bin/check"
+          ],
+          "cwd": "."
+        }
+      ],
+      "classification": "deliberate change",
+      "rationale": "The maintained v0.1 verification mapping and bounded includes select these explicit argv candidates; legacy inferred-only recommendations do not implement this configuration contract.",
+      "authorityReference": "docs/specs/PRD.md#8-evidence-and-completion",
+      "testReference": "tests/parity.test.ts#configured-two",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "multi-root-admin:frameworks",
+      "fixtureId": "multi-root-admin",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest",
+        "rspec"
+      ],
+      "expectedV2Value": [
+        "rspec"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#multi-root-admin",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "engine-root:frameworks",
+      "fixtureId": "engine-root",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#engine-root",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "engine-root:verifiers",
+      "fixtureId": "engine-root",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "engines/billing/test/dummy"
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#engine-root",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "custom-lib:frameworks",
+      "fixtureId": "custom-lib",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#custom-lib",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "custom-lib:nominatedPaths",
+      "fixtureId": "custom-lib",
+      "caseId": "routing",
+      "jsonPointer": "/nominatedPaths",
+      "v1Value": [],
+      "expectedV2Value": [
+        "lib/billing/calculator.rb"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The replacement includes the explicitly selected or whole-word task-matched Rails source surface which the legacy inventory/token matching omitted. Files remain contained; no weak same-surface candidate enters context.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#custom-lib",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "custom-lib:verifiers",
+      "fixtureId": "custom-lib",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#custom-lib",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "custom-extras:frameworks",
+      "fixtureId": "custom-extras",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#custom-extras",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "custom-extras:nominatedPaths",
+      "fixtureId": "custom-extras",
+      "caseId": "routing",
+      "jsonPointer": "/nominatedPaths",
+      "v1Value": [],
+      "expectedV2Value": [
+        "extras/invoice.rb"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The replacement includes the explicitly selected or whole-word task-matched Rails source surface which the legacy inventory/token matching omitted. Files remain contained; no weak same-surface candidate enters context.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#custom-extras",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "custom-extras:verifiers",
+      "fixtureId": "custom-extras",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#custom-extras",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "missing-lock:railsVersion",
+      "fixtureId": "missing-lock",
+      "caseId": "routing",
+      "jsonPointer": "/railsVersion",
+      "v1Value": "8.1.3.1",
+      "expectedV2Value": null,
+      "classification": "deliberate change",
+      "rationale": "Locked dependency facts are separate from Gemfile declarations. With no lockfile the installed Rails version stays unknown; the legacy field substituted a declared constraint without preserving that distinction.",
+      "authorityReference": "docs/specs/ARCHITECTURE.md#8-rails-intelligence-boundary",
+      "testReference": "tests/parity.test.ts#missing-lock",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "non-rails:status",
+      "fixtureId": "non-rails",
+      "caseId": "routing",
+      "jsonPointer": "/status",
+      "v1Value": "PLAN_READY",
+      "expectedV2Value": "UNSUPPORTED",
+      "classification": "v1 defect",
+      "rationale": "No Rails root or no primary task evidence must produce an explicit unsupported/decision state instead of the legacy empty-scope ready result.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#non-rails",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "non-rails:mode",
+      "fixtureId": "non-rails",
+      "caseId": "routing",
+      "jsonPointer": "/mode",
+      "v1Value": "direct_change",
+      "expectedV2Value": null,
+      "classification": "v1 defect",
+      "rationale": "An unsupported or unevidenced task has no executable plan; the old empty-scope direct plan is not a valid accepted route.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#non-rails",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "non-rails:verifiers",
+      "fixtureId": "non-rails",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "unknown"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#non-rails",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "untracked-source:frameworks",
+      "fixtureId": "untracked-source",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#untracked-source",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "untracked-source:verifiers",
+      "fixtureId": "untracked-source",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#untracked-source",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "excluded-vendor:frameworks",
+      "fixtureId": "excluded-vendor",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#excluded-vendor",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "excluded-vendor:verifiers",
+      "fixtureId": "excluded-vendor",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#excluded-vendor",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "boot-failure-static:frameworks",
+      "fixtureId": "boot-failure-static",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#boot-failure-static",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "boot-failure-static:verifiers",
+      "fixtureId": "boot-failure-static",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#boot-failure-static",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "older-ruby-declaration:frameworks",
+      "fixtureId": "older-ruby-declaration",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#older-ruby-declaration",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "older-ruby-declaration:verifiers",
+      "fixtureId": "older-ruby-declaration",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#older-ruby-declaration",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "container-ruby-declaration:frameworks",
+      "fixtureId": "container-ruby-declaration",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#container-ruby-declaration",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "container-ruby-declaration:verifiers",
+      "fixtureId": "container-ruby-declaration",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#container-ruby-declaration",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "context-bound:frameworks",
+      "fixtureId": "context-bound",
+      "caseId": "routing",
+      "jsonPointer": "/frameworks",
+      "v1Value": [
+        "minitest"
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "The legacy profile inferred Minitest from the Rails dependency alone. This fixture has no Minitest test files; framework evidence must remain unknown or identify only its actual RSpec files.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#context-bound",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "context-bound:mode",
+      "fixtureId": "context-bound",
+      "caseId": "routing",
+      "jsonPointer": "/mode",
+      "v1Value": "direct_change",
+      "expectedV2Value": "lightweight_plan",
+      "classification": "v1 defect",
+      "rationale": "Actual nominated view templates require proportional lightweight planning; the old inventory omitted these templates and incorrectly used a direct route.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#context-bound",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "context-bound:nominatedPaths",
+      "fixtureId": "context-bound",
+      "caseId": "routing",
+      "jsonPointer": "/nominatedPaths",
+      "v1Value": [
+        "app/models/order.rb",
+        "config/routes.rb"
+      ],
+      "expectedV2Value": [
+        "app/models/order.rb",
+        "app/views/orders/part_0.html.erb",
+        "app/views/orders/part_1.html.erb",
+        "app/views/orders/part_10.html.erb",
+        "app/views/orders/part_11.html.erb",
+        "app/views/orders/part_2.html.erb",
+        "app/views/orders/part_3.html.erb",
+        "app/views/orders/part_4.html.erb",
+        "app/views/orders/part_5.html.erb",
+        "app/views/orders/part_6.html.erb",
+        "app/views/orders/part_7.html.erb",
+        "app/views/orders/part_8.html.erb",
+        "app/views/orders/part_9.html.erb",
+        "config/routes.rb"
+      ],
+      "classification": "v1 defect",
+      "rationale": "The complete nominated template inventory remains inspectable while the initial context is bounded to eight prioritized sources. Legacy inventory omitted every template.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#context-bound",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    },
+    {
+      "id": "context-bound:verifiers",
+      "fixtureId": "context-bound",
+      "caseId": "routing",
+      "jsonPointer": "/verifiers",
+      "v1Value": [
+        {
+          "argv": [
+            "bin/rails",
+            "test"
+          ],
+          "cwd": "."
+        }
+      ],
+      "expectedV2Value": [],
+      "classification": "v1 defect",
+      "rationale": "Without an evidenced/configured verifier or a selected bounded task, do not manufacture an executable check. Empty recommendations preserve unknown verification.",
+      "authorityReference": "docs/specs/PRD.md#6-rails-understanding-and-task-routing",
+      "testReference": "tests/parity.test.ts#context-bound",
+      "reviewStatus": "accepted",
+      "reviewer": "implementation source/specification review, 2026-09-07"
+    }
+  ]
+}

@@ -31,6 +31,7 @@ jobs:
       - run: ruby fixtures/rails-dogfood/bin/check
       - run: bun run typecheck
       - run: bun test
+      - run: bun scripts/parity/verify.ts
       - run: bun scripts/rails-browser-acceptance.ts
       - run: bun run build
       - run: env -i PATH=/usr/bin:/bin ./dist/mavona --version

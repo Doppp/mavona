@@ -1,0 +1,684 @@
+{
+  "schemaVersion": 1,
+  "normalizerVersion": 1,
+  "fixtureId": "untracked-source",
+  "caseId": "routing",
+  "fixtureDigest": "08a82b925fb80c5f02e01484d080a8f2e8bab3d5a8f4bbebcf8eac6c486bea88",
+  "v1Commit": "fdee1136acd7863885ed20c6760f61674f7e32c5",
+  "input": {
+    "task": "Change refund",
+    "requested": ".",
+    "boot": false
+  },
+  "exitCode": 0,
+  "observation": {
+    "analysis": {
+      "evidence": [
+        {
+          "confidence": {
+            "basis": "direct task-name match: refund",
+            "label": "high",
+            "score": 1
+          },
+          "id": "<ID_0>",
+          "kind": "impact",
+          "metadata": {
+            "signals": [
+              {
+                "strength": 1,
+                "type": "direct_task_name_match"
+              }
+            ]
+          },
+          "observation": "app/models/refund.rb",
+          "session_id": null,
+          "sources": [
+            {
+              "line": null,
+              "path": "app/models/refund.rb"
+            }
+          ],
+          "subject": "impact.app/models/refund.rb",
+          "task_id": "<TASK_ID_1>"
+        },
+        {
+          "confidence": {
+            "basis": "repository test framework",
+            "label": "medium",
+            "score": 0.7
+          },
+          "id": "<ID_2>",
+          "kind": "verifier_recommendation",
+          "metadata": {
+            "breadth": "broader_relevant_suite"
+          },
+          "observation": "bin/rails test",
+          "session_id": null,
+          "sources": [
+            {
+              "line": null,
+              "path": "Gemfile"
+            }
+          ],
+          "subject": "verifier.bin/rails test",
+          "task_id": "<TASK_ID_1>"
+        }
+      ],
+      "known_scope": [
+        "app/models/refund.rb"
+      ],
+      "plan": null,
+      "planning_mode": "direct_change",
+      "status": "PLAN_READY",
+      "summary": "Change refund",
+      "task_id": "<TASK_ID_1>",
+      "verifier_candidates": [
+        "bin/rails test"
+      ]
+    },
+    "app_boot": "not_run",
+    "discovery": {
+      "boot": {
+        "command": "unknown",
+        "elapsed_ms": 0,
+        "error": "boot probe disabled",
+        "exit_status": null,
+        "status": "unknown"
+      },
+      "evidence": [
+        {
+          "confidence": {
+            "basis": "root",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_3>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "<FIXTURE_ROOT>",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": ".git"
+            }
+          ],
+          "subject": "repository.root",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "current branch",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_5>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "fixture",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": ".git"
+            }
+          ],
+          "subject": "repository.current_branch",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "head sha",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_6>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "0b2d1797bc60caa4aa34d6af18ea2ff666ddeb83",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": ".git"
+            }
+          ],
+          "subject": "repository.head_sha",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "working tree",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_7>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "dirty",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": ".git"
+            }
+          ],
+          "subject": "repository.working_tree",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "remote default branch",
+            "label": "unknown",
+            "score": null
+          },
+          "id": "<ID_8>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "unknown",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": ".git"
+            }
+          ],
+          "subject": "repository.remote_default_branch",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "default branch",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_9>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "fixture",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": ".git"
+            }
+          ],
+          "subject": "repository.default_branch",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "default branch source",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_10>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "current_branch",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": ".git"
+            }
+          ],
+          "subject": "repository.default_branch_source",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "Rails roots",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_11>",
+          "kind": "repository_fact",
+          "metadata": {
+            "reason": "single Rails root",
+            "selection_status": "selected"
+          },
+          "observation": [
+            "."
+          ],
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "<FIXTURE_ROOT>"
+            }
+          ],
+          "subject": "rails.roots",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "project type",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_12>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "rails",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.project_type",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "ruby version",
+            "label": "unknown",
+            "score": null
+          },
+          "id": "<ID_13>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "unknown",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.ruby_version",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "rails version",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_14>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "8.1.3.1",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.rails_version",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "bundler version",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_15>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "4.0.6",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.bundler_version",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "database adapter",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_16>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "sqlite",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.database_adapter",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "schema format",
+            "label": "unknown",
+            "score": null
+          },
+          "id": "<ID_17>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "unknown",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.schema_format",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "test framework",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_18>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "minitest",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.test_framework",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "job backend",
+            "label": "unknown",
+            "score": null
+          },
+          "id": "<ID_19>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "unknown",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.job_backend",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "frontend approach",
+            "label": "unknown",
+            "score": null
+          },
+          "id": "<ID_20>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": "unknown",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.frontend_approach",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "lint security tools",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_21>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": [],
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.lint_security_tools",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "ci commands",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_22>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": [],
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.ci_commands",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "safe test commands",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_23>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": [
+            "bin/rails test"
+          ],
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.safe_test_commands",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "safe boot commands",
+            "label": "high",
+            "score": null
+          },
+          "id": "<ID_24>",
+          "kind": "repository_fact",
+          "metadata": {},
+          "observation": [],
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "profile.safe_boot_commands",
+          "task_id": null
+        },
+        {
+          "confidence": {
+            "basis": "Rails boot introspection",
+            "label": "unknown",
+            "score": null
+          },
+          "id": "<ID_25>",
+          "kind": "repository_fact",
+          "metadata": {
+            "command": "unknown",
+            "elapsed_ms": 0,
+            "exit_status": null,
+            "status": "unknown"
+          },
+          "observation": "unknown",
+          "session_id": "<SESSION_ID_4>",
+          "sources": [
+            {
+              "line": null,
+              "path": "."
+            }
+          ],
+          "subject": "rails.boot",
+          "task_id": null
+        }
+      ],
+      "instructions": [],
+      "inventory": {
+        "channels": {
+          "count": 0,
+          "paths": []
+        },
+        "components": {
+          "count": 0,
+          "paths": []
+        },
+        "concerns": {
+          "count": 0,
+          "paths": []
+        },
+        "controllers": {
+          "count": 0,
+          "paths": []
+        },
+        "custom_autoload_eager_load_paths": {
+          "count": 0,
+          "entries": []
+        },
+        "engines": {
+          "count": 0,
+          "paths": []
+        },
+        "factories_fixtures": {
+          "count": 0,
+          "paths": []
+        },
+        "forms": {
+          "count": 0,
+          "paths": []
+        },
+        "initializers": {
+          "count": 0,
+          "paths": []
+        },
+        "jobs": {
+          "count": 0,
+          "paths": []
+        },
+        "mailers": {
+          "count": 0,
+          "paths": []
+        },
+        "migrations": {
+          "count": 0,
+          "paths": []
+        },
+        "models": {
+          "count": 2,
+          "paths": [
+            "app/models/order.rb",
+            "app/models/refund.rb"
+          ]
+        },
+        "policies": {
+          "count": 0,
+          "paths": []
+        },
+        "presenters": {
+          "count": 0,
+          "paths": []
+        },
+        "queries": {
+          "count": 0,
+          "paths": []
+        },
+        "rake_tasks": {
+          "count": 0,
+          "paths": []
+        },
+        "routes": {
+          "count": 1,
+          "paths": [
+            "config/routes.rb"
+          ]
+        },
+        "schema_tables": {
+          "count": 0,
+          "names": [],
+          "source": "unknown"
+        },
+        "services": {
+          "count": 0,
+          "paths": []
+        },
+        "tests_specs": {
+          "count": 0,
+          "paths": []
+        }
+      },
+      "profile": {
+        "bundler_version": "4.0.6",
+        "ci_commands": [],
+        "database_adapter": "sqlite",
+        "frontend_approach": "unknown",
+        "job_backend": "unknown",
+        "lint_security_tools": [],
+        "project_type": "rails",
+        "rails_version": "8.1.3.1",
+        "ruby_version": "unknown",
+        "safe_boot_commands": [],
+        "safe_test_commands": [
+          "bin/rails test"
+        ],
+        "schema_format": "unknown",
+        "test_framework": "minitest"
+      },
+      "rails": {
+        "candidate_roots": [
+          "."
+        ],
+        "reason": "single Rails root",
+        "selected_root": ".",
+        "status": "selected"
+      },
+      "repository": {
+        "current_branch": "fixture",
+        "default_branch": "fixture",
+        "default_branch_source": "current_branch",
+        "head_sha": "0b2d1797bc60caa4aa34d6af18ea2ff666ddeb83",
+        "remote_default_branch": "unknown",
+        "root": "<FIXTURE_ROOT>",
+        "working_tree": "dirty"
+      },
+      "schema_version": "0.1.0",
+      "session_id": "<SESSION_ID_4>",
+      "status": "DISCOVERED",
+      "timing": "<VOLATILE_MEASUREMENT>"
+    },
+    "runtime": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +PRISM [arm64-darwin25]",
+    "verification_execution": "not_run",
+    "verifier_recommendations": {
+      "relevant_suite": [
+        "bin/rails",
+        "test"
+      ]
+    }
+  },
+  "rawArtifact": "observation.raw.json"
+}

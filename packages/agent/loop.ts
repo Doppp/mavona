@@ -41,7 +41,7 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
  try{
   signal.throwIfAborted();if(new Set(verifiers.map(v=>v.id)).size!==verifiers.length)throw new Error('Duplicate verifier IDs');requireChangeCapabilities(options.capabilities);
   if(!store.state.mutationAllowed)throw new Error('Session contains unreconciled effects');
-  const root=await realpath(options.root);const references=options.references??[];if(references.length>16)throw new Error('Source reference budget');for(const reference of references)if(!await selectionIsCurrent(root,reference))throw new Error('Source reference changed');const inspection=await inspectRepository(options.railsPath??root);if(inspection.repository!==root)throw new Error('Selected application must belong to the owned worktree');const routing=routeTask([options.task,...references.map(r=>r.path)].join(' '),inspection);
+  const root=await realpath(options.root);const references=options.references??[];if(references.length>16)throw new Error('Source reference budget');for(const reference of references)if(!await selectionIsCurrent(root,reference))throw new Error('Source reference changed');const inspection=await inspectRepository(options.railsPath??root,{declaredRoutes:true});if(inspection.repository!==root)throw new Error('Selected application must belong to the owned worktree');const routing=routeTask([options.task,...references.map(r=>r.path)].join(' '),inspection);
   if(!store.events.length)emit('session.opened',{repository:root});
   if(inspection.selectedRoot!==null&&store.state.railsRoot!==inspection.selectedRoot)emit('rails.root.selected',{root:inspection.selectedRoot});
   emit('task.started',{taskId,text:options.task});

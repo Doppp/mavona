@@ -3,7 +3,7 @@ import type { RepositoryInspection } from './discovery';
 
 export interface SurfaceCandidate {
  id:string; path:string; nominated:boolean;
- signal:'explicit_path'|'task_subject'|'same_surface';
+ signal:'explicit_path'|'task_subject'|'declared_route'|'same_surface';
  confidence:'high'|'low'; basis:string;
 }
 interface RoutingBase {
@@ -42,21 +42,24 @@ export function routeTask(task:string,inspection:RepositoryInspection):TaskRouti
  const referenced=new Set(text.match(/[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)+/g)??[]);
  const files=[...new Set(inspection.files)].sort().flatMap(path=>{
   const local=localPath(path,inspection.selectedRoot!);
-  return local!==null&&/^(?:app|test|spec|config|db|lib)\//.test(local)?[{path,local}]:[];
+  return local!==null&&(/^(?:app|test|spec|config|db|lib)\//.test(local)||referenced.has(path)||referenced.has(local))?[{path,local}]:[];
  });
- const nominated=files.filter(({path,local})=>referenced.has(path)||referenced.has(local)||words(local).some(w=>taskWords.has(w)));
+ const declaredRoutes=new Map((inspection.structure?.files??[]).filter(file=>file.status==='passed').flatMap(file=>file.declarations.filter(declaration=>declaration.kind==='route'&&declaration.name!==null&&words(declaration.name).some(word=>taskWords.has(word))).map(declaration=>[file.path,{line:declaration.line,digest:file.digest}] as const)));
+ const rank=({path,local}:{path:string;local:string})=>referenced.has(path)||referenced.has(local)?0:words(local).some(word=>taskWords.has(word))?1:declaredRoutes.has(path)?2:3;
+ const nominated=files.filter(file=>rank(file)<3).sort((a,b)=>rank(a)-rank(b)||(a.path<b.path?-1:1));
  if(!nominated.length) return {...base,status:'NEEDS_DECISION',reason:'No file has primary task evidence; select a file or describe the Rails behavior more specifically'};
  const paths=new Set(nominated.map(f=>f.path));
  const surfaces=new Set(nominated.map(f=>surface(f.local)).filter(s=>s!==null));
- const candidates:SurfaceCandidate[]=files.filter(f=>{const category=surface(f.local);return paths.has(f.path)||(category!==null&&surfaces.has(category));}).map(({path,local})=>{
+ const candidates:SurfaceCandidate[]=[...files].sort((a,b)=>rank(a)-rank(b)||(a.path<b.path?-1:1)).filter(f=>{const category=surface(f.local);return paths.has(f.path)||(category!==null&&surfaces.has(category));}).map(({path,local})=>{
   const explicit=referenced.has(path)||referenced.has(local);
   const primary=paths.has(path);
-  const signal=explicit?'explicit_path':primary?'task_subject':'same_surface';
+  const route=declaredRoutes.get(path);const signal=explicit?'explicit_path':route?'declared_route':primary?'task_subject':'same_surface';
   return {id:`impact_${createHash('sha256').update(JSON.stringify([inspection.repository,inspection.selectedRoot,path])).digest('hex').slice(0,16)}`,path,nominated:primary,signal,
-   confidence:primary?'high':'low',basis:explicit?'User references this inventory path':primary?'Task subject matches a complete path word':'Same Rails surface only; insufficient for context nomination'};
+   confidence:primary?'high':'low',basis:explicit?'User references this inventory path':route?'Parsed resource declaration at line '+route.line+' · '+route.digest+'; effective runtime route unknown':primary?'Task subject matches a complete path word':'Same Rails surface only; insufficient for context nomination'};
  });
  const contextPaths=nominated.map(f=>f.path).slice(0,8);
  const highRisk=/\b(?:migration|schema|database|authentication|authorization|payment|payments|encryption|encrypt|destructive|backfill)\b/i.test(text);
- const planningMode=highRisk?'full_plan':nominated.length>=4?'lightweight_plan':'direct_change';
+ const categories=new Set(nominated.map(file=>file.local.split('/')[1]));
+ const planningMode=highRisk?'full_plan':nominated.length>=5||categories.size>=3?'lightweight_plan':'direct_change';
  return {schemaVersion:1,status:'PLAN_READY',planningMode,candidates,contextPaths,contextTruncated:nominated.length>contextPaths.length};
 }
