@@ -1,0 +1,14 @@
+<%= turbo_frame_tag @order do %>
+  <h2>Order <%= @order.id %></h2>
+  <p>Customer: <%= current_customer.name %></p>
+  <p>Scheduled for <time><%= @order.scheduled_on&.iso8601 %></time></p>
+  <% if notice %><p role="status"><%= notice %></p><% end %>
+  <% if @order.errors.any? %><p role="alert"><%= @order.errors.full_messages.to_sentence %></p><% end %>
+  <%= form_with model: @order, url: reschedule_order_path(@order), method: :patch, data: { controller: "reschedule" } do |form| %>
+    <%= form.label :scheduled_on, "New date" %>
+    <%= form.date_field :scheduled_on, required: true, data: { action: "change->reschedule#preview", reschedule_target: "date" } %>
+    <p data-reschedule-target="feedback" aria-live="polite"></p>
+    <%= form.submit "Reschedule order" %>
+  <% end %>
+<% end %>
+<%= link_to "All orders", orders_path %>

@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+# Explicitly isolated fixture database only; no target application is touched.
+ENV["RAILS_ENV"] = "test"
+abort "External database configuration is forbidden" if ENV.key?("DATABASE_URL")
+require "rbconfig"
+Dir.chdir(File.expand_path("..", __dir__)) do
+  abort "Database preparation failed" unless system(RbConfig.ruby, "bin/rails", "db:prepare")
+  exec RbConfig.ruby, "bin/rails", "test"
+end

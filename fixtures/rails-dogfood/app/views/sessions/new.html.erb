@@ -1,0 +1,7 @@
+<h2>Choose a fixture customer</h2>
+<p>This isolated test app uses a fixture identity selector.</p>
+<%= form_with url: session_path, data: { turbo: false } do |form| %>
+  <%= form.label :customer_id, "Customer" %>
+  <%= form.select :customer_id, @customers.map { |customer| [customer.name, customer.id] } %>
+  <%= form.submit "Sign in" %>
+<% end %>

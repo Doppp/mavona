@@ -59,3 +59,9 @@ test('non-Git paths return explicit unsupported inspection',async () => {
  const root=await mkdtemp(join(tmpdir(),'mavona-no-git-')); roots.push(root);
  expect((await inspectRepository(root)).status).toBe('unsupported');
 });
+test('selected structural paths expose declarations; unavailable Ruby preserves static facts',async()=>{
+ const root=await fixture();await put(root,'config/application.rb','raise "must not run"');await put(root,'app/models/order.rb','class Order < ApplicationRecord; end');
+ const parsed=await inspectRepository(root,{structuralPaths:['app/models/order.rb']});expect(parsed.structure?.status).toBe('passed');expect(parsed.structure?.files[0]?.declarations[0]?.name).toBe('Order');expect(parsed.runtime).toBe('unknown');
+ const fallback=await inspectRepository(root,{structuralPaths:['app/models/order.rb'],probe:{ruby:['/no/ruby']}});expect(fallback.status).toBe('selected');expect(fallback.structure?.status).toBe('unknown');expect(fallback.files).toContain('app/models/order.rb');
+ await expect(inspectRepository(root,{structuralPaths:['../outside.rb']})).rejects.toThrow('inventory');
+});

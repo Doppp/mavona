@@ -1,0 +1,7 @@
+<h2><%= current_customer.name %>'s orders</h2>
+<ul>
+  <% @orders.each do |order| %>
+    <li><%= link_to "Order #{order.id}", order_path(order) %> — <%= order.scheduled_on.iso8601 %></li>
+  <% end %>
+</ul>
+<%= button_to "Sign out", session_path, method: :delete %>

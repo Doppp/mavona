@@ -1,0 +1,5 @@
+test:
+  adapter: sqlite3
+  database: tmp/dogfood_<%= ENV["DOGFOOD_BROWSER"] == "1" ? "browser" : "test" %>.sqlite3
+  pool: 5
+  timeout: 5000

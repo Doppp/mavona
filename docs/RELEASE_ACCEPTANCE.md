@@ -180,3 +180,11 @@ Native Responses and Messages adapters, compatible presets, bounded capability p
 Session lifecycle now includes read-only catalog/export, explicit resume/fork, immutable checkpoints, retention tombstones and SQLite-backed writer ownership that survives process death. Pending effects remain unknown on replay. Required UI integration and full crash/retention matrices remain incomplete.
 
 Actual command: `bun test tests/providers*.test.ts tests/session*.test.ts tests/tools-runtime.test.ts tests/agent-loop.test.ts tests/cli.test.ts tests/tui*.test.ts*` on Darwin arm64, Bun 1.4.2: 48 passed, one packaged-only skip, 216 assertions, exit 0. This covers these libraries plus the following integration slice; it is not full release acceptance. Typechecking the entire working tree currently encounters concurrent unfinished browser extensions; rerun after that slice is integrated.
+
+### Rails structural probe and executable Rails fixture — 2026-09-07
+
+`packages/rails/{probe,instructions,cache}.ts` and versioned `probes/rails_probe.rb` implement bounded no-boot Prism 1.8.1 extraction, instruction ancestry and digest invalidation. Ruby environment/preloads are isolated, unavailable parsing stays unknown, malformed or arbitrary executable diagnostics cannot become evidence. `fixtures/rails-dogfood/` is an actual Rails 8.1.3.1 / Ruby 4.0.6 / Turbo / Stimulus application with isolated SQLite test storage and customer-scoped rescheduling. It is a development fixture, not a second product runtime.
+
+Commands on Darwin arm64: `bun test tests/discovery.test.ts tests/rails-probe*.test.ts tests/rails-dogfood.test.ts tests/routing.test.ts`: 23 passed, 94 assertions, exit 0. Additional diagnostic-hardening regression initially failed with a forwarded canary; after the allowlist fix, `bun test tests/rails-probe.test.ts`: 6 passed, 15 assertions, exit 0. Reviewed parity and the complete Rails/context contract remain implementing.
+
+`/Users/daryl/.local/share/mise/installs/ruby/4.0.6/bin/ruby fixtures/rails-dogfood/bin/check`: actual Rails suite, 7 runs / 32 assertions / zero failures, errors or skips, seed 11280, exit 0. SQLite persistence, authorization and validation are executed rather than mocked.

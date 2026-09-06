@@ -1,0 +1,6 @@
+alice_order:
+  customer: alice
+  scheduled_on: <%= (Date.current + 7).iso8601 %>
+bob_order:
+  customer: bob
+  scheduled_on: <%= (Date.current + 9).iso8601 %>
