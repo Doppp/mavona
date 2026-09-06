@@ -23,7 +23,7 @@ Maintain a ledger per capability with requirement ID, code entry points, test ID
 | VERIFY-01 | implementing | Independent verifiers, exact acceptance adoption and stale/unknown truth tested; one objective repair attempt tested; progressive widening and full canonical outcomes pending. |
 | SESSION-01 | implementing | Durable JSONL/replay, lifecycle, retention and crash effect guard tested; full migration/compaction/recovery matrix pending. |
 | CLI-01 | implementing | Native headless/event projections tested, including source, browser and evaluation paths; complete command/UX parity pending. |
-| DIST-01 | implementing | Darwin arm64 binary/native/parser/browser/viewer assets tested; installers, release provenance/signing and all-host evidence pending. |
+| DIST-01 | implementing | Darwin arm64 binary/native/parser/browser/viewer assets tested; local installer/provenance/SPDX inventory prepared and tested; signing, full bundled inventory and all-host evidence pending. |
 
 ## Required real user scenarios
 
@@ -110,7 +110,7 @@ Baseline: master `fdee113`; implementation branch `codex/mavona-v0.1`. No featur
 | VERIFY-01 | implementing | Independent verifiers, exact acceptance adoption and stale/unknown truth tested; one objective repair attempt tested; progressive widening and full canonical outcomes pending. |
 | SESSION-01 | implementing | Durable JSONL/replay, lifecycle, retention and crash effect guard tested; full migration/compaction/recovery matrix pending. |
 | CLI-01 | implementing | Native headless/event projections tested, including source, browser and evaluation paths; complete command/UX parity pending. |
-| DIST-01 | implementing | Darwin arm64 binary/native/parser/browser/viewer assets tested; installers, release provenance/signing and all-host evidence pending. |
+| DIST-01 | implementing | Darwin arm64 binary/native/parser/browser/viewer assets tested; local installer/provenance/SPDX inventory prepared and tested; signing, full bundled inventory and all-host evidence pending. |
 
 ### Evidence M0-baseline
 
@@ -427,3 +427,14 @@ All original graders then reached actual behavioral assertions on the pinned bas
 Each original grader exited1 with failed/failed. The original support's [-6000..] slice returned null notes for shorter outputs; an external Open3 observation wrapper retained real child stdout/stderr without changing arguments, results or grader bytes. Raw private observations are in /tmp/mavona-smoke-baseline-20260907; commands/setup logs are /tmp/mavona-smoke-*. These are application/grader baseline characterization runs, not protected end-to-end agent evaluation, nine Mavona successes or comparative uplift. The evaluation runner still needs a reproducible prepared-worktree path before full inherited-task evaluation; live model budget and non-Darwin hosts remain unavailable. Ruby retirement is not accepted.
 
 The broad offline suite preceding the runtime-probe addition passed253tests,1598assertions,6conditional skips, zero failures across47files. Later runtime/native evidence is recorded above.
+
+
+### Local native distribution preparation — 2026-09-07
+
+The native build writes a fingerprinted build record; packaging refuses changed binary bytes, source/build inputs, target or toolchain. The packager produces a native archive, exact SHA256SUMS, dirty-state/build provenance, SPDX2.3 installed-dependency inventory, notices, local install/remove scripts and a target-guarded Homebrew formula input with a placeholder URL. Package metadata hashes are explicitly labelled metadata hashes, not archive checksums. Signing/notarization remain unperformed. Bun's embedded third-party internals are not independently enumerated, so the inventory does not claim completeness or release readiness.
+
+The installer regression failed before implementation. Final native distribution tests:4passed,21assertions, zero failures; an earlier native distribution/CLI run passed11tests,54assertions. These cover clean-prefix startup, checksum mismatch, wrong target, symlink refusal, existing-file preservation, modified binary preservation, removal, dependency metadata without package execution and stale provenance refusal. Strict typecheck and native builds passed. The actual generated archive was verified, unpacked and installed in an isolated prefix, ran --version with only /usr/bin:/bin, and removed without deleting session/browser data or parent directories. The latest archive checksum and formula Ruby syntax also passed.
+
+The first SPDX document used a wrong document-comment property; it was corrected to the official2.3schema's comment property. The latest115-package inventory passed the official SPDX2.3Draft7schema, unique-ID and relationship-reference validation using jsonschema4.25.1 installed solely in /tmp/mavona-spdx-validator. It adds no product runtime dependency. Sources: [SPDX2.3schema](https://github.com/spdx/spdx-spec/blob/v2.3/schemas/spdx-schema.json), [validator release/license](https://pypi.org/project/jsonschema/4.25.1/).
+
+Local output: /tmp/mavona-package-20260907-3/mavona-0.1.0-dev.1-darwin-arm64.tar.gz, SHA256 a80dbeafbc3aa4bde768c99fcc045226e4c7ae295245f69ca89dd5ab3a03b50c. Provenance honestly records sourceDirty=true because inherited Ruby deletions remain unstaged and this slice was being implemented. See distribution/README.md for exact local instructions and signing/distribution limitations. No artifact, formula or release was published. Homebrew installation, signature/notarization, other-native-platform testing and full v0.1 acceptance remain unverified. CI inputs were updated but remote CI has not run.
