@@ -188,3 +188,15 @@ Actual command: `bun test tests/providers*.test.ts tests/session*.test.ts tests/
 Commands on Darwin arm64: `bun test tests/discovery.test.ts tests/rails-probe*.test.ts tests/rails-dogfood.test.ts tests/routing.test.ts`: 23 passed, 94 assertions, exit 0. Additional diagnostic-hardening regression initially failed with a forwarded canary; after the allowlist fix, `bun test tests/rails-probe.test.ts`: 6 passed, 15 assertions, exit 0. Reviewed parity and the complete Rails/context contract remain implementing.
 
 `/Users/daryl/.local/share/mise/installs/ruby/4.0.6/bin/ruby fixtures/rails-dogfood/bin/check`: actual Rails suite, 7 runs / 32 assertions / zero failures, errors or skips, seed 11280, exit 0. SQLite persistence, authorization and validation are executed rather than mocked.
+
+### Policy-bound coding loop and terminal/headless integration — 2026-09-07
+
+`packages/tools/{policy,runtime}.ts` enforce exact-action or explicit scoped execution, configuration/entry-script identity, revocation, one mutable worktree lease, digest-bound replacement, bounded argv commands, stripped process credentials and cancellation. `packages/agent/loop.ts` owns actual provider/tool requests, durable effect intent/result, capability/budget gates and independently sourced required verification. Missing checks, pending effects and model prose cannot promote correctness.
+
+The CLI now performs configured tasks and exposes session list/show/export/fork/archive/resume. The terminal controller uses the same loop, persists draft edits, shows explicit provider/model/locality, streams events, traps approval focus and cancels without clearing the draft. This is partial UI delivery: complete source/diff/editor, connection wizard/pickers, planning and inspection drawers remain required. The test runner now explicitly preloads the supported Solid transform, and a reactive render-update regression proves it executes.
+
+Actual checks on Darwin arm64: controller tests were red on missing module before implementation; session CLI test was red on unavailable dispatcher before implementation. `bun test tests/tui.test.tsx`: 2 passed / 11 assertions. `bun test tests/cli.test.ts`: 4 passed / one packaged-only skip / 17 assertions, including actual local HTTP inference protocol → approved file patch → independent subprocess verification preserving a pre-existing user edit. `bun test tests/session-cli.test.ts`: 1 passed / 13 assertions. No paid model calls occurred.
+
+`bun run typecheck`: exit 0 after browser API integration. `bun run build`: exit 0. Earlier native packaged CLI suite after loop integration: 5 passed / 20 assertions; `python3 scripts/pty-smoke.py dist/mavona`: exit 0, input/paste/resize/Ctrl+C cleanup and original termios restored. Required all-platform, long-session and complete product matrices are still implementing.
+
+After adding session dispatch, rebuilt and ran `MAVONA_TEST_BINARY=$PWD/dist/mavona bun test tests/cli.test.ts tests/session-cli.test.ts`: 6 passed / 33 assertions / zero skips, exit 0, including compiled export/fork/resume with no effect replay.
