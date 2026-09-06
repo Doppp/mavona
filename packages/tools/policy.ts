@@ -1,7 +1,7 @@
 import {readFile,realpath,stat} from 'node:fs/promises';
 import {realpathSync,statSync} from 'node:fs';
 import {mutationScope,identity,type FileIdentity,type MutationScope} from './mutation-path';
-import {resolve,relative,join} from 'node:path';
+import {resolve,relative,join,dirname} from 'node:path';
 import {containedPath,digest,readSource,isWithin} from './source';
 export type Action=
  |{tool:'create_file';path:string;text:string}
@@ -9,7 +9,7 @@ export type Action=
  |{tool:'apply_patch';path:string;beforeDigest:string;oldText:string;newText:string}
  |{tool:'run_command';argv:string[];cwd:string;timeoutMs:number};
 export interface PreparedAction {action:Action;root:string;rootIdentity:FileIdentity;scope?:MutationScope;identity:string;settingsDigest:string;executable?:string;cwd?:string;nextText?:string;target?:string}
-export async function settingsDigest(root:string):Promise<string>{
+export async function settingsDigest(root:string,scope='.'):Promise<string>{
  const entries:Record<string,string>={};
  const visit=async(path:string,depth:number)=>{
   if(depth>8)throw new Error('Configuration include limit');
@@ -21,10 +21,10 @@ export async function settingsDigest(root:string):Promise<string>{
    if(include!==undefined){if(!Array.isArray(include)||!include.every(p=>typeof p==='string'))throw new Error('Configuration includes must be paths');for(const p of include)await visit(p,depth+1);}
   }
  };
- await visit('.mavona.yml',0);return digest(JSON.stringify(Object.entries(entries).sort()));
+ const target=resolve(root,scope);if(!isWithin(root,target))throw new Error('Execution settings scope outside repository');const parts=relative(root,target).split('/').filter(Boolean);if(parts.length>30)throw new Error('Execution settings ancestry limit');for(let i=0;i<=parts.length;i++)await visit(join(...parts.slice(0,i),'.mavona.yml'),0);return digest(JSON.stringify(Object.entries(entries).sort()));
 }
 export async function prepareAction(repository:string,action:Action):Promise<PreparedAction>{
- const root=await realpath(repository);const rootIdentity=identity(await stat(root,{bigint:true}));const settings=await settingsDigest(root);
+ const root=await realpath(repository);const rootIdentity=identity(await stat(root,{bigint:true}));const settings=await settingsDigest(root,action.tool==='run_command'?action.cwd:dirname(action.path));
  if(action.tool==='apply_patch'||action.tool==='create_file'||action.tool==='delete_file'){
   const scope=await mutationScope(root,action.path,action.tool==='create_file');const target=resolve(root,action.path);let nextText:string|undefined;
   if(action.tool==='create_file'){if(typeof action.text!=='string'||Buffer.byteLength(action.text)>1024*1024||action.text.includes('\0'))throw new Error('Invalid creation text');nextText=action.text;}

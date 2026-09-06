@@ -1,7 +1,9 @@
+import {realpath} from 'node:fs/promises';
+import {join,relative} from 'node:path';
 import {digest} from '../tools/source';
 import {fuzzyFiles} from '../tools/file-picker';
 import {pendingWorktreeEffects} from '../tools/worktree';
-import {inspectRepository} from '../rails/discovery';
+import {inspectRepository,type RepositoryInspection} from '../rails/discovery';
 import {SourceNavigator} from '../tools/source-navigation';
 import type {SourceSelection} from '../tools/source';
 import {SessionStore} from '../sessions/store';
@@ -20,10 +22,10 @@ export class TuiController {
  private files:string[]=[];private selection:{provider:string;model:string}|undefined;
  private active:AbortController|undefined;private approval:((approved:boolean)=>void)|undefined;
  private policy:ExecutionPolicy;private vault=new CredentialVault();
- private pickerMode:'files'|'pins'='files';
+ private pickerMode:'files'|'pins'|'roots'='files';private roots:string[]=[];private railsPath:string;private inspection:RepositoryInspection|undefined;private discoveryPending:Promise<void>|undefined;
  private pins=new Map<string,{id:string;path:string;line:number;digest:string}>();
  constructor(private root:string,private store:SessionStore,private changed:(model:ScreenModel)=>void,private terminal?:{copy?:(text:string)=>boolean;suspend:()=>void|Promise<void>;resume:()=>void|Promise<void>}){
-  this.policy=new ExecutionPolicy(root);this.source=new SourceNavigator(root);
+  this.policy=new ExecutionPolicy(root);this.source=new SourceNavigator(root);this.railsPath=store.state.railsRoot?join(root,store.state.railsRoot):root;
   for(const [id,value] of Object.entries(store.state.references))this.references.set(id,JSON.parse(value) as SourceSelection);
   const editor=store.events.findLast(event=>event.type==='editor.configured');if(editor)this.editor={argv:argvJSON(String(editor.payload.argv)),terminal:editor.payload.terminal===true};
   for(const event of store.events){if(event.schemaVersion!==1)continue;if(event.type==='source.pinned')this.pins.set(String(event.payload.pinId),{id:String(event.payload.pinId),path:String(event.payload.path),line:Number(event.payload.line),digest:String(event.payload.digest)});else if(event.type==='source.unpinned')this.pins.delete(String(event.payload.pinId));}
@@ -32,12 +34,22 @@ export class TuiController {
  }
  private update(change:Partial<ScreenModel>){this.model={...this.model,...change};this.changed(this.model);}
  private add(text:string,id=Bun.randomUUIDv7()){this.update({messages:[...this.model.messages,{id,text:this.store.sanitizeText(text)}]});}
- async discover(){const result=await inspectRepository(this.root);this.files=result.files;this.update({status:result.status==='selected'?`Rails ${result.facts.railsVersion??'unknown'} · ${result.facts.testFrameworks.join(', ')||'tests unknown'} · runtime unchecked`:'Choose a Git-backed Rails application; static inspection remains available.'});}
+ async discover(){if(this.discoveryPending)return this.discoveryPending;const pending=this.loadDiscovery();this.discoveryPending=pending;try{await pending;}finally{if(this.discoveryPending===pending)this.discoveryPending=undefined;}}
+ private async loadDiscovery(){const result=await inspectRepository(this.railsPath);this.inspection=result;this.roots=result.roots;
+  if(this.root!==result.repository){const previous=await realpath(this.root);const rebase=(path:string)=>relative(result.repository,join(previous,path));this.source.rebaseRoot(result.repository,previous);this.root=result.repository;this.policy=new ExecutionPolicy(this.root);if(!this.store.state.unsupported)this.store.append('repository.selected',{repository:this.root});
+   for(const [id,reference] of this.references){const moved={...reference,path:rebase(reference.path)};this.references.set(id,moved);if(!this.store.state.unsupported)this.store.append('draft.reference.added',{referenceId:id,reference:JSON.stringify(moved)});}
+   for(const [id,pin] of this.pins){const moved={...pin,path:rebase(pin.path)};this.pins.set(id,moved);if(!this.store.state.unsupported)this.store.append('source.pinned',{pinId:id,path:moved.path,line:moved.line,digest:moved.digest});}
+  }
+  this.files=result.files;if(result.selectedRoot!==null){this.railsPath=join(this.root,result.selectedRoot);if(this.store.state.railsRoot!==result.selectedRoot&&!this.store.state.unsupported)this.store.append('rails.root.selected',{root:result.selectedRoot});}
+  this.update({repository:this.root.split('/').pop()??this.root,source:this.source.current,status:result.status==='selected'?`Rails root ${result.selectedRoot} · Rails ${result.facts.railsVersion??'unknown'} · ${result.facts.testFrameworks.join(', ')||'tests unknown'} · runtime unchecked`:'Choose a Git-backed Rails application; static inspection remains available.'});
+  if(result.status==='needs_decision'&&result.roots.length>1){this.pickerMode='roots';this.filterFiles('');}
+ }
+ async openRoots(){await this.discover();const result=await inspectRepository(this.root);this.roots=result.roots;this.pickerMode='roots';this.filterFiles('');}
  draft(text:string){if(text===this.model.draft)return;const event=this.store.append('draft.changed',{text});this.update({draft:String(event.payload.text)});}
- async openFiles(query=''){this.pickerMode='files';if(!this.files.length)await this.discover();this.filterFiles(query);}
- filterFiles(query:string){const pins=[...this.pins.values()];const choices=fuzzyFiles(this.pickerMode==='pins'?pins.map(pin=>pin.path):this.files,query);this.update({picker:{query,items:this.pickerMode==='pins'?choices.map(choice=>pins.find(pin=>pin.path===choice.path)!):choices}});}
+ async openFiles(query=''){await this.discover();if(this.inspection?.status==='needs_decision')return;this.pickerMode='files';this.filterFiles(query);}
+ filterFiles(query:string){if(this.pickerMode==='roots'){const choices=query.trim()?fuzzyFiles(this.roots,query):this.roots.map(path=>({id:digest(path),path}));this.update({picker:{title:'Rails roots',query,items:choices}});return;}const pins=[...this.pins.values()];const choices=fuzzyFiles(this.pickerMode==='pins'?pins.map(pin=>pin.path):this.files,query);this.update({picker:{title:this.pickerMode==='pins'?'Pinned sources':'Files',query,items:this.pickerMode==='pins'?choices.map(choice=>pins.find(pin=>pin.path===choice.path)!):choices}});}
  closePicker(){this.update({picker:undefined});}
- async pickFile(id:string){const choice=this.model.picker?.items.find(item=>item.id===id);if(!choice){this.add('File choice expired. Refresh the file picker.');return;}try{await this.source.open(choice.path);if(choice.line)this.source.goto(Math.min(choice.line,this.source.current!.lineCount));this.update({source:this.source.current,picker:undefined});if(choice.digest&&choice.digest!==this.source.current!.digest)this.add('Source changed since pinning. Showing the current worktree snapshot; prior evidence is not refreshed.');}catch{this.add('Selected file is unavailable, changed or excluded. Refresh the file picker; the current snapshot is retained.');}}
+ async pickFile(id:string){const choice=this.model.picker?.items.find(item=>item.id===id);if(!choice){this.add('File choice expired. Refresh the file picker.');return;}if(this.pickerMode==='roots'){if(!this.roots.includes(choice.path))return;this.railsPath=join(this.root,choice.path);this.policy.revoke();if(this.verifiers.length){this.verifiers=[];this.add('Application changed; reconfigure explicit verifier commands for this root.');}this.update({picker:undefined});await this.discover();return;}try{await this.source.open(choice.path);if(choice.line)this.source.goto(Math.min(choice.line,this.source.current!.lineCount));this.update({source:this.source.current,picker:undefined});if(choice.digest&&choice.digest!==this.source.current!.digest)this.add('Source changed since pinning. Showing the current worktree snapshot; prior evidence is not refreshed.');}catch{this.add('Selected file is unavailable, changed or excluded. Refresh the file picker; the current snapshot is retained.');}}
  copySource(){try{const selected=this.source.reference();if(Buffer.byteLength(selected.text)>256*1024)throw new Error('Copy limit');const sent=this.terminal?.copy?.(selected.text)??false;this.add(sent?'Copy request sent to terminal clipboard.':'Terminal clipboard unavailable. Selected text remains visible.');}catch{this.add('Select a source range with /select start:end before copying; maximum 256 KiB.');}}
  closeSource(){this.source.close();this.update({source:null});}
  cancel(){this.active?.abort();this.resolveApproval(false);}
@@ -63,15 +75,16 @@ export class TuiController {
   if(this.active)return;
   this.draft(text);
   try{
-   if(text==='/help')this.add('/files [query] · /open path[:line] · /close\n/find text · /next · /previous · /goto line · /back · /wrap · /refresh · /diff · /source\n/pin · /pins · /unpin ID · /pane 20–40\n/select start:end · /copy · /attach · /references · /detach ID\n/connect provider model · /disconnect · /providers\n/verify ["command","argument"] · /checks · /effects · /revoke · /reconcile [EFFECT_ID explanation]\n/app doctor · /app run flow.json\n/editor terminal|gui JSON_ARGV · /edit\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
+   if(text==='/help')this.add('/roots · /files [query] · /open path[:line] · /close\n/find text · /next · /previous · /goto line · /back · /wrap · /refresh · /diff · /source\n/pin · /pins · /unpin ID · /pane 20–40\n/select start:end · /copy · /attach · /references · /detach ID\n/connect provider model · /disconnect · /providers\n/verify ["command","argument"] · /checks · /effects · /revoke · /reconcile [EFFECT_ID explanation]\n/app doctor · /app run flow.json\n/editor terminal|gui JSON_ARGV · /edit\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
+   else if(text==='/roots')await this.openRoots();
    else if(text==='/files'||text.startsWith('/files ')){await this.openFiles(text.slice(7).trim());}
-   else if(text==='/pin'){const source=this.source.current;if(!source||source.diff)throw new Error('Open source before pinning');if(this.pins.size>=64&&!Array.from(this.pins.values()).some(pin=>pin.path===source.path))throw new Error('Pinned source limit');const pin={id:digest('source-pin:'+source.path),path:source.path,line:source.line,digest:source.digest};this.store.append('source.pinned',{pinId:pin.id,path:pin.path,line:pin.line,digest:pin.digest});this.pins.set(pin.id,pin);this.add(`Pinned ${pin.path}:${pin.line} · ${pin.id}`);}
+   else if(text==='/pin'){const source=this.source.current;if(!source||source.diff)throw new Error('Open source before pinning');if(this.pins.size>=64&&!Array.from(this.pins.values()).some(pin=>pin.path===source.path))throw new Error('Pinned source limit');const pin={id:[...this.pins.values()].find(pin=>pin.path===source.path)?.id??digest('source-pin:'+source.path),path:source.path,line:source.line,digest:source.digest};this.store.append('source.pinned',{pinId:pin.id,path:pin.path,line:pin.line,digest:pin.digest});this.pins.set(pin.id,pin);this.add(`Pinned ${pin.path}:${pin.line} · ${pin.id}`);}
    else if(text==='/pins'){this.pickerMode='pins';this.filterFiles('');}
    else if(text.startsWith('/unpin ')){const id=text.slice(7).trim();if(!this.pins.has(id))throw new Error('Unknown source pin');this.store.append('source.unpinned',{pinId:id});this.pins.delete(id);this.add('Source pin removed.');}
    else if(text.startsWith('/pane ')){const percent=Number(text.slice(6));if(!Number.isInteger(percent)||percent<20||percent>40)throw new Error('Pane width is 20–40 percent');this.store.append('source.pane.resized',{percent});this.update({sourcePanePercent:percent});}
    else if(text==='/copy')this.copySource();
    else if(text==='/close')this.closeSource();
-   else if(text.startsWith('/open ')){const match=/^(.*?)(?::([1-9]\d*))?$/.exec(text.slice(6).trim())!;await this.source.open(match[1]!,Number(match[2]??1));this.update({source:this.source.current});}
+   else if(text.startsWith('/open ')){await this.discover();const match=/^(.*?)(?::([1-9]\d*))?$/.exec(text.slice(6).trim())!;const prefix=this.inspection?.selectedRoot;const path=prefix&&prefix!=='.'&&!match[1]!.startsWith(prefix+'/')?join(prefix,match[1]!):match[1]!;await this.source.open(path,Number(match[2]??1));this.update({source:this.source.current});}
    else if(text.startsWith('/find ')){this.source.search(text.slice(6));this.update({source:this.source.current});}
    else if(text.startsWith('/goto ')){this.source.goto(Number(text.slice(6)));this.update({source:this.source.current});}
    else if(text==='/next'||text==='/previous'){this.source.next(text==='/next'?1:-1);this.update({source:this.source.current});}
@@ -108,7 +121,7 @@ export class TuiController {
     const parts=text.trim().split(/\s+/);if(parts.length!==3)throw new Error('Use /connect provider model');const preset=presets.find(p=>p.id===parts[1]);if(!preset)throw new Error('Unknown provider; use /providers');
     this.selection={provider:preset.id,model:parts[2]!};this.update({connection:`${preset.locality.toUpperCase()} · ${preset.id} / ${parts[2]}`});this.add(`Selected ${preset.id} / ${parts[2]}. Capabilities unchecked. ${preset.locality==='remote'?'Submitting a task sends repository context to this provider and can incur charges.':'Repository context stays on the selected local endpoint.'}`);
    }else if(text==='/disconnect'){this.selection=undefined;this.update({connection:undefined});this.policy.revoke();}
-   else if(text.startsWith('/verify ')){const argv=argvJSON(text.slice(8));this.verifiers.push({id:`user-check-${this.verifiers.length+1}`,argv,required:true,provenance:'user-approved',timeoutMs:60000});this.add('Required verifier configured. Execution will request exact-action approval.');}
+   else if(text.startsWith('/verify ')){await this.discover();const argv=argvJSON(text.slice(8));this.verifiers.push({id:`user-check-${this.verifiers.length+1}`,argv,required:true,provenance:'user-approved',timeoutMs:60000,cwd:this.inspection?.selectedRoot??'.'});this.add('Required verifier configured. Execution will request exact-action approval.');}
    else if(text==='/checks')this.add(JSON.stringify(this.verifiers,null,2));
    else if(text.startsWith('/reconcile ')){const match=/^\/reconcile (\S+) (.+)$/s.exec(text);if(!match)throw new Error('Use /reconcile EFFECT_ID explanation of inspected current state');const {reconcileEffect}=await import('../sessions/reconciliation');const result=await reconcileEffect(this.store,match[1]!,match[2]!);this.policy.revoke();this.add(`Effect ${result.effectId} reconciled. Outcome remains ${result.outcome}; prior verification is stale.`);}
    else if(text==='/effects'){const worktree=await pendingWorktreeEffects(this.root);this.add(JSON.stringify({worktree,session:Object.entries(this.store.state.effects).map(([effectId,outcome])=>({effectId,outcome,reconciled:Object.hasOwn(this.store.state.reconciledEffects,effectId)}))},null,2));}
@@ -118,13 +131,14 @@ export class TuiController {
    else {
     if(!this.selection){this.add('Choose /connect provider model before submitting a task. Draft retained.');return;}
     for(const reference of this.references.values())if(!await this.source.currentReference(reference)){this.add('Selected source changed. Detach the stale reference, refresh the file and select again before submission. No model request made.');return;}
+    await this.discover();if(this.inspection?.status!=='selected'){this.add('Choose a Rails root with /roots before inference.');return;}
     const pending=await pendingWorktreeEffects(this.root);if(pending.length){this.add('Reconcile unfinished effects before inference: '+pending.map(effect=>`session ${effect.owner} / effect ${effect.effectId}`).join(', ')+'. Use /effects and /reconcile EFFECT_ID explanation in the owning session.');return;}
     const selection=this.selection;const preset=presets.find(p=>p.id===selection.provider)!;
     this.active=new AbortController();this.update({running:true});this.add(`You · ${text}`);
     const credential=await this.vault.resolve(preset.id,preset.credentialNames);if(credential)this.store.addSecret(credential.value);
     const provider=createProvider(preset.id,credential?.value);
     const capabilities=await preflightCapabilities(provider,selection.model,preset.locality,this.active.signal);
-    const result=await runTask({root:this.root,task:text,provider,providerId:preset.id,model:selection.model,capabilities,store:this.store,policy:this.policy,signal:this.active.signal,verifiers:this.verifiers,references:[...this.references.values()],onEvent:event=>this.event(event),approve:action=>this.approve(action,this.active!.signal)});
+    const result=await runTask({root:this.root,railsPath:this.railsPath,task:text,provider,providerId:preset.id,model:selection.model,capabilities,store:this.store,policy:this.policy,signal:this.active.signal,verifiers:this.verifiers,references:[...this.references.values()],onEvent:event=>this.event(event),approve:action=>this.approve(action,this.active!.signal)});
     this.add(`Task · ${result.status} · correctness ${result.correctness}${result.error?'\n'+result.error.message:''}`);
     if(result.exitCode!==0)return;
    }

@@ -1,3 +1,4 @@
+import {inspectRepository} from '../rails/discovery';import {routeTask} from '../rails/routing';
 import {pendingWorktreeEffects} from '../tools/worktree';
 import {join} from 'node:path';
 import {homedir} from 'node:os';
@@ -15,8 +16,9 @@ export async function runCommand(raw:string[]):Promise<number>{
  const task=args.positionals.join(' ');const providerId=single(args,'provider');const model=single(args,'model');
  const format=single(args,'format','json');if(!['json','jsonl','text'].includes(format!))throw new Error('Unsupported output format');
  if(!task||!providerId||!model){console.error('run requires a task, --provider and --model; no request was made.');return 2;}
- const root=await realpath(single(args,'root',process.cwd())!);const preset=presets.find(p=>p.id===providerId);
+ const requestedRoot=await realpath(single(args,'root',process.cwd())!);const inspection=await inspectRepository(requestedRoot);const root=inspection.repository;const preset=presets.find(p=>p.id===providerId);
  const pending=await pendingWorktreeEffects(root);if(pending.length){const result={schemaVersion:1,status:'reconciliation_required',correctness:'unknown',exitCode:2,pendingEffects:pending,recovery:'Inspect the owning session; use sessions reconcile ID --effect EFFECT_ID --reason inspected-current-state'};console.log(format==='text'?result.recovery+' '+JSON.stringify(pending):JSON.stringify(format==='jsonl'?{schemaVersion:1,type:'result',result}:result));return 2;}
+ const routing=routeTask(task,inspection);if(routing.status!=='PLAN_READY'){const result={schemaVersion:1,status:routing.status,correctness:'unknown',exitCode:2,reason:routing.reason,roots:inspection.roots};console.log(format==='text'?result.reason:JSON.stringify(format==='jsonl'?{schemaVersion:1,type:'result',result}:result));return 2;}
  const endpoint=single(args,'endpoint');let custom:Connection|undefined;
  if(endpoint){const locality=single(args,'locality');if(locality!=='local'&&locality!=='remote')throw new Error('Custom endpoint requires explicit locality');custom={id:providerId,baseUrl:endpoint,locality};}
  const connection=custom??preset;if(!connection)throw new Error('Provider configuration required');
@@ -25,12 +27,12 @@ export async function runCommand(raw:string[]):Promise<number>{
  let store:SessionStore|undefined;
  try{
   const capabilities:ModelCapabilities=args.flags.has('trust-model-tools')?{streaming:true,tools:true,instructions:true,structuredOutput:false,images:false,locality:connection.locality,source:'user_override',observedAt:new Date().toISOString()}:await preflightCapabilities(provider,model,connection.locality,controller.signal);
-  const policy=new ExecutionPolicy(root);const verifiers:Verifier[]=(args.values.get('verify')??[]).map((value,i)=>({id:`user-check-${i+1}`,argv:argvJSON(value),required:true,provenance:'user-approved',timeoutMs:60000}));
-  const commands=(args.values.get('allow-command')??[]).map(argvJSON);const paths=args.values.get('allow-write')??[];
-  if(commands.length||paths.length)policy.grantDevelopment({commands,writePaths:paths,settingsDigest:await settingsDigest(root)});
+  const policy=new ExecutionPolicy(root);const verifiers:Verifier[]=(args.values.get('verify')??[]).map((value,i)=>({id:`user-check-${i+1}`,argv:argvJSON(value),required:true,provenance:'user-approved',timeoutMs:60000,cwd:inspection.selectedRoot!}));
+  const commands=(args.values.get('allow-command')??[]).map(argvJSON);const paths=(args.values.get('allow-write')??[]).map(path=>inspection.selectedRoot==='.'||path.startsWith(inspection.selectedRoot!+'/')?path:join(inspection.selectedRoot!,path));
+  if(commands.length||paths.length)policy.grantDevelopment({commands,writePaths:paths,settingsDigest:await settingsDigest(root,inspection.selectedRoot!)});
   const id=Bun.randomUUIDv7();store=new SessionStore(join(single(args,'data-dir',dataDirectory())!,'sessions',id),id,credential?[credential.value]:[]);
   const maxTurns=Number(single(args,'max-turns','8'));if(!Number.isSafeInteger(maxTurns)||maxTurns<1||maxTurns>50)throw new Error('Invalid turn budget');
-  const result=await runTask({root,task,provider,providerId,model,capabilities,store,policy,signal:controller.signal,verifiers,maxTurns,onEvent:event=>{if(format==='jsonl')console.log(JSON.stringify(event));else if(format==='text'&&event.type==='assistant.delta')process.stdout.write(String(event.payload.text));}});
+  const result=await runTask({root,railsPath:join(root,inspection.selectedRoot!),task,provider,providerId,model,capabilities,store,policy,signal:controller.signal,verifiers,maxTurns,onEvent:event=>{if(format==='jsonl')console.log(JSON.stringify(event));else if(format==='text'&&event.type==='assistant.delta')process.stdout.write(String(event.payload.text));}});
   if(format==='text')console.log(`\n${result.status}: ${result.correctness} · session ${id}`);
   else console.log(JSON.stringify(format==='jsonl'?{schemaVersion:1,type:'result',result}:result));
   return result.exitCode;

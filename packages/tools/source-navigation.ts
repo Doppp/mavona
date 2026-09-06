@@ -1,9 +1,11 @@
+import {resolve,relative} from 'node:path';
 import {sourceDiff,type SourceDiff} from './source-diff';
-import {readSource,selectLines,selectionIsCurrent,type SourceSnapshot,type SourceSelection} from './source';
+import {readSource,isWithin,selectLines,selectionIsCurrent,type SourceSnapshot,type SourceSelection} from './source';
 export interface SourceView extends SourceSnapshot {line:number;wrap:boolean;query:string;matches:number[];selection?:SourceSelection;diff?:SourceDiff}
 export class SourceNavigator {
  current:SourceView|null=null;private history:SourceView[]=[];
  constructor(private root:string){}
+ rebaseRoot(root:string,previousRoot=this.root){const remap=(view:SourceView):SourceView=>{const absolute=resolve(previousRoot,view.path);if(!isWithin(root,absolute))throw new Error('Source snapshot outside new root');const path=relative(root,absolute);return {...view,path,...(view.selection?{selection:{...view.selection,path}}:{})};};this.history=this.history.map(remap);if(this.current)this.current=remap(this.current);this.root=root;}
  async open(path:string,line=1){const source=await readSource(this.root,path);if(!Number.isSafeInteger(line)||line<1||line>source.lineCount)throw new Error('Line outside source');if(this.current){this.history.push(this.current);if(this.history.length>30)this.history.shift();}this.current={...source,line,wrap:false,query:'',matches:[]};return this.current;}
  back(){const previous=this.history.pop();if(previous)this.current=previous;return this.current;}
  goto(line:number){const source=this.required();if(!Number.isSafeInteger(line)||line<1||line>(source.diff?.text.split('\n').length??source.lineCount))throw new Error('Line outside source');this.current={...source,line};}

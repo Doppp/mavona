@@ -8,14 +8,16 @@ export function correctness(checks:readonly Check[]):Correctness {
  if(!required.length||required.some(c=>!accepted(c)||c.state!=='passed'))return 'unknown';
  return 'passed';
 }
-export interface SessionState {reconciledEffects:Record<string,string>;references:Record<string,string>;draft:string;repository:string|null;effects:Record<string,Correctness>;mutationAllowed:boolean;unsupported:boolean;messages:{id:string;role:'user'|'assistant';text:string}[]}
+export interface SessionState {railsRoot:string|null;reconciledEffects:Record<string,string>;references:Record<string,string>;draft:string;repository:string|null;effects:Record<string,Correctness>;mutationAllowed:boolean;unsupported:boolean;messages:{id:string;role:'user'|'assistant';text:string}[]}
 export function replay(events:readonly Envelope[]):SessionState {
- const state:SessionState={reconciledEffects:{},references:{},draft:'',repository:null,effects:{},mutationAllowed:true,unsupported:false,messages:[]};
+ const state:SessionState={railsRoot:null,reconciledEffects:{},references:{},draft:'',repository:null,effects:{},mutationAllowed:true,unsupported:false,messages:[]};
  for(const event of events){
   if(!isKnown(event)){state.unsupported=true;continue;}
   switch(event.type){
    case 'draft.reference.added':state.references[event.payload.referenceId]=event.payload.reference;break;
    case 'draft.reference.removed':delete state.references[event.payload.referenceId];break;
+   case 'rails.root.selected':state.railsRoot=event.payload.root;break;
+   case 'repository.selected':state.repository=event.payload.repository;state.railsRoot=null;break;
    case 'session.opened':state.repository=event.payload.repository;break;
    case 'draft.changed':state.draft=event.payload.text;break;
    case 'user.message':state.messages.push({id:event.eventId,role:'user',text:event.payload.text});break;

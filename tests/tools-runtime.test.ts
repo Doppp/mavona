@@ -51,3 +51,8 @@ test('patch refuses symlink escapes, stale source and ambiguous replacement',asy
  await expect(prepareAction(root,action)).rejects.toThrow('stale');
  const now=await readSource(root,'app/order.rb');await expect(prepareAction(root,{...action,beforeDigest:now.digest})).rejects.toThrow('unique');
 });
+test('nested application execution settings invalidate an exact-action approval',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'mavona-nested-settings-'));await mkdir(join(root,'apps/shop'),{recursive:true});await writeFile(join(root,'apps/shop/.mavona.yml'),'verification:\n  test:\n    command: [bin/rails, test]\n');const policy=new ExecutionPolicy(root);const action={tool:'run_command' as const,argv:['/bin/test','-n','present'],cwd:'apps/shop',timeoutMs:1000};
+ try{policy.approveOnce(await prepareAction(root,action));await writeFile(join(root,'apps/shop/.mavona.yml'),'verification:\n  test:\n    command: [bundle, exec, rspec]\n');expect(policy.allows(await prepareAction(root,action))).toBe(false);}
+ finally{await rm(root,{recursive:true,force:true});}
+});
