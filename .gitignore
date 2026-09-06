@@ -1,0 +1,13 @@
+/.mavona/
+/.env
+/.env.*
+!/.env.example
+/coverage/
+/pkg/
+/*.gem
+/.DS_Store
+
+/node_modules/
+/dist/
+/artifacts/
+*.tsbuildinfo
