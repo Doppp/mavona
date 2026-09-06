@@ -1,0 +1,22 @@
+import {open,realpath} from 'node:fs/promises';import {constants} from 'node:fs';import {resolve,relative,isAbsolute} from 'node:path';import {createHash} from 'node:crypto';
+import {ProviderError,type ModelCapabilities,type ProviderMessage,type Connection} from './types';
+export type InputBlock={type:'text';text:string}|{type:'image';artifactId:string;sha256:string;mediaType:'image/png';size:number;width:number;height:number};
+export interface ImageOptions {artifactRoot:string;capabilities:ModelCapabilities;resolveArtifact:(id:string)=>Promise<{path:string;sha256:string;size:number;mediaType:'image/png';redaction:'masked'}>;maxImages?:number;maxBytes?:number;maxPixels?:number}
+export interface AdapterOptions {images?:ImageOptions}
+export type ResolvedBlock={type:'text';text:string}|{type:'image';base64:string;mediaType:'image/png'};
+function refuse(message:string):never{throw new ProviderError('unsupported_capability',message);}
+function contained(root:string,path:string):boolean{const r=relative(root,path);return r!==''&&!r.startsWith('..')&&!isAbsolute(r);}
+export async function resolveBlocks(messages:readonly ProviderMessage[],connection:Connection,options:AdapterOptions,signal:AbortSignal):Promise<Map<ProviderMessage,ResolvedBlock[]>>{
+ const resolved=new Map<ProviderMessage,ResolvedBlock[]>();let count=0,bytes=0,pixels=0;
+ for(const message of messages){if(!message.blocks)continue;if(message.content)refuse('Use ordered blocks or text content, not both');const result:ResolvedBlock[]=[];
+ for(const block of message.blocks){signal.throwIfAborted();if(block.type==='text'){result.push({type:'text',text:block.text});continue;}if(block.type!=='image')refuse('Unsupported image input');const config=options.images;
+ if(!config||!config.capabilities.images||config.capabilities.source==='unknown'||config.capabilities.locality!==connection.locality)refuse('Demonstrated image capability required');if(message.role!=='user')refuse('Images require user input blocks');
+ if(++count>Math.min(config.maxImages??4,10)||block.mediaType!=='image/png'||!Number.isSafeInteger(block.size)||block.size<=0||!Number.isSafeInteger(block.width)||!Number.isSafeInteger(block.height)||block.width<1||block.height<1)refuse('Invalid image metadata or count');bytes+=block.size;pixels+=block.width*block.height;if(bytes>Math.min(config.maxBytes??8*1024*1024,20*1024*1024)||pixels>Math.min(config.maxPixels??16000000,40000000))refuse('Image request budget exceeded');
+ const artifact=await config.resolveArtifact(block.artifactId);if(artifact.redaction!=='masked'||artifact.sha256!==block.sha256||artifact.size!==block.size||artifact.mediaType!==block.mediaType)refuse('Image artifact metadata mismatch');
+ const root=resolve(config.artifactRoot),path=resolve(root,artifact.path);if(!contained(root,path))refuse('Image artifact outside storage');const realRoot=await realpath(root),realPath=await realpath(path);if(!contained(realRoot,realPath))refuse('Image artifact symlink outside storage');
+ const handle=await open(realPath,constants.O_RDONLY|constants.O_NOFOLLOW);let data:Buffer;try{const stat=await handle.stat();if(!stat.isFile()||stat.size!==block.size)refuse('Image artifact changed');data=await handle.readFile();}finally{await handle.close();}signal.throwIfAborted();
+ if(data.length!==block.size||createHash('sha256').update(data).digest('hex')!==block.sha256||data.length<24||!data.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))||data.toString('ascii',12,16)!=='IHDR'||data.readUInt32BE(16)!==block.width||data.readUInt32BE(20)!==block.height)refuse('Image bytes or dimensions mismatch');result.push({type:'image',base64:data.toString('base64'),mediaType:'image/png'});
+ }resolved.set(message,result);}
+ return resolved;
+}
+export function wireBlocks(blocks:ResolvedBlock[],route:'compatible'|'responses'|'anthropic'):unknown[]{return blocks.map(b=>b.type==='text'?{type:route==='responses'?'input_text':'text',text:b.text}:route==='anthropic'?{type:'image',source:{type:'base64',media_type:b.mediaType,data:b.base64}}:route==='responses'?{type:'input_image',image_url:`data:${b.mediaType};base64,${b.base64}`}:{type:'image_url',image_url:{url:`data:${b.mediaType};base64,${b.base64}`}});}

@@ -6,14 +6,38 @@ export interface Payloads {
  'effect.requested':{effectId:string;kind:'command'|'patch'|'browser'};
  'effect.completed':{effectId:string;state:'passed'|'failed'|'unknown'};
  'session.closed':{reason:string};
+ 'provider.selected':{provider:string;model:string;locality:'local'|'remote'|'subscription'};
+ 'task.started':{taskId:string;text:string};
+ 'task.completed':{taskId:string;status:string;correctness:'passed'|'failed'|'unknown';exitCode:number};
+ 'tool.requested':{callId:string;name:string;arguments:string};
+ 'tool.completed':{callId:string;result:string};
+ 'approval.requested':{actionId:string;description:string};
+ 'approval.resolved':{actionId:string;decision:'approved'|'denied'};
+ 'verification.completed':{checkId:string;state:'passed'|'failed'|'unknown';provenance:string;required:boolean;result:string};
+ 'usage.reported':{inputTokens:number;outputTokens:number};
+ 'error.recorded':{category:string;message:string};
+ 'session.resumed':{sourceSequence:number};
+ 'session.forked':{sourceSessionId:string;sourceSequence:number;sourceHash:string};
+ 'session.checkpointed':{checkpointId:string;throughSequence:number;sha256:string};
+ 'session.archived':{archived:boolean};
+ 'artifact.expired':{artifactId:string;sha256:string;provenance:string;expiredAt:string;reason:string};
 }
 export type EventType=keyof Payloads;
 export interface Envelope {protocolVersion:1;eventId:string;sessionId:string;sequence:number;timestamp:string;type:string;schemaVersion:number;payload:Record<string,unknown>;causedBy?:string}
 export type KnownEvent = {[T in EventType]:Omit<Envelope,'type'|'payload'>&{type:T;payload:Payloads[T]}}[EventType];
-const shapes:Record<EventType,Record<string,readonly string[]|null>>={
+const shapes:Record<EventType,Record<string,readonly string[]|null|'number'|'boolean'>>={
  'session.opened':{repository:null},'draft.changed':{text:null},'user.message':{text:null},'assistant.delta':{text:null},
  'effect.requested':{effectId:null,kind:['command','patch','browser']},
- 'effect.completed':{effectId:null,state:['passed','failed','unknown']},'session.closed':{reason:null}
+ 'effect.completed':{effectId:null,state:['passed','failed','unknown']},'session.closed':{reason:null},
+ 'provider.selected':{provider:null,model:null,locality:['local','remote','subscription']},
+ 'task.started':{taskId:null,text:null},'task.completed':{taskId:null,status:null,correctness:['passed','failed','unknown'],exitCode:'number'},
+ 'tool.requested':{callId:null,name:null,arguments:null},'tool.completed':{callId:null,result:null},
+ 'approval.requested':{actionId:null,description:null},'approval.resolved':{actionId:null,decision:['approved','denied']},
+ 'verification.completed':{checkId:null,state:['passed','failed','unknown'],provenance:null,required:'boolean',result:null},
+ 'usage.reported':{inputTokens:'number',outputTokens:'number'},'error.recorded':{category:null,message:null},
+ 'session.resumed':{sourceSequence:'number'},'session.forked':{sourceSessionId:null,sourceSequence:'number',sourceHash:null},
+ 'session.checkpointed':{checkpointId:null,throughSequence:'number',sha256:null},'session.archived':{archived:'boolean'},
+ 'artifact.expired':{artifactId:null,sha256:null,provenance:null,expiredAt:null,reason:null}
 };
 export function decode(value:unknown):Envelope {
  if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Invalid event');
@@ -25,7 +49,10 @@ export function decode(value:unknown):Envelope {
  if(e.causedBy!==undefined&&typeof e.causedBy!=='string')throw new Error('Invalid causal ID');
  const event=e as unknown as Envelope;
  if(isKnown(event))for(const [key,allowed] of Object.entries(shapes[event.type])){
-  const val=(event.payload as Record<string,unknown>)[key];if(typeof val!=='string'||(allowed&&!allowed.includes(val)))throw new Error('Invalid event payload');
+  const val=(event.payload as Record<string,unknown>)[key];
+  if(allowed==='number'){if(typeof val!=='number'||!Number.isFinite(val))throw new Error('Invalid numeric event payload');}
+  else if(allowed==='boolean'){if(typeof val!=='boolean')throw new Error('Invalid boolean event payload');}
+  else if(typeof val!=='string'||(allowed&&!allowed.includes(val)))throw new Error('Invalid event payload');
  }
  return event;
 }

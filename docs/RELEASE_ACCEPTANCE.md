@@ -172,3 +172,11 @@ Provider implementation sources checked: [official Chat Completions reference](h
 `bun install --frozen-lockfile`: exit 0, no lock changes. `bun test`: 31 passed, 1 packaged-only skip, 109 assertions, exit 0. `bun run typecheck`: exit 0. Separate native packaged CLI suite: 4 passed / 14 assertions. The existing Ruby production CI is replaced by Bun test/build/native-smoke jobs and an immutable historical characterization job. Workflow sources are pinned for checkout/setup-bun; CI has not run remotely and provides no Linux/native acceptance evidence. No push or publication occurred.
 
 Required UI, agent, policy, Rails parity, native provider, session recovery, browser and distribution scenarios remain incomplete. See the implementation plan's concrete continuation checkpoint. All capability states above remain honest partial states; foundational tests are not product release acceptance.
+
+### Provider adapters and durable session lifecycle — implementation evidence, 2026-09-07
+
+Native Responses and Messages adapters, compatible presets, bounded capability preflight/model discovery, structured tool assembly, explicit locality, sanitized image references, secure-store/session/environment credentials and official-subscription unavailable states are now implemented under `packages/providers/`. Tests use local HTTP stubs or fake secure-store executables. No paid/live provider compatibility is claimed.
+
+Session lifecycle now includes read-only catalog/export, explicit resume/fork, immutable checkpoints, retention tombstones and SQLite-backed writer ownership that survives process death. Pending effects remain unknown on replay. Required UI integration and full crash/retention matrices remain incomplete.
+
+Actual command: `bun test tests/providers*.test.ts tests/session*.test.ts tests/tools-runtime.test.ts tests/agent-loop.test.ts tests/cli.test.ts tests/tui*.test.ts*` on Darwin arm64, Bun 1.4.2: 48 passed, one packaged-only skip, 216 assertions, exit 0. This covers these libraries plus the following integration slice; it is not full release acceptance. Typechecking the entire working tree currently encounters concurrent unfinished browser extensions; rerun after that slice is integrated.

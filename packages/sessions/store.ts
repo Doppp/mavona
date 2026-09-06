@@ -7,11 +7,11 @@ export class SessionStore {
  readonly events:Envelope[]=[];
  state:SessionState=replay([]);
  recoveredTrailingBytes=0;
- private fd=-1; private lock=-1;private db:Database|undefined;private closed=false;
+ private fd=-1; private lock=-1;private db:Database|undefined;private ownership:Database|undefined;private closed=false;
  constructor(readonly directory:string,readonly sessionId:string,private secrets:readonly string[]=[]){
   if(!/^[\w-]+$/.test(sessionId))throw new Error('Invalid session ID');
   mkdirSync(directory,{recursive:true,mode:0o700});
-  try {this.lock=openSync(join(directory,'writer.lock'),'wx',0o600);} catch {throw new Error('Session already owned; reconcile stale writer lock before reopening');}
+  try {this.ownership=new Database(join(directory,'writer.sqlite'),{create:true});this.ownership.exec('PRAGMA busy_timeout=0; BEGIN EXCLUSIVE');this.lock=openSync(join(directory,'writer.lock'),'w',0o600);writeSync(this.lock,JSON.stringify({version:1,pid:process.pid,ownerId:Bun.randomUUIDv7(),sessionId}));fsyncSync(this.lock);} catch {this.ownership?.close();throw new Error('Session already owned or ownership unavailable');}
   try {
    this.fd=openSync(join(directory,'events.jsonl'),'a+',0o600);
    const bytes=readFileSync(join(directory,'events.jsonl'));const boundary=bytes.lastIndexOf(10)+1;
@@ -31,6 +31,8 @@ export class SessionStore {
    this.db.transaction(()=>{this.db!.exec('DELETE FROM events');for(const e of this.events)this.project(e);})();
   } catch(error){this.close();throw error;}
  }
+ addSecret(value:string):void{if(value&&!this.secrets.includes(value))this.secrets=[...this.secrets,value];}
+ sanitizeText(input:string):string{let text=input;for(const secret of this.secrets)if(secret)text=text.split(secret).join('[REDACTED]');return text.replace(/Bearer\s+[A-Za-z0-9._~+\/-]+/gi,'Bearer [REDACTED]').replace(/\bsk-[A-Za-z0-9_-]{12,}/g,'[REDACTED]');}
  private project(event:Envelope){this.db!.query('INSERT INTO events VALUES (?, ?, ?)').run(event.eventId,event.sequence,JSON.stringify(event));}
  append<T extends EventType>(type:T,payload:Payloads[T],causedBy?:string):Envelope {
   if(this.closed)throw new Error('Session closed');
@@ -46,7 +48,7 @@ export class SessionStore {
     return text.replace(/Bearer\s+[A-Za-z0-9._~+\/-]+/gi,'Bearer [REDACTED]').replace(/\bsk-[A-Za-z0-9_-]{12,}/g,'[REDACTED]');
    }
    if(Array.isArray(value))return value.map(redact);
-   if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,/password|secret|credential|api.?key|token/i.test(k)?'[REDACTED]':redact(v)]));
+   if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,/password|secret|credential|api.?key|(?:access|refresh|auth).?token/i.test(k)?'[REDACTED]':redact(v)]));
    return value;
   };
   const event=decode({...raw,payload:redact(raw.payload)});const state=replay([...this.events,event]);
@@ -57,5 +59,5 @@ export class SessionStore {
   try{this.project(event);}catch{this.close();throw new Error('Canonical event saved; projection failed. Reopen to rebuild.');}
   return event;
  }
- close(){if(this.closed)return;this.closed=true;this.db?.close();if(this.fd>=0)closeSync(this.fd);if(this.lock>=0){closeSync(this.lock);unlinkSync(join(this.directory,'writer.lock'));}}
+ close(){if(this.closed)return;this.closed=true;this.db?.close();if(this.fd>=0)closeSync(this.fd);if(this.lock>=0){closeSync(this.lock);try{unlinkSync(join(this.directory,'writer.lock'));}catch{}}this.ownership?.close();}
 }
