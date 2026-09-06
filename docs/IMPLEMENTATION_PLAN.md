@@ -112,3 +112,7 @@ Expose the existing versioned Prism parse operation through one bounded parse_ru
 ### Command palette and argument entry
 
 Use a stable local command catalog for a searchable Ctrl+P palette and generated help. Choosing a command with required arguments opens a bounded argument field in the existing picker; commands use the existing controller paths and approval rules. Keep the composer draft intact through filtering, cancellation and execution. File search remains /files. Add Ctrl+D for the existing revision-labelled diff and Ctrl+R for Rails evidence. Verify controller actions and native keyboard interaction at80×24, including cancel, resize and terminal cleanup; palette navigation must make no inference request.
+
+### Terminal session picker and atomic resume
+
+Expose local session summaries in a bounded, searchable Ctrl+O picker, including stable session ID, archive state and pending-effect count. Resume only when the current controller is idle. Acquire and validate the destination session before releasing the current writer; preserve its persisted draft and stop owned view resources during switching. Rebuild a controller from canonical events, invalidate resumed verification using existing lifecycle rules and never replay effects. Keep corrupt/unsupported histories unavailable for mutation. Test cancelled selection, failed ownership acquisition, actual native switching, pending-effect truth and terminal cleanup.
