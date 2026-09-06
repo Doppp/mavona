@@ -1,4 +1,5 @@
-import {selectVerifiers,criteriaUnchanged,type Criterion} from '../verification/selection';
+import {captureAcceptance,acceptanceBaseline,makeAcceptanceReview,adoptAcceptance,type AcceptanceReview} from '../verification/adoption';
+import {selectVerifiers,type Criterion} from '../verification/selection';
 import {UnreconciledWorktreeEffects} from '../tools/worktree';
 import {captureRepositoryState,changesSince,type RepositoryState} from '../tools/repository-state';
 import {realpath,readdir} from 'node:fs/promises';
@@ -15,7 +16,7 @@ import {collectTurn,requireChangeCapabilities,ProviderError,type Provider,type P
 import type {EventType,Payloads,Envelope} from '../protocol/events';
 export interface Verifier {id:string;argv:string[];required:boolean;provenance:Check['provenance'];timeoutMs:number;cwd?:string;criteria?:Criterion[];scope?:string[];rationale?:string}
 export interface TaskResult {schemaVersion:1;sessionId:string;taskId:string;status:string;correctness:'passed'|'failed'|'unknown';exitCode:number;checks:(Check&{result:ToolResult})[];artifacts:string[];changes?:ReturnType<typeof changesSince>;error?:{category:string;message:string}}
-export interface RunOptions {root:string;railsPath?:string;task:string;provider:Provider;providerId:string;model:string;capabilities:ModelCapabilities;store:SessionStore;policy:ExecutionPolicy;signal:AbortSignal;verifiers:Verifier[];references?:SourceSelection[];maxTurns?:number;maxToolCalls?:number;maxDurationMs?:number;onEvent?:(event:Envelope)=>void;approve?:(action:PreparedAction)=>Promise<boolean>}
+export interface RunOptions {root:string;railsPath?:string;task:string;provider:Provider;providerId:string;model:string;capabilities:ModelCapabilities;store:SessionStore;policy:ExecutionPolicy;signal:AbortSignal;verifiers:Verifier[];references?:SourceSelection[];maxTurns?:number;maxToolCalls?:number;maxDurationMs?:number;onEvent?:(event:Envelope)=>void;adoptAcceptance?:(review:AcceptanceReview)=>Promise<boolean>;approve?:(action:PreparedAction)=>Promise<boolean>}
 const string={type:'string',maxLength:1024*1024};
 const definition=(name:string,description:string,properties:Record<string,unknown>,required=Object.keys(properties)):ToolDefinition=>({type:'function',function:{name,description,parameters:{type:'object',properties,required,additionalProperties:false}}});
 export const tools:ToolDefinition[]=[
@@ -51,6 +52,15 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
   if(prior){const saved=JSON.parse(String(prior.payload.snapshot)) as RepositoryState;if(saved.root!==baseline.root||saved.digest!==baseline.digest)return finish('repository_changed',2,{category:'decision',message:'Repository changed since the recorded state; inspect and explicitly reconcile before continuing'});}
   emit('repository.snapshot',{snapshot:JSON.stringify(baseline),reason:'task-start'});
   if(!verifiers.length){const selection=await selectVerifiers(inspection,routing);emit('verification.selected',{selection:JSON.stringify(selection)});verifiers=selection.verifiers;checks.push(...verifiers.map(verifier=>({id:verifier.id,required:verifier.required,provenance:verifier.provenance,state:'unknown' as const,fresh:false,result:{state:'unknown' as const,durationMs:0,reason:'not run'}})));}
+  const reviewAcceptance=async(state:RepositoryState):Promise<boolean>=>{
+   const prior=acceptanceBaseline(store);const current=await captureAcceptance(store,state,verifiers,prior);
+   if(!prior){emit('acceptance.baseline',{snapshot:JSON.stringify(current)});return true;}
+   if(prior.digest===current.digest)return true;
+   const review=makeAcceptanceReview(prior,current,state,verifiers);emit('acceptance.review.requested',{review:JSON.stringify(review)});emit('verification.invalidated',{reason:'Acceptance criteria changed; explicit review/adoption required'});
+   if(!await options.adoptAcceptance?.(review))return false;signal.throwIfAborted();await adoptAcceptance(store,review,'Explicit user review of exact acceptance change');return true;
+  };
+  const acceptanceBlocked=()=>finish('acceptance_changed',2,{category:'verification',message:'Acceptance criteria changed. Review the recorded acceptance.review.requested event and explicitly adopt its exact ID; correctness remains unknown.'});
+  if(!await reviewAcceptance(baseline))return acceptanceBlocked();
   emit('provider.selected',{provider:options.providerId,model:options.model,locality:options.capabilities.locality});
   emit('user.message',{text:options.task});
   const sources=await Promise.all(routing.contextPaths.map(path=>readSource(root,path,128*1024)));
@@ -103,8 +113,7 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
   if(!concluded)return finish('turn_budget',4);
   const verificationState=await captureRepositoryState(root);latest=verificationState;
   emit('repository.snapshot',{snapshot:JSON.stringify(verificationState),reason:'verification-start'});
-  const changedCriteria=Object.entries(baseline.files).filter(([path,file])=>/(?:^|\/)(?:test|spec)\//.test(path)&&verificationState.files[path]?.digest!==file.digest).map(([path])=>path);
-  if(changedCriteria.length||(await Promise.all(verifiers.map(verifier=>criteriaUnchanged(root,verifier.criteria??[])))).some(unchanged=>!unchanged)){emit('verification.invalidated',{reason:'Pre-existing acceptance criteria changed; explicit review/adoption is required'});return finish('acceptance_changed',2,{category:'verification',message:'Acceptance criteria changed. Current checks remain diagnostic until explicitly adopted; review '+changedCriteria.join(', ')});}
+  if(!await reviewAcceptance(verificationState))return acceptanceBlocked();
   for(const verifier of verifiers){
    signal.throwIfAborted();const outcome=await execute({tool:'run_command',argv:verifier.argv,cwd:verifier.cwd??'.',timeoutMs:verifier.timeoutMs});
    const check={id:verifier.id,required:verifier.required,state:outcome.state,fresh:verificationState.status==='passed'&&latest?.status==='passed'&&verificationState.digest===latest.digest,provenance:verifier.provenance,result:outcome};const index=checks.findIndex(c=>c.id===verifier.id);checks[index]=check;

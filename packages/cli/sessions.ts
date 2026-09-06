@@ -3,7 +3,7 @@ import {parseArguments,single} from './options';
 import {dataDirectory} from './run';
 import {listSessions,sessionPath,readHistory,exportSession,forkSession,resumeSession} from '../sessions/lifecycle';
 export async function sessionCommand(raw:string[],resume=false):Promise<number>{
- const args=parseArguments(raw,['data-dir','format','effect','reason'],[]);const format=single(args,'format','json');if(format!=='json')throw new Error('Session output supports json');
+ const args=parseArguments(raw,['data-dir','format','effect','reason','review'],[]);const format=single(args,'format','json');if(format!=='json')throw new Error('Session output supports json');
  const root=join(single(args,'data-dir',dataDirectory())!,'sessions');const operation=resume?'resume':args.positionals.shift()??'list';
  const id=args.positionals.shift();if(args.positionals.length)throw new Error('Unexpected session arguments');
  if(operation==='list'){if(id)throw new Error('List takes no session ID');console.log(JSON.stringify({schemaVersion:1,sessions:listSessions(root)},null,2));return 0;}
@@ -11,6 +11,7 @@ export async function sessionCommand(raw:string[],resume=false):Promise<number>{
  if(operation==='show'){const history=readHistory(sessionPath(root,id),id);console.log(JSON.stringify({schemaVersion:1,...history},null,2));}
  else if(operation==='export')console.log(JSON.stringify(exportSession(root,id),null,2));
  else if(operation==='fork'){const store=forkSession(root,id,Bun.randomUUIDv7());try{console.log(JSON.stringify({schemaVersion:1,id:store.sessionId,mutationAllowed:store.state.mutationAllowed,source:id}));}finally{store.close();}}
+ else if(operation==='adopt'){const reviewId=single(args,'review'),reason=single(args,'reason');if(!reviewId||!reason)throw new Error('Use sessions adopt ID --review REVIEW_SHA256 --reason reviewed-criteria');const store=resumeSession(root,id);try{const {adoptRecordedAcceptance}=await import('../verification/adoption');await adoptRecordedAcceptance(store,reviewId,reason);console.log(JSON.stringify({schemaVersion:1,id,reviewId,adopted:true,correctness:'unknown',verificationFresh:false}));}finally{store.close();}}
  else if(operation==='reconcile'){const effect=single(args,'effect'),reason=single(args,'reason');if(!effect||!reason)throw new Error('Use sessions reconcile ID --effect EFFECT_ID --reason inspected-current-state');const store=resumeSession(root,id);try{const {reconcileEffect}=await import('../sessions/reconciliation');console.log(JSON.stringify({schemaVersion:1,id,...await reconcileEffect(store,effect,reason)}));}finally{store.close();}}
  else if(operation==='resume'){
   const store=resumeSession(root,id);

@@ -1,4 +1,7 @@
 export interface Payloads {
+ 'acceptance.baseline':{snapshot:string};
+ 'acceptance.review.requested':{review:string};
+ 'acceptance.adopted':{reviewId:string;reason:string};
  'rails.root.selected':{root:string};
  'repository.selected':{repository:string};
  'verification.selected':{selection:string};
@@ -40,6 +43,7 @@ export type EventType=keyof Payloads;
 export interface Envelope {protocolVersion:1;eventId:string;sessionId:string;sequence:number;timestamp:string;type:string;schemaVersion:number;payload:Record<string,unknown>;causedBy?:string}
 export type KnownEvent = {[T in EventType]:Omit<Envelope,'type'|'payload'>&{type:T;payload:Payloads[T]}}[EventType];
 const shapes:Record<EventType,Record<string,readonly string[]|null|'number'|'boolean'>>={
+ 'acceptance.baseline':{snapshot:null},'acceptance.review.requested':{review:null},'acceptance.adopted':{reviewId:null,reason:null},
  'rails.root.selected':{root:null},'repository.selected':{repository:null},
  'verification.selected':{selection:null},
  'source.pinned':{pinId:null,path:null,line:'number',digest:null},'source.unpinned':{pinId:null},'source.pane.resized':{percent:'number'},

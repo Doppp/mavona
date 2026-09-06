@@ -61,9 +61,9 @@ The provider adapters, CLI/TUI task loop, three-engine inspection flow runner, R
 
 Continue in these concrete slices:
 
-1. Complete source highlighting, fuzzy navigation, clipboard/selection, responsive layout, theme and connection/model/session pickers. Preserve native editor and multiline input behavior with PTY tests.
+1. Complete remaining clipboard/selection and historical-source interactions, theme and connection/model/session pickers. Highlighting, fuzzy files/root navigation, pins and responsive layout now have local native evidence. Preserve native editor and multiline input behavior with PTY tests.
 2. Complete reviewed 50-pair parity/divergence evidence and nine-task smoke semantics. Preserve inherited Ruby deletions until the retirement evidence is complete.
-3. Integrate structural probe/context widening, required verifier selection, bounded repair and context compaction into the task loop. Verify long-session replay/rendering and complete recovery crash transitions.
+3. Integrate structural probe/context widening, remaining verifier-scope breadth, bounded repair and context compaction into the task loop. Verify long-session replay/rendering and complete recovery crash transitions.
 4. Complete inspection trace/video sanitization, profiles/comparisons, agent image use and all 14 acceptance scenarios through the shared service. Browser engines remain explicit installs.
 5. Run canonical real Rails scenarios and target-native packaging checks; prepare installer/Homebrew, checksums, provenance/SBOM and signing inputs without publishing. Continue through every milestone without routine reauthorization.
 
