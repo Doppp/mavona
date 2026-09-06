@@ -27,12 +27,13 @@ export async function readSource(root:string,path:string,maxBytes=1024*1024):Pro
  try {
   const before=await file.stat();
   if (!before.isFile()) throw new Error('Source is not a regular file');
+  if(before.nlink!==1)throw new Error('Source hardlink refused');
   if (before.size>maxBytes) throw new Error('Source exceeds byte limit');
   const buffer=Buffer.alloc(maxBytes+1); let used=0;
   while (used<buffer.length) { const {bytesRead}=await file.read(buffer,used,buffer.length-used,null); if (!bytesRead) break; used+=bytesRead; }
   if (used>maxBytes) throw new Error('Source exceeds byte limit');
   const after=await file.stat(); const current=await stat(await containedPath(root,path));
-  if (before.ino!==current.ino || before.dev!==current.dev || before.mtimeMs!==after.mtimeMs || before.size!==after.size) throw new Error('Source changed while reading; retry');
+  if (after.nlink!==1||current.nlink!==1||before.ino!==current.ino || before.dev!==current.dev || before.mtimeMs!==after.mtimeMs || before.size!==after.size) throw new Error('Source changed while reading; retry');
   const bytes=buffer.subarray(0,used); if (bytes.includes(0)) throw new Error('Source is binary');
   let text:string; try { text=new TextDecoder('utf-8',{fatal:true}).decode(bytes); } catch { throw new Error('Source is binary or invalid UTF-8'); }
   return {path:relative(await realpath(root),canonical),text,digest:digest(bytes),revision:'worktree',lineCount:text.split('\n').length};

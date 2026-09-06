@@ -1,4 +1,7 @@
 export interface Payloads {
+ 'source.pinned':{pinId:string;path:string;line:number;digest:string};
+ 'source.unpinned':{pinId:string};
+ 'source.pane.resized':{percent:number};
  'effect.reconciled':{effectId:string;reason:string};
  'editor.configured':{argv:string;terminal:boolean};
  'verification.invalidated':{reason:string};
@@ -34,6 +37,7 @@ export type EventType=keyof Payloads;
 export interface Envelope {protocolVersion:1;eventId:string;sessionId:string;sequence:number;timestamp:string;type:string;schemaVersion:number;payload:Record<string,unknown>;causedBy?:string}
 export type KnownEvent = {[T in EventType]:Omit<Envelope,'type'|'payload'>&{type:T;payload:Payloads[T]}}[EventType];
 const shapes:Record<EventType,Record<string,readonly string[]|null|'number'|'boolean'>>={
+ 'source.pinned':{pinId:null,path:null,line:'number',digest:null},'source.unpinned':{pinId:null},'source.pane.resized':{percent:'number'},
  'effect.reconciled':{effectId:null,reason:null},
  'editor.configured':{argv:null,terminal:'boolean'},'verification.invalidated':{reason:null},'repository.snapshot':{snapshot:null,reason:null},
  'draft.reference.added':{referenceId:null,reference:null},'draft.reference.removed':{referenceId:null},

@@ -65,3 +65,7 @@ test('selected structural paths expose declarations; unavailable Ruby preserves 
  const fallback=await inspectRepository(root,{structuralPaths:['app/models/order.rb'],probe:{ruby:['/no/ruby']}});expect(fallback.status).toBe('selected');expect(fallback.structure?.status).toBe('unknown');expect(fallback.files).toContain('app/models/order.rb');
  await expect(inspectRepository(root,{structuralPaths:['../outside.rb']})).rejects.toThrow('inventory');
 });
+test('source reading refuses a hardlink to bytes outside the selected repository',async()=>{
+ const {link}=await import('node:fs/promises');const root=await mkdtemp(join(tmpdir(),'mavona-read-hardlink-'));const repository=join(root,'repo');await mkdir(repository);await writeFile(join(root,'outside.rb'),'private outside bytes');await link(join(root,'outside.rb'),join(repository,'model.rb'));
+ try{await expect(readSource(repository,'model.rb')).rejects.toThrow('hardlink');}finally{await rm(root,{recursive:true,force:true});}
+});

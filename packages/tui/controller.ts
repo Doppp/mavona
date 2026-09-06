@@ -1,3 +1,4 @@
+import {digest} from '../tools/source';
 import {fuzzyFiles} from '../tools/file-picker';
 import {pendingWorktreeEffects} from '../tools/worktree';
 import {inspectRepository} from '../rails/discovery';
@@ -19,20 +20,24 @@ export class TuiController {
  private files:string[]=[];private selection:{provider:string;model:string}|undefined;
  private active:AbortController|undefined;private approval:((approved:boolean)=>void)|undefined;
  private policy:ExecutionPolicy;private vault=new CredentialVault();
+ private pickerMode:'files'|'pins'='files';
+ private pins=new Map<string,{id:string;path:string;line:number;digest:string}>();
  constructor(private root:string,private store:SessionStore,private changed:(model:ScreenModel)=>void,private terminal?:{copy?:(text:string)=>boolean;suspend:()=>void|Promise<void>;resume:()=>void|Promise<void>}){
   this.policy=new ExecutionPolicy(root);this.source=new SourceNavigator(root);
   for(const [id,value] of Object.entries(store.state.references))this.references.set(id,JSON.parse(value) as SourceSelection);
   const editor=store.events.findLast(event=>event.type==='editor.configured');if(editor)this.editor={argv:argvJSON(String(editor.payload.argv)),terminal:editor.payload.terminal===true};
-  this.model={repository:root.split('/').pop()??root,status:'Discovering Rails application…',draft:store.state.draft,messages:store.state.messages.map(m=>({id:m.id,text:`${m.role}: ${m.text}`})),source:null};
+  for(const event of store.events){if(event.schemaVersion!==1)continue;if(event.type==='source.pinned')this.pins.set(String(event.payload.pinId),{id:String(event.payload.pinId),path:String(event.payload.path),line:Number(event.payload.line),digest:String(event.payload.digest)});else if(event.type==='source.unpinned')this.pins.delete(String(event.payload.pinId));}
+  const pane=Number(store.events.findLast(event=>event.type==='source.pane.resized')?.payload.percent??40);
+  this.model={sourcePanePercent:pane>=20&&pane<=40?pane:40,repository:root.split('/').pop()??root,status:'Discovering Rails application…',draft:store.state.draft,messages:store.state.messages.map(m=>({id:m.id,text:`${m.role}: ${m.text}`})),source:null};
  }
  private update(change:Partial<ScreenModel>){this.model={...this.model,...change};this.changed(this.model);}
  private add(text:string,id=Bun.randomUUIDv7()){this.update({messages:[...this.model.messages,{id,text:this.store.sanitizeText(text)}]});}
  async discover(){const result=await inspectRepository(this.root);this.files=result.files;this.update({status:result.status==='selected'?`Rails ${result.facts.railsVersion??'unknown'} · ${result.facts.testFrameworks.join(', ')||'tests unknown'} · runtime unchecked`:'Choose a Git-backed Rails application; static inspection remains available.'});}
  draft(text:string){if(text===this.model.draft)return;const event=this.store.append('draft.changed',{text});this.update({draft:String(event.payload.text)});}
- async openFiles(query=''){if(!this.files.length)await this.discover();this.filterFiles(query);}
- filterFiles(query:string){this.update({picker:{query,items:fuzzyFiles(this.files,query)}});}
+ async openFiles(query=''){this.pickerMode='files';if(!this.files.length)await this.discover();this.filterFiles(query);}
+ filterFiles(query:string){const pins=[...this.pins.values()];const choices=fuzzyFiles(this.pickerMode==='pins'?pins.map(pin=>pin.path):this.files,query);this.update({picker:{query,items:this.pickerMode==='pins'?choices.map(choice=>pins.find(pin=>pin.path===choice.path)!):choices}});}
  closePicker(){this.update({picker:undefined});}
- async pickFile(id:string){const choice=this.model.picker?.items.find(item=>item.id===id);if(!choice){this.add('File choice expired. Refresh the file picker.');return;}try{await this.source.open(choice.path);this.update({source:this.source.current,picker:undefined});}catch{this.add('Selected file is unavailable, changed or excluded. Refresh the file picker; the current snapshot is retained.');}}
+ async pickFile(id:string){const choice=this.model.picker?.items.find(item=>item.id===id);if(!choice){this.add('File choice expired. Refresh the file picker.');return;}try{await this.source.open(choice.path);if(choice.line)this.source.goto(Math.min(choice.line,this.source.current!.lineCount));this.update({source:this.source.current,picker:undefined});if(choice.digest&&choice.digest!==this.source.current!.digest)this.add('Source changed since pinning. Showing the current worktree snapshot; prior evidence is not refreshed.');}catch{this.add('Selected file is unavailable, changed or excluded. Refresh the file picker; the current snapshot is retained.');}}
  copySource(){try{const selected=this.source.reference();if(Buffer.byteLength(selected.text)>256*1024)throw new Error('Copy limit');const sent=this.terminal?.copy?.(selected.text)??false;this.add(sent?'Copy request sent to terminal clipboard.':'Terminal clipboard unavailable. Selected text remains visible.');}catch{this.add('Select a source range with /select start:end before copying; maximum 256 KiB.');}}
  closeSource(){this.source.close();this.update({source:null});}
  cancel(){this.active?.abort();this.resolveApproval(false);}
@@ -57,8 +62,12 @@ export class TuiController {
   if(this.active)return;
   this.draft(text);
   try{
-   if(text==='/help')this.add('/files [query] · /open path[:line] · /close\n/find text · /next · /previous · /goto line · /back · /wrap · /refresh · /diff · /source\n/select start:end · /copy · /attach · /references · /detach ID\n/connect provider model · /disconnect · /providers\n/verify ["command","argument"] · /checks · /effects · /revoke · /reconcile [EFFECT_ID explanation]\n/app doctor · /app run flow.json\n/editor terminal|gui JSON_ARGV · /edit\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
+   if(text==='/help')this.add('/files [query] · /open path[:line] · /close\n/find text · /next · /previous · /goto line · /back · /wrap · /refresh · /diff · /source\n/pin · /pins · /unpin ID · /pane 20–40\n/select start:end · /copy · /attach · /references · /detach ID\n/connect provider model · /disconnect · /providers\n/verify ["command","argument"] · /checks · /effects · /revoke · /reconcile [EFFECT_ID explanation]\n/app doctor · /app run flow.json\n/editor terminal|gui JSON_ARGV · /edit\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
    else if(text==='/files'||text.startsWith('/files ')){await this.openFiles(text.slice(7).trim());}
+   else if(text==='/pin'){const source=this.source.current;if(!source||source.diff)throw new Error('Open source before pinning');if(this.pins.size>=64&&!Array.from(this.pins.values()).some(pin=>pin.path===source.path))throw new Error('Pinned source limit');const pin={id:digest('source-pin:'+source.path),path:source.path,line:source.line,digest:source.digest};this.store.append('source.pinned',{pinId:pin.id,path:pin.path,line:pin.line,digest:pin.digest});this.pins.set(pin.id,pin);this.add(`Pinned ${pin.path}:${pin.line} · ${pin.id}`);}
+   else if(text==='/pins'){this.pickerMode='pins';this.filterFiles('');}
+   else if(text.startsWith('/unpin ')){const id=text.slice(7).trim();if(!this.pins.has(id))throw new Error('Unknown source pin');this.store.append('source.unpinned',{pinId:id});this.pins.delete(id);this.add('Source pin removed.');}
+   else if(text.startsWith('/pane ')){const percent=Number(text.slice(6));if(!Number.isInteger(percent)||percent<20||percent>40)throw new Error('Pane width is 20–40 percent');this.store.append('source.pane.resized',{percent});this.update({sourcePanePercent:percent});}
    else if(text==='/copy')this.copySource();
    else if(text==='/close')this.closeSource();
    else if(text.startsWith('/open ')){const match=/^(.*?)(?::([1-9]\d*))?$/.exec(text.slice(6).trim())!;await this.source.open(match[1]!,Number(match[2]??1));this.update({source:this.source.current});}
