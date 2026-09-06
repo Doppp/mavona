@@ -1,0 +1,13 @@
+import {randomUUID} from 'node:crypto';import type {Request} from 'playwright';
+const fields=['startTime','domainLookupStart','domainLookupEnd','connectStart','secureConnectionStart','connectEnd','requestStart','responseStart','responseEnd'] as const;
+export type RequestEvidence={id:string;pageId:string;frameId:string|null;stepId:string|null;url:string;urlTruncated:boolean;method:string;resourceType:string;status:number|null;outcome:'unknown'|'completed'|'failed';timing:Record<typeof fields[number],number|null>};
+export type NetworkReport={requests:RequestEvidence[];truncated:boolean;limit:number;interpretation:string};
+type RequestMetadata=Pick<Request,'url'|'method'|'resourceType'|'timing'>;
+export class RequestLedger {
+ private entries:RequestEvidence[]=[];private identities=new WeakMap<RequestMetadata,RequestEvidence>();private truncated=false;
+ constructor(private sanitizeUrl:(url:string)=>string,private limit=200){if(!Number.isSafeInteger(limit)||limit<1||limit>200)throw new Error('Request metadata budget');}
+ begin(request:RequestMetadata,surface:{pageId:string;frameId:string|null;stepId:string|null}){if(this.identities.has(request))return;if(this.entries.length>=this.limit){this.truncated=true;return;}const url=this.sanitizeUrl(request.url());const method=request.method(),resource=request.resourceType();const entry:RequestEvidence={id:randomUUID(),...surface,url:url.slice(0,2048),urlTruncated:url.length>2048,method:/^[A-Z]{1,16}$/.test(method)?method:'unknown',resourceType:/^[a-z]{1,32}$/.test(resource)?resource:'unknown',status:null,outcome:'unknown',timing:Object.fromEntries(fields.map(key=>[key,null])) as RequestEvidence['timing']};this.identities.set(request,entry);this.entries.push(entry);}
+ response(request:RequestMetadata,status:number){const entry=this.identities.get(request);if(entry)entry.status=Number.isInteger(status)&&status>=100&&status<=599?status:null;}
+ finish(request:RequestMetadata,outcome:'completed'|'failed'){const entry=this.identities.get(request);if(!entry)return;entry.outcome=outcome;try{const timing=request.timing();for(const field of fields){const value=timing[field];entry.timing[field]=Number.isFinite(value)&&value>=0&&value<=Number.MAX_SAFE_INTEGER?value:null;}}catch{/* Unavailable timing remains explicitly unknown. */}}
+ snapshot():NetworkReport{return {requests:structuredClone(this.entries),truncated:this.truncated,limit:this.limit,interpretation:'Timing is milliseconds; startTime is Unix time and other fields are offsets. Null is unavailable. HTTP errors can complete transport. No headers or bodies recorded; timings do not verify functionality.'};}
+}
