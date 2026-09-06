@@ -1,3 +1,4 @@
+import {captureRepositoryState,changesSince,type RepositoryState} from '../tools/repository-state';
 import {realpath,readdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {inspectRepository} from '../rails/discovery';
@@ -11,7 +12,7 @@ import {correctness,type Check} from '../domain/task';
 import {collectTurn,requireChangeCapabilities,ProviderError,type Provider,type ProviderMessage,type ModelCapabilities,type ToolDefinition,type ProviderEvent} from '../providers/types';
 import type {EventType,Payloads,Envelope} from '../protocol/events';
 export interface Verifier {id:string;argv:string[];required:boolean;provenance:Check['provenance'];timeoutMs:number}
-export interface TaskResult {schemaVersion:1;sessionId:string;taskId:string;status:string;correctness:'passed'|'failed'|'unknown';exitCode:number;checks:(Check&{result:ToolResult})[];artifacts:string[];error?:{category:string;message:string}}
+export interface TaskResult {schemaVersion:1;sessionId:string;taskId:string;status:string;correctness:'passed'|'failed'|'unknown';exitCode:number;checks:(Check&{result:ToolResult})[];artifacts:string[];changes?:ReturnType<typeof changesSince>;error?:{category:string;message:string}}
 export interface RunOptions {root:string;task:string;provider:Provider;providerId:string;model:string;capabilities:ModelCapabilities;store:SessionStore;policy:ExecutionPolicy;signal:AbortSignal;verifiers:Verifier[];references?:SourceSelection[];maxTurns?:number;maxToolCalls?:number;maxDurationMs?:number;onEvent?:(event:Envelope)=>void;approve?:(action:PreparedAction)=>Promise<boolean>}
 const string={type:'string',maxLength:1024*1024};
 const definition=(name:string,description:string,properties:Record<string,unknown>,required=Object.keys(properties)):ToolDefinition=>({type:'function',function:{name,description,parameters:{type:'object',properties,required,additionalProperties:false}}});
@@ -23,10 +24,11 @@ export const tools:ToolDefinition[]=[
  definition('run_command','Run an argument array inside the repository with explicit execution approval. Never use a shell.',{argv:{type:'array',minItems:1,maxItems:64,items:{type:'string',maxLength:16384}},cwd:string,timeoutMs:{type:'integer',minimum:1,maximum:300000}})
 ];
 export async function runTask(options:RunOptions):Promise<TaskResult>{
+ let baseline:RepositoryState|undefined;let latest:RepositoryState|undefined;
  const {store}=options;const taskId=Bun.randomUUIDv7();const checks:TaskResult['checks']=options.verifiers.map(v=>({id:v.id,required:v.required,provenance:v.provenance,state:'unknown',fresh:false,result:{state:'unknown',durationMs:0,reason:'not run'}}));
  const emit=<T extends EventType>(type:T,payload:Payloads[T],causedBy?:string)=>{const event=store.append(type,payload,causedBy);options.onEvent?.(event);return event;};
  const finish=(status:string,exitCode:number,error?:TaskResult['error']):TaskResult=>{
-  const result:TaskResult={schemaVersion:1,sessionId:store.sessionId,taskId,status,correctness:correctness(checks),exitCode,checks,artifacts:[],...(error?{error}:{})};
+  const result:TaskResult={schemaVersion:1,sessionId:store.sessionId,taskId,status,correctness:correctness(checks),exitCode,checks,artifacts:[],...(baseline&&latest?{changes:changesSince(baseline,latest)}:{}),...(error?{error}:{})};
   emit('task.completed',{taskId,status,correctness:result.correctness,exitCode});return result;
  };
  const signal=AbortSignal.any([options.signal,AbortSignal.timeout(options.maxDurationMs??300000)]);
@@ -39,6 +41,10 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
   emit('task.started',{taskId,text:options.task});
   if(routing.status!=='PLAN_READY')return finish(routing.status,2,{category:'decision',message:routing.reason});
   lease=await WorktreeLease.acquire(root,taskId);
+  baseline=await captureRepositoryState(root);latest=baseline;
+  const prior=store.events.findLast(event=>event.type==='repository.snapshot');
+  if(prior){const saved=JSON.parse(String(prior.payload.snapshot)) as RepositoryState;if(saved.root!==baseline.root||saved.digest!==baseline.digest)return finish('repository_changed',2,{category:'decision',message:'Repository changed since the recorded state; inspect and explicitly reconcile before continuing'});}
+  emit('repository.snapshot',{snapshot:JSON.stringify(baseline),reason:'task-start'});
   emit('provider.selected',{provider:options.providerId,model:options.model,locality:options.capabilities.locality});
   emit('user.message',{text:options.task});
   const sources=await Promise.all(routing.contextPaths.map(path=>readSource(root,path,128*1024)));
@@ -56,7 +62,7 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
    }
    signal.throwIfAborted();
    const effectId=Bun.randomUUIDv7();const intent=emit('effect.requested',{effectId,kind:action.tool==='apply_patch'?'patch':'command'});
-   const outcome=await runtime.execute(action,signal);emit('effect.completed',{effectId,state:outcome.state},intent.eventId);return outcome;
+   const outcome=await runtime.execute(action,signal);emit('effect.completed',{effectId,state:outcome.state},intent.eventId);latest=await captureRepositoryState(root);emit('repository.snapshot',{snapshot:JSON.stringify(latest),reason:'effect-result'});return outcome;
   };
   let calls=0;let concluded=false;
   for(let turn=0;turn<(options.maxTurns??8);turn++){
@@ -87,10 +93,13 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
    }
   }
   if(!concluded)return finish('turn_budget',4);
+  const verificationState=await captureRepositoryState(root);latest=verificationState;
+  emit('repository.snapshot',{snapshot:JSON.stringify(verificationState),reason:'verification-start'});
   for(const verifier of options.verifiers){
    signal.throwIfAborted();const outcome=await execute({tool:'run_command',argv:verifier.argv,cwd:'.',timeoutMs:verifier.timeoutMs});
-   const check={id:verifier.id,required:verifier.required,state:outcome.state,fresh:true,provenance:verifier.provenance,result:outcome};const index=checks.findIndex(c=>c.id===verifier.id);checks[index]=check;
+   const check={id:verifier.id,required:verifier.required,state:outcome.state,fresh:verificationState.status==='passed'&&latest?.status==='passed'&&verificationState.digest===latest.digest,provenance:verifier.provenance,result:outcome};const index=checks.findIndex(c=>c.id===verifier.id);checks[index]=check;
    emit('verification.completed',{checkId:check.id,state:check.state,provenance:check.provenance,required:check.required,result:JSON.stringify(outcome)});
+   if(!check.fresh){for(const recorded of checks)recorded.fresh=false;emit('verification.invalidated',{reason:'Repository changed during verification or fingerprint unavailable'});break;}
    if(!store.state.mutationAllowed)break;
   }
   const truth=correctness(checks);return finish(truth==='passed'?'verified':truth==='failed'?'verification_failed':'verification_unknown',truth==='passed'?0:truth==='failed'?3:4);

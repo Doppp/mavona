@@ -2,7 +2,7 @@
 
 A Rails-specific coding harness being rewritten in TypeScript 7, Bun and OpenTUI/Solid.
 
-**Development status:** v0.1 is incomplete and has no supported release yet. The replacement now runs configured coding tasks through native/compatible providers, explicit execution approvals and independent checks. It includes persistent sessions, a streaming terminal, local source navigation and scoped Playwright flows. Full source/editor UX, parity, recovery/performance and App Inspection recording acceptance remain in progress. See the [acceptance ledger](docs/RELEASE_ACCEPTANCE.md) for observed evidence and outstanding requirements. The former Ruby implementation remains in Git history at `fdee113`.
+**Development status:** v0.1 is incomplete and has no supported release yet. The replacement now runs configured coding tasks through native/compatible providers, explicit execution approvals and independent checks. It includes persistent sessions, a streaming terminal, local source navigation and scoped Playwright flows. Full source highlighting/picker UX, parity, recovery/performance and App Inspection recording acceptance remain in progress. See the [acceptance ledger](docs/RELEASE_ACCEPTANCE.md) for observed evidence and outstanding requirements. The former Ruby implementation remains in Git history at `fdee113`.
 
 ## Development
 
@@ -17,7 +17,9 @@ bun run build
 ./dist/mavona inspect /path/to/app --task "Change order validation"
 ```
 
-The terminal supports `/providers`, `/connect provider model`, `/files [query]`, `/open path[:line]`, `/find text`, `/goto line`, `/select start:end`, `/attach`, `/references`, `/detach ID`, `/refresh`, `/back` and `/help`. Connection selection makes no inference call; task submission performs a bounded capability preflight. Credentials come from the provider's environment variable or OS secure store. Never enter credentials into the composer. Each effect requests exact-action approval; `/revoke` clears execution grants. `/verify ["ruby","bin/rails","test"]` configures a required check whose execution also requires approval.
+The terminal supports `/providers`, `/connect provider model`, `/files [query]`, `/open path[:line]`, `/find text`, `/goto line`, `/select start:end`, `/attach`, `/references`, `/detach ID`, `/refresh`, `/back`, `/diff`, `/source` and `/help`. Connection selection makes no inference call; task submission performs a bounded capability preflight. Credentials come from the provider's environment variable or OS secure store. Never enter credentials into the composer. Each effect requests exact-action approval; `/revoke` clears execution grants. `/verify ["ruby","bin/rails","test"]` configures a required check whose execution also requires approval.
+
+Configure an external editor with `/editor terminal ["/usr/bin/vi","{path}"]` or `/editor gui ["code","--wait","{path}"]`, then `/edit` from an open source snapshot. `{line}` is also supported in argument templates. Each launch is reviewed; no shell interpolation occurs. Use the editor's save/quit controls during handoff. GUI ownership persists until explicit return confirmation. Terminal handoff uses `/bin/stty` to restore pre-editor modes even after termination. Saved changes invalidate prior verification and grants; use `/refresh` to update the displayed snapshot. `/reconcile` explicitly records changed repository state before another task; it does not mark pending effects or old checks passed.
 
 Headless tasks require explicit provider/model selection and execution scope:
 

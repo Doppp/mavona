@@ -36,3 +36,15 @@ test('tool loop budget stops repeated requests and malformed tools cannot execut
  const repeated:Provider={async *stream(){requests++;yield{type:'tool.delta',index:0,callId:'repeat-'+requests,name:'read_file',argumentsDelta:'{"path":"app/models/order.rb"}'};yield{type:'completed',finishReason:'tool_calls'};}};
  try{const result=await runTask({root,task:'Change order behavior',provider:repeated,providerId:'fixture',model:'test',capabilities,store,policy:new ExecutionPolicy(root),signal:new AbortController().signal,verifiers:[],maxTurns:2});expect(requests).toBe(2);expect(result.exitCode).toBe(4);}finally{store.close();await rm(dir,{recursive:true,force:true});}
 });
+test('verification that changes source cannot leave earlier evidence fresh',async()=>{
+ const {dir,root}=await fixture();const store=new SessionStore(join(dir,'session'),'s4');const policy=new ExecutionPolicy(root);const argv=[process.execPath,'-e','await Bun.write("app/models/order.rb","changed by verifier")'];policy.grantDevelopment({commands:[argv],writePaths:[],settingsDigest:await settingsDigest(root)});
+ const done:Provider={async *stream(){yield{type:'text.delta',text:'Ready for checks.'};yield{type:'completed',finishReason:'stop'};}};
+ try{const result=await runTask({root,task:'Review order behavior',provider:done,providerId:'fixture',model:'test',capabilities,store,policy,signal:new AbortController().signal,verifiers:[{id:'mutating-check',argv,required:true,provenance:'user-approved',timeoutMs:3000}]});expect(result.correctness).toBe('unknown');expect(result.checks[0]?.fresh).toBe(false);}
+ finally{store.close();await rm(dir,{recursive:true,force:true});}
+});
+test('changed resumed repository requires reconciliation before another model request',async()=>{
+ const {dir,root}=await fixture();const store=new SessionStore(join(dir,'session'),'s5');let calls=0;const done:Provider={async *stream(){calls++;yield{type:'completed',finishReason:'stop'};}};
+ const options={root,task:'Review order behavior',provider:done,providerId:'fixture',model:'test',capabilities,store,policy:new ExecutionPolicy(root),signal:new AbortController().signal,verifiers:[]};
+ try{await runTask(options);expect(calls).toBe(1);await writeFile(join(root,'app/models/order.rb'),'external saved change');const result=await runTask(options);expect(result.status).toBe('repository_changed');expect(result.exitCode).toBe(2);expect(calls).toBe(1);expect(await readFile(join(root,'app/models/order.rb'),'utf8')).toBe('external saved change');}
+ finally{store.close();await rm(dir,{recursive:true,force:true});}
+});

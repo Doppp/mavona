@@ -1,4 +1,7 @@
 export interface Payloads {
+ 'editor.configured':{argv:string;terminal:boolean};
+ 'verification.invalidated':{reason:string};
+ 'repository.snapshot':{snapshot:string;reason:string};
  'draft.reference.added':{referenceId:string;reference:string};
  'draft.reference.removed':{referenceId:string};
  'inspection.event':{inspectionId:string;event:string};
@@ -30,6 +33,7 @@ export type EventType=keyof Payloads;
 export interface Envelope {protocolVersion:1;eventId:string;sessionId:string;sequence:number;timestamp:string;type:string;schemaVersion:number;payload:Record<string,unknown>;causedBy?:string}
 export type KnownEvent = {[T in EventType]:Omit<Envelope,'type'|'payload'>&{type:T;payload:Payloads[T]}}[EventType];
 const shapes:Record<EventType,Record<string,readonly string[]|null|'number'|'boolean'>>={
+ 'editor.configured':{argv:null,terminal:'boolean'},'verification.invalidated':{reason:null},'repository.snapshot':{snapshot:null,reason:null},
  'draft.reference.added':{referenceId:null,reference:null},'draft.reference.removed':{referenceId:null},
  'inspection.event':{inspectionId:null,event:null},'inspection.completed':{inspectionId:null,status:['passed','failed','unknown'],reportPath:null},
  'session.opened':{repository:null},'draft.changed':{text:null},'user.message':{text:null},'assistant.delta':{text:null},

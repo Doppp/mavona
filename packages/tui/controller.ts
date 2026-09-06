@@ -6,18 +6,21 @@ import {ExecutionPolicy,type PreparedAction} from '../tools/policy';
 import {runTask,type Verifier} from '../agent/loop';
 import {CredentialVault} from '../providers/credentials';
 import {createProvider,presets,preflightCapabilities} from '../providers/registry';
+import {editorHandoff,type EditorAdapter} from '../tools/editor';
 import {argvJSON} from '../cli/options';
 import type {Envelope} from '../protocol/events';
 import type {ScreenModel} from './screen';
 export class TuiController {
  model:ScreenModel;verifiers:Verifier[]=[];
+ private editor:EditorAdapter|undefined;
  private source:SourceNavigator;private references=new Map<string,SourceSelection>();
  private files:string[]=[];private selection:{provider:string;model:string}|undefined;
  private active:AbortController|undefined;private approval:((approved:boolean)=>void)|undefined;
  private policy:ExecutionPolicy;private vault=new CredentialVault();
- constructor(private root:string,private store:SessionStore,private changed:(model:ScreenModel)=>void){
+ constructor(private root:string,private store:SessionStore,private changed:(model:ScreenModel)=>void,private terminal?:{suspend:()=>void|Promise<void>;resume:()=>void|Promise<void>}){
   this.policy=new ExecutionPolicy(root);this.source=new SourceNavigator(root);
   for(const [id,value] of Object.entries(store.state.references))this.references.set(id,JSON.parse(value) as SourceSelection);
+  const editor=store.events.findLast(event=>event.type==='editor.configured');if(editor)this.editor={argv:argvJSON(String(editor.payload.argv)),terminal:editor.payload.terminal===true};
   this.model={repository:root.split('/').pop()??root,status:'Discovering Rails application…',draft:store.state.draft,messages:store.state.messages.map(m=>({id:m.id,text:`${m.role}: ${m.text}`})),source:null};
  }
  private update(change:Partial<ScreenModel>){this.model={...this.model,...change};this.changed(this.model);}
@@ -47,7 +50,7 @@ export class TuiController {
   if(this.active)return;
   this.draft(text);
   try{
-   if(text==='/help')this.add('/files [query] · /open path[:line] · /close\n/find text · /next · /previous · /goto line · /back · /wrap · /refresh\n/select start:end · /attach · /references · /detach ID\n/connect provider model · /disconnect · /providers\n/verify ["command","argument"] · /checks · /revoke\n/app doctor · /app run flow.json\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
+   if(text==='/help')this.add('/files [query] · /open path[:line] · /close\n/find text · /next · /previous · /goto line · /back · /wrap · /refresh · /diff · /source\n/select start:end · /attach · /references · /detach ID\n/connect provider model · /disconnect · /providers\n/verify ["command","argument"] · /checks · /revoke · /reconcile\n/app doctor · /app run flow.json\n/editor terminal|gui JSON_ARGV · /edit\nType a task after connecting. Effects require approval. Credentials come from environment or OS secure storage; never paste them into the composer.');
    else if(text==='/files'||text.startsWith('/files ')){const query=text.slice(7).trim().toLowerCase();this.add(this.files.filter(p=>p.toLowerCase().includes(query)).slice(0,200).join('\n')||'No matching Rails files.');}
    else if(text==='/close')this.closeSource();
    else if(text.startsWith('/open ')){const match=/^(.*?)(?::([1-9]\d*))?$/.exec(text.slice(6).trim())!;await this.source.open(match[1]!,Number(match[2]??1));this.update({source:this.source.current});}
@@ -55,12 +58,24 @@ export class TuiController {
    else if(text.startsWith('/goto ')){this.source.goto(Number(text.slice(6)));this.update({source:this.source.current});}
    else if(text==='/next'||text==='/previous'){this.source.next(text==='/next'?1:-1);this.update({source:this.source.current});}
    else if(text==='/back'){this.source.back();this.update({source:this.source.current});}
+   else if(text==='/diff'){await this.source.showDiff();this.update({source:this.source.current});}
+   else if(text==='/source'){this.source.showSource();this.update({source:this.source.current});}
    else if(text==='/wrap'){this.source.toggleWrap();this.update({source:this.source.current});}
    else if(text==='/refresh'){await this.source.refresh();this.update({source:this.source.current});}
    else if(text.startsWith('/select ')){const match=/^(\d+)(?::(\d+))?$/.exec(text.slice(8).trim());if(!match)throw new Error('Use /select start:end');this.source.select(Number(match[1]),Number(match[2]??match[1]));this.update({source:this.source.current});}
    else if(text==='/attach'){const reference=this.source.reference();const id=Bun.randomUUIDv7();this.references.set(id,reference);this.store.append('draft.reference.added',{referenceId:id,reference:JSON.stringify(reference)});this.add(`Draft reference ${id} · ${reference.path}:${reference.start}–${reference.end} · ${reference.digest.slice(0,12)}. /detach ID removes it. No model request made.`);}
    else if(text.startsWith('/detach ')){const id=text.slice(8).trim();if(!this.references.has(id))throw new Error('Unknown reference ID');this.references.delete(id);this.store.append('draft.reference.removed',{referenceId:id});}
    else if(text==='/references')this.add([...this.references].map(([id,r])=>`${id} · ${r.path}:${r.start}–${r.end}`).join('\n')||'No selected context.');
+   else if(text.startsWith('/editor ')){
+    const match=/^(terminal|gui) (.+)$/.exec(text.slice(8));if(!match)throw new Error('Use /editor terminal|gui JSON_ARGV');const argv=argvJSON(match[2]!);this.editor={argv,terminal:match[1]==='terminal'};this.store.append('editor.configured',{argv:JSON.stringify(argv),terminal:this.editor.terminal});this.add('Editor adapter configured. /edit opens the selected source at its line after exact-action approval. Save files before returning; GUI handoff retains ownership until explicit return.');
+   }
+   else if(text==='/edit'){
+    if(!this.editor||!this.source.current)throw new Error('Configure an editor and open a source first');if(this.editor.terminal&&!this.terminal)throw new Error('Terminal handoff unavailable');
+    this.active=new AbortController();this.update({running:true});let intent:Envelope|undefined;const effectId=Bun.randomUUIDv7();
+    try{const result=await editorHandoff({root:this.root,path:this.source.current.path,line:this.source.current.line,adapter:this.editor,policy:this.policy,signal:this.active.signal,approve:action=>this.approve(action,this.active!.signal),suspend:()=>this.terminal?.suspend(),resume:()=>this.terminal?.resume(),beforeLaunch:()=>{this.store.append('verification.invalidated',{reason:'External editor handoff started; prior checks are stale'});intent=this.store.append('effect.requested',{effectId,kind:'command'});},confirmReturn:async()=>{if(!await this.requestApproval('editor-return-'+effectId,'Have you finished editing and saved the files? Y returns to Mavona and reconciles the current worktree. N leaves the effect unknown.',this.active!.signal))throw new Error('Editor return not confirmed');}});
+     if(intent)this.store.append('effect.completed',{effectId,state:result.cancelled?'unknown':result.exitCode===0?'passed':'failed'},intent.eventId);this.store.append('repository.snapshot',{snapshot:JSON.stringify(result.after),reason:'editor-return'});this.store.append('verification.invalidated',{reason:'External editor handoff; saved file and Git state reconciled, prior checks are stale'});this.add(`Editor returned · ${result.cancelled?'cancelled':result.exitCode}\nSaved changes: ${result.changed.paths.join(', ')||'none observed'}\nPre-existing changes: ${result.changed.preexistingPaths.join(', ')||'none'}\nSource snapshot retained. Use /refresh; all execution grants revoked and prior verification is stale.`);
+    }catch(error){if(intent)this.store.append('effect.completed',{effectId,state:'unknown'},intent.eventId);throw error;}
+   }
    else if(text==='/app doctor'){const {doctor}=await import('../app-inspection/service');this.add(JSON.stringify(await doctor(),null,2));}
    else if(text.startsWith('/app run ')){
     const {readFlow}=await import('../cli/app');const {digestFlow,approveFlow}=await import('../app-inspection/service');const {runInspection}=await import('../agent/inspection');
@@ -77,6 +92,7 @@ export class TuiController {
    }else if(text==='/disconnect'){this.selection=undefined;this.update({connection:undefined});this.policy.revoke();}
    else if(text.startsWith('/verify ')){const argv=argvJSON(text.slice(8));this.verifiers.push({id:`user-check-${this.verifiers.length+1}`,argv,required:true,provenance:'user-approved',timeoutMs:60000});this.add('Required verifier configured. Execution will request exact-action approval.');}
    else if(text==='/checks')this.add(JSON.stringify(this.verifiers,null,2));
+   else if(text==='/reconcile'){const {captureRepositoryState}=await import('../tools/repository-state');const snapshot=await captureRepositoryState(this.root);this.policy.revoke();this.store.append('repository.snapshot',{snapshot:JSON.stringify(snapshot),reason:'explicit-user-reconcile'});this.store.append('verification.invalidated',{reason:'User accepted current repository state; prior checks remain stale'});this.add(`Current repository recorded · ${snapshot.status}. Prior verification is stale; execution grants revoked. Pending effects remain unknown until separately reconciled.`);}
    else if(text==='/revoke'){this.policy.revoke();this.add('Execution grants revoked.');}
    else if(text.startsWith('/'))throw new Error('Unknown command; use /help');
    else {
