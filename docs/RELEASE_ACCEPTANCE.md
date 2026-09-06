@@ -15,15 +15,15 @@ Maintain a ledger per capability with requirement ID, code entry points, test ID
 | UI-01–03 | Real streaming transcript; multiline/paste/Unicode/IME input; responsive focus/cancellation; tool details, approvals, plans/pickers, themes and 80×24 resize/recovery PTY checks |
 | CODE-01–02 | Open real file from test failure, navigate/search/select, source/diff revision identity, attach/remove draft without provider traffic, detect drift, editor handoff and saved-change reconciliation |
 | RAILS-01–03 | Conventional/namespaced/multi-root/boot-failure fixtures, declared/resolved facts, cache invalidation, routing/refusal/widening and parity/fallback coverage |
-| AGENT-01 | Live-capable tool loop performs actual read/search/patch/command effects; malformed calls refused; dirty user changes preserved; bounded repair stops correctly |
-| POLICY-01 | Hostile config first-use denial, changed config/scripts/flows, scoped grants, revocation, checkout isolation, headless refusal, no unauthorized effects and secret-canary checks |
+| AGENT-01 | implementing | Actual source/tool/verification loop and approved App Inspection integration tested; compaction/repair/full canonical scenarios pending. |
+| POLICY-01 | implementing | Canonical worktree ownership, durable effect guard, exact grants, drift/refusal and secret boundaries tested; full adversarial matrix pending. |
 | MODEL-01–03 | Native OpenAI/Anthropic plus every compatible preset contract; local endpoints; discovery/explicit ID, secure credential/session/env resolution, no fallback, stream cancellation and model switching |
-| MODEL-04 | Availability check recorded; supported official route executes beneath Mavona's loop, otherwise explicit unavailable state without token extraction or fake task inference |
+| MODEL-04 | implementing | Official subscription capability assessed; explicit unsupported own-loop state implemented without token extraction. |
 | APP-01–04 | All 14 cases in docs/specs/APP_INSPECTION_SPEC.md; actual Playwright/Rails flow, multi-engine/profile tests, comparison/baseline review, diagnostics, trace/report, opt-in video and recovery |
-| VERIFY-01 | Known pass/fail/unknown cases, empty/missing checks, widening, stale evidence, assertion provenance and objective persisted-outcome checks |
-| SESSION-01 | Close/resume/crash/compaction/replay, unknown critical-event refusal, data migration, retention limits and no automatic effect replay |
-| CLI-01 | Same semantic events and results as TUI, noninteractive policy, stable schemas/exit codes and no renderer initialization |
-| DIST-01 | Clean-machine install, executable/native/browser assets, target-native startup/task/resume/cleanup, documentation truth and release provenance |
+| VERIFY-01 | implementing | Independent verifiers, exact acceptance adoption and stale/unknown truth tested; bounded repair/widening and canonical outcomes pending. |
+| SESSION-01 | implementing | Durable JSONL/replay, lifecycle, retention and crash effect guard tested; full migration/compaction/recovery matrix pending. |
+| CLI-01 | implementing | Native headless/event projections tested, including source, browser and evaluation paths; complete command/UX parity pending. |
+| DIST-01 | implementing | Darwin arm64 binary/native/parser/browser/viewer assets tested; installers, release provenance/signing and all-host evidence pending. |
 
 ## Required real user scenarios
 
@@ -83,34 +83,34 @@ Map the supplied conversation, code review and App Inspection mockup views to re
 
 Product acceptance runs do not wait for the human-authored benchmark pilot. Correctness/security regressions found by any evaluation remain bugs to fix. Comparative superiority requires a separately completed suitable experiment. Obtain early mockup/demo usability feedback without repository execution; runnable previews follow docs/specs/PREVIEW_POLICY.md. Neither is a reason to stop before full v0.1 delivery.
 
-## Implementation ledger — 2026-09-06
+## Implementation ledger — current 2026-09-07
 
 Baseline: master `fdee113`; implementation branch `codex/mavona-v0.1`. No feature has full release acceptance. Each detailed specification scenario remains required.
 
 | ID | State | Implementation / checks / remaining evidence |
 | --- | --- | --- |
-| UI-01 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
-| UI-02 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
-| UI-03 | not started | Required full contract pending. |
-| CODE-01 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
-| CODE-02 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
-| RAILS-01 | implementing | Initial offline discovery/toolchain slice in progress; no release pass. |
-| RAILS-02 | not started | Required full contract pending. |
-| RAILS-03 | implementing | Initial routing or compatible transport primitives; full acceptance pending. |
-| AGENT-01 | not started | Required full contract pending. |
-| POLICY-01 | not started | Required full contract pending. |
-| MODEL-01 | implementing | Initial routing or compatible transport primitives; full acceptance pending. |
-| MODEL-02 | implementing | Initial routing or compatible transport primitives; full acceptance pending. |
-| MODEL-03 | implementing | Initial routing or compatible transport primitives; full acceptance pending. |
-| MODEL-04 | not started | Required full contract pending. |
-| APP-01 | not started | Required full contract pending. |
-| APP-02 | not started | Required full contract pending. |
-| APP-03 | not started | Required full contract pending. |
-| APP-04 | not started | Required full contract pending. |
-| VERIFY-01 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
-| SESSION-01 | implementing | Initial renderer/source/session/truth primitives; full acceptance pending. |
-| CLI-01 | implementing | Initial offline discovery/toolchain slice in progress; no release pass. |
-| DIST-01 | implementing | Initial offline discovery/toolchain slice in progress; no release pass. |
+| UI-01 | implementing | Streaming transcript and bounded history rendering implemented; full Markdown/tool drawer and PTY matrix pending. |
+| UI-02 | implementing | Multiline composer, paste, fuzzy file/root selection, draft retention and cancellation tested; full IME/accessibility matrix pending. |
+| UI-03 | implementing | Approvals, source/diff review and root/file pickers implemented; full plans/model/session pickers/themes pending. |
+| CODE-01 | implementing | Real Ruby-highlighted source navigation, fuzzy picker, selection/copy and pins tested, including native PTY; full acceptance pending. |
+| CODE-02 | implementing | Anchored revisions/diffs, prompt references, drift checks and native editor handoff tested; full historical/recovery UI acceptance pending. |
+| RAILS-01 | implementing | Static Git/Rails facts, explicit multi-root scope and instructions implemented; full declared/resolved fact matrix pending. |
+| RAILS-02 | implementing | No-boot versioned Prism structure/route probe and cache implemented; older/container Ruby and full runtime tier pending. |
+| RAILS-03 | implementing | 50 observed legacy projection pairs and reviewed routing differences pass; full profile parity, widening and protected smoke outcomes pending. |
+| AGENT-01 | implementing | Actual source/tool/verification loop and approved App Inspection integration tested; compaction/repair/full canonical scenarios pending. |
+| POLICY-01 | implementing | Canonical worktree ownership, durable effect guard, exact grants, drift/refusal and secret boundaries tested; full adversarial matrix pending. |
+| MODEL-01 | implementing | Native/compatible provider contracts and all specified presets implemented; paid live demonstrations remain unverified. |
+| MODEL-02 | implementing | Loopback/custom endpoint contracts implemented; full local-model demonstration and connection UX pending. |
+| MODEL-03 | implementing | Credential precedence, secure-store transports, discovery/preflight and usage/error contracts tested; full picker/switching UX pending. |
+| MODEL-04 | implementing | Official subscription capability assessed; explicit unsupported own-loop state implemented without token extraction. |
+| APP-01 | implementing | Real lifecycle, isolated auth, interactions and scoped coding-loop browser flow implemented; full takeover/drawer/lifecycle acceptance pending. |
+| APP-02 | implementing | Masked captures, bounded DOM/ARIA hints, diagnostics, imports and annotations tested; complete image/model/evidence review workflow pending. |
+| APP-03 | implementing | All three engines and nine responsive profiles tested with real touch; comparison/baseline primitives implemented, full review workflow pending. |
+| APP-04 | implementing | Saved flows, canonical assertions/observations, constrained trace, masked checkpoint video and packaged offline viewer tested; full14-case acceptance pending. |
+| VERIFY-01 | implementing | Independent verifiers, exact acceptance adoption and stale/unknown truth tested; bounded repair/widening and canonical outcomes pending. |
+| SESSION-01 | implementing | Durable JSONL/replay, lifecycle, retention and crash effect guard tested; full migration/compaction/recovery matrix pending. |
+| CLI-01 | implementing | Native headless/event projections tested, including source, browser and evaluation paths; complete command/UX parity pending. |
+| DIST-01 | implementing | Darwin arm64 binary/native/parser/browser/viewer assets tested; installers, release provenance/signing and all-host evidence pending. |
 
 ### Evidence M0-baseline
 
@@ -207,7 +207,7 @@ macOS secure-store writes now use `security -i -q` with correctly quoted private
 
 ### App Inspection, native provisioning and source navigation — 2026-09-07
 
-`packages/app-inspection/` now contains the actual Playwright service, loopback policy proxy, owned-server lifecycle, protected authentication state, decoded PNG comparison and offline report/viewer. Flow approval binds the checkout, origin and complete step digest. Stable page/frame identities, fresh observations, explicit popup/frame/dialog/upload/download actions, manual takeover, expiry/revocation, masked captures, annotations and opt-in operation recordings are implemented. Downloads currently accept bounded sanitized UTF-8 text; unsupported formats refuse. Raw Playwright traces/video remain unavailable, so APP-01–04 are not acceptance-passed.
+`packages/app-inspection/` now contains the actual Playwright service, loopback policy proxy, owned-server lifecycle, protected authentication state, decoded PNG comparison and offline report/viewer. Flow approval binds the checkout, origin and complete step digest. Stable page/frame identities, fresh observations, explicit popup/frame/dialog/upload/download actions, manual takeover, expiry/revocation, masked captures, annotations and opt-in operation recordings are implemented. Downloads currently accept bounded sanitized UTF-8 text; unsupported formats refuse. At this checkpoint raw trace/video sanitization was still pending; the constrained recorder and embedded viewer evidence below supersede that limitation. APP-01–04 remain implementing.
 
 The CLI and terminal expose doctor and exact-flow review/run. The CLI explicitly provisions browsers using the pinned upstream registry. Session events retain browser intent/result and managed report paths. CLI cancellation leaves possible application effects unknown. Source controls now provide snapshot-preserving line navigation, literal search, range selection, history, wrap, refresh and removable persisted context references; stale references block task submission before inference. Complete highlighting/diff/editor, pickers and drawers remain required.
 
@@ -343,3 +343,12 @@ Actual targeted native CLI/profile/TUI run:20passed,105assertions, zero skips/fa
 `observe` accepts an optional unique semantic locator and emits a structured rendered DOM projection alongside visible text. Records have observation-owned UUIDs and parent references, tag/role hints, allowlisted ARIA/type attributes, geometry and disabled state. The traversal excludes form values, raw HTML, scripts/styles, handlers and private/hidden ancestor subtrees, including selected elements under private shadow hosts. It covers open shadow roots, caps traversal depth/nodes/attributes/text, labels truncation and explicitly disclaims a complete accessibility audit. Mutation revision is captured in the same browser evaluation as the evidence, closing the previous inter-evaluation drift window. Reports expose the structured hints as escaped untrusted data.
 
 Per-run observations now cap at200records and4MiB, preserving collected evidence and refusing further reads at the limit. The initial large-DOM/privacy fixture failed before implementation. Actual subsequent native CLI plus DOM/base/advanced/trace suites:33passed,535assertions, zero skips/failures. All three engines exercise real selected geometry, parent identities, truncation, password/private/hidden/shadow/handler canaries, browser policy and masked trace behavior. A200-observation real-browser test confirms the next read is refused while prior evidence and unknown correctness are preserved. Packaged CLI exposes structured heading evidence. Strict typecheck and native build exit0. Complete agent browser-tool integration and full inspection acceptance remain implementing.
+
+
+### Coding-loop inspection authority and durable browser evidence — 2026-09-07
+
+The actual coding loop now exposes inspect_app through the shared Playwright service. Model assertions are normalized to model-proposed before review, so forging user-approved/protected-grader provenance cannot establish correctness. Review binds exact flow, checkout, configuration and repository fingerprint and is revalidated immediately before launch. The task lends only its matching open worktree lease; the same durable pending-effect guard applies. Missing/stale approval starts no browser. Terminal approval reviews the concrete flow; headless --allow-inspection-flow reads and rechecks a saved flow and consumes one authorization per occurrence. Raw browser argument values/query strings are omitted from canonical proposal events.
+
+Sanitized app_observation/app_assertion events now persist collected and not-run checks, with inspection/step identities and full structured evidence. Recording no longer depends on whether a live event subscriber exists. Agent output is a bounded diagnostic projection; full local reports are linked in task artifacts. Model-selected checks remain diagnostic, and independent repository checks still decide task correctness.
+
+Actual native targeted CLI/agent/inspection/session/TUI run:46passed,218assertions, zero skips/failures. A deterministic provider performed actual read/patch, real browser inspection of changed source and an independent process verifier while preserving a pre-existing edit. This used a local application stub, not the full Rails canonical scenario. Denied/stale approval produced zero browser requests; forged provenance stayed unknown; failure after POST preserved one submission and blocked continuation. Native CLI saved-flow tests refused repeat authorization and file changes before launch. Strict typecheck and native build exit0. Full canonical Rails+TUI user journeys, vision selection and all inspection acceptance remain implementing.

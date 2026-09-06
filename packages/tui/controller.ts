@@ -66,7 +66,8 @@ export class TuiController {
   if(event.type==='assistant.delta'){
    const last=this.model.messages.at(-1);const id=last?.id.startsWith('assistant:')?last.id:`assistant:${event.eventId}`;
    const messages=last?.id===id?[...this.model.messages.slice(0,-1),{id,text:last.text+String(event.payload.text)}]:[...this.model.messages,{id,text:String(event.payload.text)}];this.update({messages});
-  }else if(event.type==='verification.selected'){this.add('Verifier selection · execution still requires approval\n'+String(event.payload.selection));}
+  }else if(event.type==='inspection.completed'){this.add('App Inspection · '+String(event.payload.status)+'\nLocal report: '+String(event.payload.reportPath));}
+  else if(event.type==='verification.selected'){this.add('Verifier selection · execution still requires approval\n'+String(event.payload.selection));}
   else if(event.type==='tool.requested')this.add(`Tool · ${event.payload.name} · running`,event.eventId);
   else if(event.type==='verification.completed')this.add(`Verification · ${event.payload.checkId} · ${event.payload.state}\n${event.payload.result}`,event.eventId);
   else if(event.type==='usage.reported')this.update({usage:`${event.payload.inputTokens} in / ${event.payload.outputTokens} out`});
@@ -142,7 +143,7 @@ export class TuiController {
     const credential=await this.vault.resolve(preset.id,preset.credentialNames);if(credential)this.store.addSecret(credential.value);
     const provider=createProvider(preset.id,credential?.value);
     const capabilities=await preflightCapabilities(provider,selection.model,preset.locality,this.active.signal);
-    const result=await runTask({root:this.root,railsPath:this.railsPath,task:text,provider,providerId:preset.id,model:selection.model,capabilities,store:this.store,policy:this.policy,signal:this.active.signal,verifiers:this.verifiers,references:[...this.references.values()],onEvent:event=>this.event(event),adoptAcceptance:review=>this.requestApproval(review.id,'Adopt changed acceptance criteria? This approves the reviewed criteria, not execution or correctness. Inspect every before/after below.\n'+JSON.stringify(review,null,2),this.active!.signal),approve:action=>this.approve(action,this.active!.signal)});
+    const result=await runTask({root:this.root,railsPath:this.railsPath,task:text,provider,providerId:preset.id,model:selection.model,capabilities,store:this.store,policy:this.policy,signal:this.active.signal,verifiers:this.verifiers,references:[...this.references.values()],onEvent:event=>this.event(event),approveInspection:review=>this.requestApproval(review.id,'Run this proposed development flow? This approves browser effects only; model assertions remain diagnostic.\n'+JSON.stringify(review,null,2),this.active!.signal),adoptAcceptance:review=>this.requestApproval(review.id,'Adopt changed acceptance criteria? This approves the reviewed criteria, not execution or correctness. Inspect every before/after below.\n'+JSON.stringify(review,null,2),this.active!.signal),approve:action=>this.approve(action,this.active!.signal)});
     this.add(`Task · ${result.status} · correctness ${result.correctness}${result.error?'\n'+result.error.message:''}`);
     if(result.exitCode!==0)return;
    }

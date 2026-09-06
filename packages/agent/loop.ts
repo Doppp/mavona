@@ -1,3 +1,6 @@
+import {prepareInspectionReview,requireFreshInspectionReview,InspectionApprovalRequired,inspectionSummary,type InspectionReview} from './inspection-policy';
+import {runInspection} from './inspection';
+import {digest} from '../tools/source';
 import {captureAcceptance,acceptanceBaseline,makeAcceptanceReview,adoptAcceptance,type AcceptanceReview} from '../verification/adoption';
 import {selectVerifiers,type Criterion} from '../verification/selection';
 import {UnreconciledWorktreeEffects} from '../tools/worktree';
@@ -16,10 +19,11 @@ import {collectTurn,requireChangeCapabilities,ProviderError,type Provider,type P
 import type {EventType,Payloads,Envelope} from '../protocol/events';
 export interface Verifier {id:string;argv:string[];required:boolean;provenance:Check['provenance'];timeoutMs:number;cwd?:string;criteria?:Criterion[];scope?:string[];rationale?:string}
 export interface TaskResult {schemaVersion:1;sessionId:string;taskId:string;status:string;correctness:'passed'|'failed'|'unknown';exitCode:number;checks:(Check&{result:ToolResult})[];artifacts:string[];changes?:ReturnType<typeof changesSince>;error?:{category:string;message:string}}
-export interface RunOptions {root:string;railsPath?:string;task:string;provider:Provider;providerId:string;model:string;capabilities:ModelCapabilities;store:SessionStore;policy:ExecutionPolicy;signal:AbortSignal;verifiers:Verifier[];references?:SourceSelection[];maxTurns?:number;maxToolCalls?:number;maxDurationMs?:number;onEvent?:(event:Envelope)=>void;adoptAcceptance?:(review:AcceptanceReview)=>Promise<boolean>;approve?:(action:PreparedAction)=>Promise<boolean>}
+export interface RunOptions {root:string;railsPath?:string;task:string;provider:Provider;providerId:string;model:string;capabilities:ModelCapabilities;store:SessionStore;policy:ExecutionPolicy;signal:AbortSignal;verifiers:Verifier[];references?:SourceSelection[];maxTurns?:number;maxToolCalls?:number;maxDurationMs?:number;onEvent?:(event:Envelope)=>void;adoptAcceptance?:(review:AcceptanceReview)=>Promise<boolean>;approveInspection?:(review:InspectionReview)=>Promise<boolean>;approve?:(action:PreparedAction)=>Promise<boolean>}
 const string={type:'string',maxLength:1024*1024};
 const definition=(name:string,description:string,properties:Record<string,unknown>,required=Object.keys(properties)):ToolDefinition=>({type:'function',function:{name,description,parameters:{type:'object',properties,required,additionalProperties:false}}});
 export const tools:ToolDefinition[]=[
+ definition('inspect_app','Propose one bounded declarative browser flow as JSON. Explicit approval is required before any browser access. Assertions stay model-proposed diagnostics; screenshots never verify correctness. Use semantic locators and no arbitrary JavaScript.',{flow:{type:'string',maxLength:64*1024}}),
  definition('read_file','Read contained source with its current digest.',{path:string}),
  definition('list_directory','List a contained directory without opening excluded paths.',{path:string}),
  definition('search','Find literal text in the discovered Rails inventory.',{query:{type:'string',minLength:1,maxLength:200}}),
@@ -29,11 +33,11 @@ export const tools:ToolDefinition[]=[
  definition('run_command','Run an argument array inside the repository with explicit execution approval. Never use a shell.',{argv:{type:'array',minItems:1,maxItems:64,items:{type:'string',maxLength:16384}},cwd:string,timeoutMs:{type:'integer',minimum:1,maximum:300000}})
 ];
 export async function runTask(options:RunOptions):Promise<TaskResult>{
- let baseline:RepositoryState|undefined;let latest:RepositoryState|undefined;
+ const artifacts:string[]=[];let baseline:RepositoryState|undefined;let latest:RepositoryState|undefined;
  const {store}=options;let verifiers=[...options.verifiers];const taskId=Bun.randomUUIDv7();const checks:TaskResult['checks']=verifiers.map(v=>({id:v.id,required:v.required,provenance:v.provenance,state:'unknown',fresh:false,result:{state:'unknown',durationMs:0,reason:'not run'}}));
  const emit=<T extends EventType>(type:T,payload:Payloads[T],causedBy?:string)=>{const event=store.append(type,payload,causedBy);options.onEvent?.(event);return event;};
  const finish=(status:string,exitCode:number,error?:TaskResult['error']):TaskResult=>{
-  const result:TaskResult={schemaVersion:1,sessionId:store.sessionId,taskId,status,correctness:correctness(checks),exitCode,checks,artifacts:[],...(baseline&&latest?{changes:changesSince(baseline,latest)}:{}),...(error?{error}:{})};
+  const result:TaskResult={schemaVersion:1,sessionId:store.sessionId,taskId,status,correctness:correctness(checks),exitCode,checks,artifacts:[...artifacts],...(baseline&&latest?{changes:changesSince(baseline,latest)}:{}),...(error?{error}:{})};
   emit('task.completed',{taskId,status,correctness:result.correctness,exitCode});return result;
  };
  const signal=AbortSignal.any([options.signal,AbortSignal.timeout(options.maxDurationMs??300000)]);
@@ -93,9 +97,10 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
    if(!response.toolCalls.length){concluded=true;break;}
    for(const call of response.toolCalls){
     signal.throwIfAborted();if(++calls>(options.maxToolCalls??40))return finish('tool_budget',4);
-    emit('tool.requested',{callId:call.id,name:call.name,arguments:JSON.stringify(call.arguments)});
+    emit('tool.requested',{callId:call.id,name:call.name,arguments:JSON.stringify(call.name==='inspect_app'?{proposalDigest:digest(JSON.stringify(call.arguments)),values:'omitted from persisted browser proposal'}:call.arguments)});
     let output:unknown;const args=call.arguments;
-    if(call.name==='read_file')output=await readSource(root,args.path as string,128*1024);
+    if(call.name==='inspect_app'){const review=await prepareInspectionReview(root,JSON.parse(args.flow as string));const {flow,...identity}=review;emit('approval.requested',{actionId:review.id,description:JSON.stringify(identity)});const approved=await options.approveInspection?.(structuredClone(review))??false;emit('approval.resolved',{actionId:review.id,decision:approved?'approved':'denied'});if(!approved)throw new InspectionApprovalRequired();signal.throwIfAborted();await requireFreshInspectionReview(review);const result=await runInspection({root,flow,store,lease:lease!,signal,...(options.onEvent?{onEvent:options.onEvent}:{})});artifacts.push(result.reportPath);latest=await captureRepositoryState(root);emit('repository.snapshot',{snapshot:JSON.stringify(latest),reason:'inspection-result'});output=inspectionSummary(result.report,result.reportPath);}
+    else if(call.name==='read_file')output=await readSource(root,args.path as string,128*1024);
     else if(call.name==='list_directory')output=(await readdir(await containedPath(root,args.path as string),{withFileTypes:true})).filter(f=>!excluded(f.name)&&!f.isSymbolicLink()).slice(0,200).map(f=>({name:f.name,directory:f.isDirectory()}));
     else if(call.name==='search'){
      const matches:{path:string;line:number;text:string}[]=[];
@@ -124,6 +129,7 @@ export async function runTask(options:RunOptions):Promise<TaskResult>{
   const truth=correctness(checks);return finish(truth==='passed'?'verified':truth==='failed'?'verification_failed':'verification_unknown',truth==='passed'?0:truth==='failed'?3:4);
  }catch(error){
   if(error instanceof UnreconciledWorktreeEffects)return finish('reconciliation_required',2,{category:'recovery',message:error.message});
+  if(error instanceof InspectionApprovalRequired)return finish('approval_required',2,{category:'approval',message:error.message});
   if(error instanceof ApprovalRequired)return finish('approval_required',2,{category:'approval',message:error.message});
   if(signal.aborted)return finish('cancelled',options.signal.aborted?130:4,{category:'cancelled',message:'Operation cancelled or task duration exhausted; effects may be unknown'});
   const category=error instanceof ProviderError?error.category:'execution';
