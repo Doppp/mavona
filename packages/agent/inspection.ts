@@ -1,3 +1,4 @@
+import {savedFlowReference} from '../app-inspection/rerun';
 import {reportManifest} from '../app-inspection/report-viewer';
 import {inspectionSummary} from './inspection-policy';
 import {repositoryEvidence} from '../app-inspection/provenance';
@@ -8,8 +9,9 @@ import {renderReport} from '../app-inspection/report';
 import {WorktreeLease} from '../tools/runtime';
 import {SessionStore} from '../sessions/store';
 import type {Envelope} from '../protocol/events';
-export async function runInspection(options:{root:string;taskId?:string;flow:Flow;lease?:WorktreeLease;store:SessionStore;signal:AbortSignal;onEvent?:(event:Envelope)=>void}){
+export async function runInspection(options:{root:string;taskId?:string;flow:Flow;flowPath?:string;lease?:WorktreeLease;store:SessionStore;signal:AbortSignal;onEvent?:(event:Envelope)=>void}){
  const {store,flow,signal}=options;signal.throwIfAborted();if(!store.state.mutationAllowed)throw new Error('Reconcile interrupted effects before browser execution');
+ const flowReference=await savedFlowReference(options.root,options.flowPath,flow);
  const lease=options.lease??await WorktreeLease.acquire(options.root,store.sessionId);const service=new InspectionService();const effectId=Bun.randomUUIDv7();const directory=join(store.directory,'artifacts',effectId);
  const cancel=()=>{void service.stop(true);};
  try{
@@ -18,6 +20,7 @@ export async function runInspection(options:{root:string;taskId?:string;flow:Flo
   const report=await service.run(flow,approveFlow(flow,options.root,'explicit-user'),{evidenceContext:()=>repositoryEvidence(options.root,store.sessionId,options.taskId),checkout:options.root,artifactRoot:store.directory,artifactDirectory:directory,onEvidence:async evidence=>{const event=evidence.kind==='app_artifact'?store.append('inspection.artifact',{inspectionId:evidence.artifact.inspectionId!,artifactId:evidence.artifact.id,managedPath:relative(store.directory,join(directory,evidence.artifact.path)),evidence:JSON.stringify(evidence.artifact)}):evidence.kind==='app_observation'?store.append('app_observation',{inspectionId:evidence.observation.inspectionId!,observationId:evidence.observation.id,evidence:JSON.stringify(evidence.observation)}):store.append('app_assertion',{inspectionId:evidence.check.inspectionId!,checkId:evidence.check.id,evidence:JSON.stringify(evidence.check)});options.onEvent?.(event);},onEvent:async event=>{const recorded=store.append('inspection.event',{inspectionId:event.inspectionId,event:JSON.stringify(event)});options.onEvent?.(recorded);}});
   // A cancelled or failed browser run may have changed application state; never infer rollback.
   const effect=store.append('effect.completed',{effectId,state:signal.aborted||report.state!=='completed'?'unknown':'passed'},intent.eventId);options.onEvent?.(effect);lease.completeEffect(effectId,signal.aborted||report.state!=='completed'?'unknown':'passed');
+  const saved=store.append('inspection.flow',{inspectionId:report.id,reference:JSON.stringify(flowReference)});options.onEvent?.(saved);
   const reportPath=join(directory,'report.html');const html=Buffer.from(renderReport(report));await writeFile(reportPath,html,{flag:'wx',mode:0o600});await writeFile(join(directory,'report.json'),JSON.stringify(report),{flag:'wx',mode:0o600});
   const manifest=store.append('inspection.report',{inspectionId:report.id,manifest:JSON.stringify(reportManifest(store.directory,store.sessionId,report,reportPath,html))});options.onEvent?.(manifest);
   const summary=store.append('inspection.summary',{inspectionId:report.id,summary:JSON.stringify(inspectionSummary(report,reportPath))});options.onEvent?.(summary);
