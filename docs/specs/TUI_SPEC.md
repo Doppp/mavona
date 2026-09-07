@@ -375,6 +375,8 @@ All bindings are represented as semantic commands through the pinned supported O
 - Copyable transcript text excludes decorative glyphs where possible.
 - Test CJK, combining marks, emoji, RTL display limits and IME input explicitly. Unsupported RTL editing behavior must be documented honestly.
 
+The v0.1 composer accepts the UTF-8 text emitted when a terminal IME commits a composition. CJK, emoji and combining sequences are preserved, and right-to-left text is retained in logical order when entered as its own line. OpenTUI and the terminal own glyph shaping and bidirectional cursor movement. Mixed left-to-right/right-to-left editing next to combining marks is unsupported because the current editor can reorder the mark in its backing text; use a separate line or compose that text in an external editor before pasting it atomically.
+
 ## 18. Rendering and performance
 
 - Virtualize transcript and long tool output.

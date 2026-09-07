@@ -90,7 +90,7 @@ Baseline: master `fdee113`; implementation branch `codex/mavona-v0.1`. No featur
 | ID | State | Implementation / checks / remaining evidence |
 | --- | --- | --- |
 | UI-01 | implementing | Streaming transcript and bounded history rendering implemented; full Markdown/tool drawer and PTY matrix pending. |
-| UI-02 | implementing | Multiline composer, paste, fuzzy file/root selection, draft retention and cancellation tested; full IME/accessibility matrix pending. |
+| UI-02 | implementing | Multiline composer, paste, committed IME Unicode, fuzzy selection, draft retention and cancellation tested; cross-host accessibility matrix pending. |
 | UI-03 | implementing | Approvals, source/diff review, root/file/model/session pickers and persisted terminal themes implemented; full plans and remaining picker acceptance pending. |
 | CODE-01 | implementing | Real Ruby-highlighted source navigation, fuzzy picker, selection/copy and pins tested, including native PTY; full acceptance pending. |
 | CODE-02 | implementing | Anchored revisions/diffs, prompt references, drift checks and native editor handoff tested; full historical/recovery UI acceptance pending. |
@@ -549,4 +549,10 @@ Actual compiled macOS arm64 session/inspection export and session CLI suite:9pas
 
 The terminal detects a light background from `COLORFGBG`, otherwise defaults to dark, and exposes `/theme dark|light|no-color` through direct input and the command palette. Theme changes use a versioned session event and replay on resume. `NO_COLOR` always selects the unstyled surface regardless of saved preference. Dark and light palettes set explicit foreground, background, border, focus, cursor, selection and Ruby syntax colors; focused input retains a border shape and every status remains textual. Changing theme remounts only the source renderer so an open source view cannot retain its prior palette.
 
-Focused controller/OpenTUI/source checks:12passed,55assertions,0failed. Captured native renderer spans confirmed dark `#f2f5f8` and light `#18202b` heading colors while draft and textual status survived the change. Rebuilt macOS arm64 `python3 scripts/pty-theme.py dist/mavona` passed light-background detection, dark/light/no-color event persistence, zero inference,80×24→60×18 resize and original terminal-mode restoration. Strict typecheck and native build passed. Full CJK/combining/emoji/RTL/IME, Markdown/tool presentation and all-host terminal acceptance remain implementing.
+Focused controller/OpenTUI/source checks:12passed,55assertions,0failed. Captured native renderer spans confirmed dark `#f2f5f8` and light `#18202b` heading colors while draft and textual status survived the change. Rebuilt macOS arm64 `python3 scripts/pty-theme.py dist/mavona` passed light-background detection, dark/light/no-color event persistence, zero inference,80×24→60×18 resize and original terminal-mode restoration. Strict typecheck and native build passed. Markdown/tool presentation and all-host terminal acceptance remain implementing.
+
+### Unicode composition and explicit RTL boundary
+
+The composer preserves an atomic UTF-8 composition commit containing CJK, a multi-code-point emoji and a decomposed combining sequence in its canonical draft. Standalone right-to-left input remains in logical storage order. The TUI specification now records the measured v0.1 limitation: OpenTUI and the terminal control shaping and bidirectional cursor movement, and mixing RTL text next to combining marks can reorder the mark in the editor's backing text. Users can place the RTL text on a separate line or compose it externally and paste atomically.
+
+The real OpenTUI renderer check passed9tests/42assertions, including exact model storage, visible CJK/emoji/RTL and60×18 resize. Rebuilt macOS arm64 `python3 scripts/pty-unicode.py dist/mavona` passed actual PTY UTF-8 composition bytes, exact persisted draft values, standalone RTL logical order, zero inference, resize and terminal cleanup. Cross-host IME implementations and mixed-direction cursor behavior remain unverified or unsupported as documented.

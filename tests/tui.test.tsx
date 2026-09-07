@@ -8,6 +8,12 @@ test('theme changes update high-contrast native colors and preserve textual stat
  try{await setup.renderOnce();let heading=setup.captureSpans().lines.flatMap(line=>line.spans).find(span=>span.text.includes('Mavona'))!;expect(heading.fg.toInts().slice(0,3)).toEqual([242,245,248]);expect(setup.captureCharFrame()).toContain('theme dark');setModel(m=>({...m,theme:'light'}));await setup.renderOnce();heading=setup.captureSpans().lines.flatMap(line=>line.spans).find(span=>span.text.includes('Mavona'))!;expect(heading.fg.toInts().slice(0,3)).toEqual([24,32,43]);expect(setup.captureCharFrame()).toContain('theme light');expect(model().draft).toBe('accessible');}
  finally{setup.renderer.destroy();}
 });
+test('committed IME text preserves CJK, emoji and combining marks; RTL retains logical order',async()=>{
+ const committed='注文 👩🏽‍💻 e\u0301';const [model,setModel]=createSignal<ScreenModel>({theme:'no-color',repository:'orders',status:'ready',draft:'',messages:[],source:null});
+ const setup=await testRender(()=> <Screen model={model} actions={{draft:text=>setModel(m=>({...m,draft:text})),async submit(){},closeSource(){},close(){}}}/>,{width:80,height:24});
+ try{await setup.renderOnce();setup.renderer.stdin.emit('data',Buffer.from(committed));await setup.renderOnce();expect(model().draft).toBe(committed);expect(setup.captureCharFrame()).toContain('注文');expect(setup.captureCharFrame()).toContain('👩🏽‍💻');setModel(m=>({...m,draft:''}));await setup.renderOnce();setup.renderer.stdin.emit('data',Buffer.from('שלום'));await setup.renderOnce();expect(model().draft).toBe('שלום');expect(setup.captureCharFrame()).toContain('שלום');setup.resize(60,18);await setup.renderOnce();expect(model().draft).toBe('שלום');}
+ finally{setup.renderer.destroy();}
+});
 test('real renderer preserves bracketed multiline paste without submission through resize',async()=>{
  const [model,setModel]=createSignal<ScreenModel>({repository:'orders',status:'unchecked',draft:'',messages:[],source:null});
  const submitted:string[]=[];

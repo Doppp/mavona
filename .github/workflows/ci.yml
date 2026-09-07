@@ -51,6 +51,7 @@ jobs:
       - run: python3 scripts/pty-source-history.py dist/mavona --multiple-roots
       - run: python3 scripts/pty-models.py dist/mavona
       - run: python3 scripts/pty-theme.py dist/mavona
+      - run: python3 scripts/pty-unicode.py dist/mavona
       - run: python3 scripts/pty-commands.py dist/mavona
       - run: python3 scripts/pty-sessions.py dist/mavona
       - run: python3 scripts/pty-inspection.py dist/mavona
