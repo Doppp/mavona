@@ -168,3 +168,7 @@ Record a contained repository flow path plus source/effective-flow digests for s
 ### Recorded capture pair review
 
 Select two canonical capture IDs, load only their immutable manifest-checked masked PNGs and refuse changed, expired, duplicate or unreviewed evidence. Provide a local before/after, 50% overlay and raw pixel-difference viewer with exact IDs/hashes and bounded image decoding. Raw difference is diagnostic: missing fixture/font/capture-condition evidence or reviewed baseline keeps comparability and verification unknown. Reuse the script-free loopback report server with explicit in-memory assets; no browser navigation, inference, original-image mutation or baseline adoption occurs while reviewing. Expose terminal /app compare and headless app compare; test actual captures, image bytes/viewer behavior, unknown truth and native lifecycle. Reviewed baseline configuration and measured repeatability remain a following integration slice.
+
+### Forked recovery identity continuity
+
+Session forks assign new envelope IDs. Remap the explicit retained-source recoveryId references alongside causedBy so completed restoration/disposal tombstones continue to refer to the copied deletion event. Preserve historical review text as original evidence and retain all unknown effect states; do not replay or copy source bytes. Test an actual restored/deleted-source fork before extending session controls.
