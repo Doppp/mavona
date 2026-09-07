@@ -184,3 +184,7 @@ Create a fresh session with the same explicitly selected connection but an empty
 ### Explicit committed source viewing
 
 Read HEAD or an explicit full commit ID through bounded argument-array Git object commands, with hooks/fsmonitor/replacement objects disabled and no filters/textconv/network. Resolve HEAD once and label the immutable commit in every snapshot, selection and diff; refuse excluded paths, symlink/submodule modes, binary/oversized blobs and invalid revisions. Add /revision HEAD|COMMIT for the open path, /worktree for explicit return, and a headless source command. Historical selections retain their commit and are validated against that immutable blob before attachment/submission; they never supply authorization to patch current code. Keep current worktree reads and edits separate, preserve navigation/drafts and test real commits, drift, excluded history and native rendering.
+
+### Measured session storage status
+
+Correct the retention scan to bound every filesystem entry, reject changing/symlink directory traversal and identify managed trace ZIPs. Expose read-only per-session and data-directory apparent-byte totals, sampling time, default thresholds and explicit advisory global budget status through sessions storage and terminal /storage. Never scan/delete retained checkout source as disposable session storage. Do not turn failed or incomplete scans into passed usage evidence. Verify actual metadata/capture/video/trace files, symlink scope, no canonical writes and public projections before implementing reviewed file export.
