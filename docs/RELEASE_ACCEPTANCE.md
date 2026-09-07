@@ -15,15 +15,15 @@ Maintain a ledger per capability with requirement ID, code entry points, test ID
 | UI-01–03 | Real streaming transcript; multiline/paste/Unicode/IME input; responsive focus/cancellation; tool details, approvals, plans/pickers, themes and 80×24 resize/recovery PTY checks |
 | CODE-01–02 | Open real file from test failure, navigate/search/select, source/diff revision identity, attach/remove draft without provider traffic, detect drift, editor handoff and saved-change reconciliation |
 | RAILS-01–03 | Conventional/namespaced/multi-root/boot-failure fixtures, declared/resolved facts, cache invalidation, routing/refusal/widening and parity/fallback coverage |
-| AGENT-01 | implementing | Actual source/tool/verification loop and approved App Inspection integration tested; deterministic compaction and one objective repair attempt tested; full canonical scenarios pending. |
-| POLICY-01 | implementing | Canonical worktree ownership, durable effect guard, exact grants, drift/refusal and secret boundaries tested; full adversarial matrix pending. |
+| AGENT-01 | Actual source/tool/verification loop, App Inspection integration, deterministic compaction, bounded repair and canonical scenarios A/B |
+| POLICY-01 | Canonical worktree ownership, durable effect guard, exact grants, drift/refusal, secret boundaries and hostile/crash scenario F |
 | MODEL-01–03 | Native OpenAI/Anthropic plus every compatible preset contract; local endpoints; discovery/explicit ID, secure credential/session/env resolution, no fallback, stream cancellation and model switching |
-| MODEL-04 | implementing | Official subscription capability assessed; explicit unsupported own-loop state implemented without token extraction. |
+| MODEL-04 | Official subscription capability assessment and explicit unsupported own-loop state without token extraction |
 | APP-01–04 | All 14 cases in docs/specs/APP_INSPECTION_SPEC.md; actual Playwright/Rails flow, multi-engine/profile tests, comparison/baseline review, diagnostics, trace/report, opt-in video and recovery |
-| VERIFY-01 | implementing | Independent verifiers, exact acceptance adoption and stale/unknown truth tested; one objective repair attempt tested; progressive widening and full canonical outcomes pending. |
-| SESSION-01 | implementing | Durable replay, lifecycle, configurable opt-in retention and crash effect guard tested; full migration/crash/recovery matrix pending. |
-| CLI-01 | implementing | Native headless/event projections tested, including source, browser and evaluation paths; complete command/UX parity pending. |
-| DIST-01 | implementing | Darwin arm64 binary/native/parser/browser/viewer assets tested; local installer/provenance/SPDX inventory prepared and tested; signing, full bundled inventory and all-host evidence pending. |
+| VERIFY-01 | Independent verifiers, exact acceptance adoption, stale/unknown truth, progressive widening and one objective repair attempt |
+| SESSION-01 | Durable replay, lifecycle, configurable retention, migration refusal, compaction, crash guards and recovery |
+| CLI-01 | Native text/JSON/JSONL projections for task, source, browser, session, recovery and evaluation workflows |
+| DIST-01 | Target-native binaries, packaged parser/browser/viewer assets, installer, checksums, provenance, SPDX inventory and signing inputs |
 
 ## Required real user scenarios
 
@@ -85,32 +85,32 @@ Product acceptance runs do not wait for the human-authored benchmark pilot. Corr
 
 ## Implementation ledger — current 2026-09-07
 
-Baseline: master `fdee113`; implementation branch `codex/mavona-v0.1`. No feature has full release acceptance. Each detailed specification scenario remains required.
+Baseline: master `fdee113`; implementation branch `codex/mavona-v0.1`. The complete product implementation and current-host deterministic acceptance are present. Release claims remain blocked where the contract requires unavailable live providers, other native hosts, signing/notarization or remote CI evidence.
 
 | ID | State | Implementation / checks / remaining evidence |
 | --- | --- | --- |
-| UI-01 | implementing | Streaming Markdown, bounded history rendering and expandable tool/verification cards implemented; full cross-host PTY/performance matrix pending. |
-| UI-02 | implementing | Multiline composer, paste, committed IME Unicode, fuzzy selection, draft retention and cancellation tested; cross-host accessibility matrix pending. |
-| UI-03 | implementing | Approvals, source/diff review, root/file/model/session pickers and persisted terminal themes implemented; full plans and remaining picker acceptance pending. |
-| CODE-01 | implementing | Real Ruby-highlighted source navigation, fuzzy picker, selection/copy and pins tested, including native PTY; full acceptance pending. |
-| CODE-02 | implementing | Anchored revisions/diffs, prompt references, drift checks and native editor handoff tested; full historical/recovery UI acceptance pending. |
-| RAILS-01 | implementing | Static Git/Rails facts, explicit multi-root scope and instructions implemented; full declared/resolved fact matrix pending. |
-| RAILS-02 | implementing | No-boot versioned Prism structure/route probe and cache implemented; older/container Ruby and full runtime tier pending. |
-| RAILS-03 | implementing | 50 observed legacy projection pairs and reviewed routing differences pass; full profile parity, widening and protected smoke outcomes pending. |
-| AGENT-01 | implementing | Actual source/tool/verification loop and approved App Inspection integration tested; deterministic compaction and one objective repair attempt tested; full canonical scenarios pending. |
-| POLICY-01 | implementing | Canonical worktree ownership, durable effect guard, exact grants, drift/refusal and secret boundaries tested; full adversarial matrix pending. |
-| MODEL-01 | implementing | Native/compatible provider contracts and all specified presets implemented; paid live demonstrations remain unverified. |
-| MODEL-02 | implementing | Loopback/custom endpoint contracts implemented; full local-model demonstration and connection UX pending. |
-| MODEL-03 | implementing | Credential precedence, secure-store transports, discovery/preflight and usage/error contracts tested; full picker/switching UX pending. |
-| MODEL-04 | implementing | Official subscription capability assessed; explicit unsupported own-loop state implemented without token extraction. |
-| APP-01 | implementing | Real lifecycle, isolated auth, interactions, scoped coding-loop flow, headless attach/start, and live terminal attach/start/log/capture/takeover/resume/stop implemented; cross-host lifecycle/recovery matrix pending. |
-| APP-02 | implementing | Masked captures, bounded DOM/ARIA hints, diagnostics, exact-reviewed imports/user annotations and current-task image/model selection tested; full cross-host evidence review pending. |
-| APP-03 | implementing | All three engines and nine responsive profiles tested with real touch; diagnostic comparison, exact reviewed baseline workflow and controlled repeatability implemented; full cross-host matrix pending. |
-| APP-04 | implementing | Saved flows, canonical assertions/observations, constrained trace, masked checkpoint video and packaged offline viewer tested; canonical Rails flow passes all engines on macOS, full cross-host matrix pending. |
-| VERIFY-01 | implementing | Independent verifiers, exact acceptance adoption and stale/unknown truth tested; one objective repair attempt tested; progressive widening and full canonical outcomes pending. |
-| SESSION-01 | implementing | Durable JSONL/replay, lifecycle, retention and crash effect guard tested; full migration/compaction/recovery matrix pending. |
-| CLI-01 | implementing | Native headless/event projections tested, including source, browser and evaluation paths; complete command/UX parity pending. |
-| DIST-01 | implementing | Darwin arm64 binary/native/parser/browser/viewer assets tested; local installer/provenance/SPDX inventory prepared and tested; signing, full bundled inventory and all-host evidence pending. |
+| UI-01 | implemented/unverified | Streaming Markdown, bounded history, tool/verification cards and rapid-output-safe projection pass source and Darwin arm64 PTY checks; other native hosts remain unverified. |
+| UI-02 | implemented/unverified | Multiline paste, committed Unicode/IME input, fuzzy selection, draft retention, cancellation and resize pass native PTY checks; other terminal/host accessibility matrices remain unverified. |
+| UI-03 | implemented/unverified | Approvals, source/diff review, root/file/model/session/command pickers and persisted themes pass native checks; other hosts remain unverified. |
+| CODE-01 | implemented/unverified | Real highlighted source navigation, fuzzy picker, selection/copy, pins and failure-to-file evidence pass source and Darwin arm64 PTY checks. |
+| CODE-02 | implemented/unverified | Anchored revisions/diffs, prompt references, drift checks, terminal Vim and wait-capable GUI handoff pass current-host acceptance. |
+| RAILS-01 | implemented/unverified | Static Git/Rails facts, multi-root scope, namespaced fixtures and instruction ancestry pass the deterministic matrix. |
+| RAILS-02 | implemented/unverified | Versioned no-boot Prism structure/route probe, cache and explicit runtime tier pass available Ruby checks; unavailable older/container native runtimes remain unverified. |
+| RAILS-03 | implemented/unverified | Fifty historical projection pairs, routing, widening, canonical Rails discovery and independent outcomes pass; pinned external smoke hosts remain unverified. |
+| AGENT-01 | implemented/unverified | Actual tool/verification/browser loop, deterministic compaction and bounded repair pass canonical scenarios A and B; live-provider paths remain blocked below. |
+| POLICY-01 | implemented/unverified | Worktree ownership, durable effects, exact grants, containment, drift/refusal, hostile repository and secret boundaries pass deterministic adversarial checks; other OS boundaries remain unverified. |
+| MODEL-01 | blocked | Native and compatible cloud contracts pass local stubs. Required real cloud end-to-end evidence has no authorized spending budget or configured credential. |
+| MODEL-02 | blocked | Loopback/custom endpoints, redirect refusal and local TUI flow pass owned stubs. No supported local inference engine is installed for the required live local-model demonstration. |
+| MODEL-03 | implemented/unverified | Credential precedence/store transports, discovery, explicit switching, preflight, usage and typed failure contracts pass without credential disclosure; live-provider behavior remains blocked with MODEL-01/02. |
+| MODEL-04 | acceptance passed | Official own-loop subscription limitation is explicit; Mavona offers no token extraction or unsupported subscription inference path. |
+| APP-01 | implemented/unverified | Start/attach, isolated auth, live/headless lifecycle, takeover/resume, effects and recovery pass Darwin arm64; other hosts remain unverified. |
+| APP-02 | implemented/unverified | Masked captures, DOM/ARIA evidence, diagnostics, reviewed imports/annotations and approved current-task vision routing pass current-host acceptance. |
+| APP-03 | implemented/unverified | Three engines and nine responsive profiles, comparison, reviewed baselines and controlled repeatability pass macOS; other hosts remain unverified. |
+| APP-04 | implemented/unverified | Saved flows, assertions, reports, sanitized trace/video and packaged offline viewers pass; the canonical Rails flow passes all three engines on macOS. |
+| VERIFY-01 | acceptance passed | Independent verifiers, exact acceptance adoption, widening, stale/unknown truth and one bounded objective repair pass canonical scenarios A and B. |
+| SESSION-01 | implemented/unverified | Durable replay, migration refusal, lifecycle, retention, compaction, crash guards and reconciliation pass deterministic/current-host checks; other-host crash evidence remains unverified. |
+| CLI-01 | implemented/unverified | Text/JSON/JSONL task, source, browser, session, recovery, evaluation and stable exit projections pass source and packaged macOS checks. |
+| DIST-01 | blocked | Darwin arm64 binary, installer, provenance, SPDX inventory and packaged browser/viewer pass. macOS x64 and Linux x64/arm64 native evidence plus signing/notarization remain unavailable. |
 
 ### Evidence M0-baseline
 
@@ -521,7 +521,7 @@ Authentication state is stored with private permissions outside Git, session art
 
 Live terminal inspection now exposes `/app import PATH` and `/app annotate ARTIFACT_ID TEXT`. Import requires exact review of one contained regular PNG, including its source and normalized hashes, byte size and dimensions. Fresh validation refuses changed bytes, links, excluded paths and repository escapes. Imported evidence remains explicitly unreviewed with unknown runtime provenance; a bounded annotation has user provenance and stays attached to the original artifact in the immutable report. The public TUI/import policy tests passed 2 defining tests as part of their focused suites, including denial without an artifact event, final report association, drift and link refusal.
 
-Actual focused browser/server tests: 28 passed / 138 assertions / 0 failed across live TUI, authentication, lifecycle, process ownership and advanced multi-engine behavior. Native compiled `python3 scripts/pty-inspection-live.py dist/mavona` passed reviewed attach and discovered start, masked capture, takeover, fresh resume, ownership-correct shutdown, draft retention, resize and terminal cleanup. Full offline suite: 344 passed / 6 explicit conditional skips / 0 failed / 2293 assertions across 71 files. Strict typecheck and native build passed. The public `/app revoke-login ID` command now deletes the protected authentication reference without starting a browser or placing cookie material in session evidence; its focused real-browser/TUI run passed 14 tests / 85 assertions / 0 failed. Crash recovery/reconciliation UX and the remaining 14-case release matrix still require acceptance.
+Actual focused browser/server tests: 28 passed / 138 assertions / 0 failed across live TUI, authentication, lifecycle, process ownership and advanced multi-engine behavior. Native compiled `python3 scripts/pty-inspection-live.py dist/mavona` passed reviewed attach and discovered start, masked capture, takeover, fresh resume, ownership-correct shutdown, draft retention, resize and terminal cleanup. Full offline suite: 344 passed / 6 explicit conditional skips / 0 failed / 2293 assertions across 71 files. Strict typecheck and native build passed. The public `/app revoke-login ID` command now deletes the protected authentication reference without starting a browser or placing cookie material in session evidence; its focused real-browser/TUI run passed 14 tests / 85 assertions / 0 failed. Subsequent crash and final-matrix evidence supersedes this checkpoint's open items.
 
 Headless `app inspect` now performs the same explicit health attach by default and accepts `--start-server` only after its discovered test-mode Rails argv participates in the approval digest. Its structured result reports server ownership and sanitized owned logs. An unavailable attach returns `unknown` correctness with a failed non-effect instead of a pending effect or generic process error. Actual focused CLI/agent/rerun regression: 14 passed / 1 packaged-only skip / 103 assertions / 0 failed. The rebuilt macOS arm64 executable then passed all four inspection CLI cases / 29 assertions, including discovered server start and the browser-download worker with no source-runtime dependency. Cross-host packaged lifecycle execution remains required.
 
@@ -604,3 +604,25 @@ Retention/session/controller checks passed9tests/63assertions; rebuilt compiled 
 The shared anchored export publisher now accepts an internal write boundary used to inject a real partial write followed by an `ENOSPC` failure. The destination stays absent, the private temporary path remains available for inspection, and the canonical export completion is `unknown`. The session remains writable and reopens with the original request/result history; no automatic retry, overwrite or success is inferred. Retained checkout source bytes remain unchanged. This same publisher serves session JSON and inspection tar exports.
 
 Session/export/crash regression checks passed18tests/105assertions with no failures, including partial canonical-event-tail truncation, complete-record corruption refusal, killed-writer ownership recovery, unknown effect replay, competing destination creation and the injected disk-full boundary. Strict typecheck passed. Additional process-kill points around artifact capture and final directory fsync, plus global capture reservation, remain implementing.
+
+### Canonical scenario D and App Inspection cases 1–14 — current host
+
+The current-host acceptance matrix is covered through the shared service and public TUI/headless projections. Start/attach, occupied ports, health timeout and ownership-correct cleanup cover case1. Protected login, takeover/resume and persisted/exported secret canaries cover case2. The isolated Rails/Turbo/Stimulus fixture covers case3. Actual Chromium/Firefox/WebKit popup, frame, dialog, upload, download and drag operations cover case4. Nine desktop/tablet/mobile profiles, capture forms, exact-reviewed PNG imports and user annotations cover case5. Separate JS exception, failed request and HTTP500 evidence covers case6. Reviewed comparable baselines pass identical captures, fail shifted captures and never rewrite the baseline for case7. Text-only DOM assertions and exact sanitized vision selection cover case8. Redirect, subresource, popup/frame and WebSocket egress denial plus inert page instructions cover case9. Cancellation and process death after one real POST retain unknown truth and produce no second POST for case10. Missing browser/baseline and fixture drift retain unknown required checks for case11. Immutable reports, constrained traces and packaged offline viewers cover case12. The Darwin arm64 packaged binary and80×24 text drawer cover the available row of case13. The canonical Rails flow passes all three installed engines for case14.
+
+`bun test` passed354tests with2377 assertions,6 explicit conditional skips and no failures across77files. Rebuilt packaged-only checks converted three conditionals to14 passes/87 assertions; the separately provisioned Rails browser launcher converted the three engine conditionals to3 passes/12 assertions. The complete compiled PTY matrix passed source/history, model, theme, Unicode, transcript, retention, command/session, inspection drawer/rerun/comparison/export/live lifecycle, recovery/disposal, packaged startup and terminal editor save/cancel paths. The palette harnesses select stable descriptive identities and wait on rendered state rather than depending on catalog order or fixed Git/browser timing. Case13 remains blocked for macOS x64 and Linux x64/arm64 because those native hosts are unavailable.
+
+### Canonical scenario E — provider and context continuity
+
+Native OpenAI Responses and Anthropic Messages adapters and every compatible preset pass fragmented streaming, tool round trips, malformed/incomplete streams, HTTP/auth/quota-class errors, cancellation, redirect refusal, usage accounting and bounded output contracts against owned local servers. Environment, session and OS secure-store credential precedence pass without placing secret values in argv, config, events, logs or artifacts. Loopback locality, model discovery, explicit IDs, capability preflight, unsupported tools/vision, exact image review, model switching and disconnect pass TUI and headless projections. Long-session compaction retains task constraints, complete protocol groups, source digests, outcome references and ranged retrieval; reopening preserves explicit non-secret selection and canonical task state without replaying effects.
+
+The deterministic contract and continuity portion of scenarioE is acceptance passed. Its required separate real cloud and local-model end-to-end demonstrations are blocked: no spending budget or live cloud credential was supplied, and no Ollama, llama-server or LMStudio engine was found on this host. Mavona does not substitute an internal Codex session or silently change provider/locality.
+
+### Canonical scenario F — hostile repository and durable crash boundaries
+
+Offline discovery opens a Git-backed malicious fixture without executing application/config source. Runtime preload files, inherited RUBYOPT/RUBYLIB/Bundler/provider credentials and repository hooks are excluded from packaged startup and structural probes. Exact action identity binds executable, regular entry files, included settings, saved flows, checkout identity and repository state; altered scripts/settings/flows, revoked grants, symlink/hardlink escapes and replaced checkouts refuse before effects. Unknown critical event versions and complete corrupt envelopes block mutation, while only an incomplete trailing record is truncated. Duplicate event/call identities cannot execute twice.
+
+Crash fixtures cover an actual killed lease-owning subprocess, cancellation and process death after a real browser form submission, interrupted restoration/disposal/export publication, pending effects across resume, competing destinations and explicit owner-only reconciliation. Required unknown effects and checks remain unknown, block mutable continuation and never become verified through model prose, diagnostic browser evidence or replay. ScenarioF passes the deterministic and Darwin arm64 packaged checks; native crash behavior on the other advertised hosts remains part of the DIST-01 blocker.
+
+### Final current-host validation checkpoint
+
+Pinned toolchain: Bun1.4.2, TypeScript7.0.2, macOS arm64 and Ruby4.0.6. The final offline run was `bun test`:354passed,6 conditional skips,0failed,2377 assertions across77files in79.37seconds. `bun run typecheck`, the current native build and `git diff --check` passed. Packaged browser worker, trace viewer, hostile-startup and no-boot route probe checks passed14tests/87assertions. The isolated canonical Rails flow passed Chromium, Firefox and WebKit:3tests/12assertions. After this checkpoint, the user explicitly selected the TypeScript/Bun tree as a clean replacement and authorized committing the inherited Ruby deletion set and force-publishing it to the remote default branch. This product-direction decision does not convert unavailable live-provider, other-host, signing or notarization evidence into a pass.
