@@ -30,7 +30,7 @@ end
     try:output.extend(os.read(master,65536))
     except OSError:break
  def palette(command,args=None):
-  os.write(master,b'\x10');collect(.15);os.write(master,command.encode());collect(.15);os.write(master,b'\r');collect(.15)
+  os.write(master,b'\x10');collect(.25);os.write(master,command.encode());collect(.25);os.write(master,b'\r');collect(.25)
   if args is not None:os.write(master,args.encode());collect(.15);os.write(master,b'\r');collect(.25)
  def events():
   logs=list(root.glob('Library/Application Support/Mavona/sessions/*/events.jsonl'))+list(root.glob('.local/share/mavona/sessions/*/events.jsonl'));return [] if not logs else [json.loads(line) for line in logs[0].read_text().splitlines()]
@@ -40,20 +40,22 @@ end
   assert b'runtime unchecked' in output;os.write(master,b'preserved live draft');collect(.2);palette('/inspect-app',url);assert b'Approve exact action' in output;os.write(master,b'y');
   deadline=time.monotonic()+15
   while App.hits==0 and time.monotonic()<deadline:collect(.1)
-  assert App.hits>0,'Live browser did not attach';assert any(e['type']=='effect.requested' and e['payload']['kind']=='browser' for e in events());collect(1);palette('/app capture');deadline=time.monotonic()+10
+  assert App.hits>0,'Live browser did not attach';assert any(e['type']=='effect.requested' and e['payload']['kind']=='browser' for e in events());collect(1);palette('current live page');deadline=time.monotonic()+10
   while not any(e['type']=='inspection.artifact' for e in events()) and time.monotonic()<deadline:collect(.1)
-  assert any(e['type']=='inspection.artifact' for e in events());palette('/app takeover');collect(.3);palette('/app resume');deadline=time.monotonic()+10
+  assert any(e['type']=='inspection.artifact' for e in events());palette('focus the live browser');collect(.3);palette('fresh observation');deadline=time.monotonic()+10
   while len([e for e in events() if e['type']=='app_observation'])<1 and time.monotonic()<deadline:collect(.1)
-  palette('/app stop');deadline=time.monotonic()+10
+  palette('Stop live inspection');deadline=time.monotonic()+10
   while not any(e['type']=='inspection.completed' for e in events()) and time.monotonic()<deadline:collect(.1)
-  recorded=events();operations=[json.loads(e['payload']['event'])['operation'] for e in recorded if e['type']=='inspection.event'];assert 'capture' in operations and 'takeover' in operations and 'resume' in operations;assert [e['payload']['text'] for e in recorded if e['type']=='draft.changed'][-1]=='preserved live draft';assert not any(e['type'] in ['task.started','provider.selected','tool.requested'] for e in recorded);assert urllib.request.urlopen(url,timeout=2).status==200
+  recorded=events();operations=[json.loads(e['payload']['event'])['operation'] for e in recorded if e['type']=='inspection.event'];assert 'capture' in operations and 'takeover' in operations and 'resume' in operations;assert [e['payload']['text'] for e in recorded if e['type']=='draft.changed'][-1]=='preserved live draft';assert not any(e['type'] in ['task.started','provider.selected','tool.requested'] for e in recorded);assert urllib.request.urlopen(url,timeout=2).status==200;collect(1)
   import socket
-  reserved=socket.socket();reserved.bind(('127.0.0.1',0));owned_port=reserved.getsockname()[1];reserved.close();owned_url='http://127.0.0.1:'+str(owned_port);palette('/inspect-app','start '+owned_url);collect(.2);os.write(master,b'y');deadline=time.monotonic()+15
+  reserved=socket.socket();reserved.bind(('127.0.0.1',0));owned_port=reserved.getsockname()[1];reserved.close();owned_url='http://127.0.0.1:'+str(owned_port);approval_offset=len(output);palette('Attach or start a headed','start '+owned_url);deadline=time.monotonic()+10
+  while b'Approve exact action' not in output[approval_offset:] and time.monotonic()<deadline:collect(.1)
+  assert b'Approve exact action' in output[approval_offset:];os.write(master,b'y');deadline=time.monotonic()+30
   while time.monotonic()<deadline:
    try:
     if urllib.request.urlopen(owned_url,timeout=.2).status==200:break
    except Exception:collect(.1)
-  assert urllib.request.urlopen(owned_url,timeout=2).status==200;collect(1);palette('/app logs');collect(.2);palette('/app stop');deadline=time.monotonic()+10
+  assert urllib.request.urlopen(owned_url,timeout=2).status==200;collect(1);palette('sanitized owned-server');collect(.2);palette('Stop live inspection');deadline=time.monotonic()+10
   while len([e for e in events() if e['type']=='inspection.completed'])<2 and time.monotonic()<deadline:collect(.1)
   try:urllib.request.urlopen(owned_url,timeout=.5);raise AssertionError('Owned server survived stop')
   except urllib.error.URLError:pass
