@@ -56,3 +56,4 @@ test('nested application execution settings invalidate an exact-action approval'
  try{policy.approveOnce(await prepareAction(root,action));await writeFile(join(root,'apps/shop/.mavona.yml'),'verification:\n  test:\n    command: [bundle, exec, rspec]\n');expect(policy.allows(await prepareAction(root,action))).toBe(false);}
  finally{await rm(root,{recursive:true,force:true});}
 });
+test('command identity skips contained directory arguments while binding regular entry files',async()=>{const root=await fixture();await mkdir(join(root,'test'));await writeFile(join(root,'test/order_test.rb'),'# focused test\n');const prepared=await prepareAction(root,{tool:'run_command',argv:[process.execPath,'test','test/order_test.rb'],cwd:'.',timeoutMs:1000});expect(prepared.action.tool).toBe('run_command');expect(prepared.identity).toMatch(/^[a-f0-9]{64}$/);});

@@ -47,7 +47,7 @@ export async function prepareAction(repository:string,action:Action):Promise<Pre
   if(arg.startsWith('-'))continue;
   const candidate=resolve(cwd,arg);
   if(!isWithin(root,candidate))continue;
-  try{const entry=await readSource(root,relative(root,candidate));files[entry.path]=entry.digest;}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT'&&(error as NodeJS.ErrnoException).code!=='ENOTDIR')throw error;}
+  try{const path=relative(root,candidate),contained=await containedPath(root,path);if(!(await stat(contained)).isFile())continue;const entry=await readSource(root,path);files[entry.path]=entry.digest;}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT'&&(error as NodeJS.ErrnoException).code!=='ENOTDIR')throw error;}
  }
  return {action,root,rootIdentity,settingsDigest:settings,executable,cwd,identity:digest(JSON.stringify({root,rootIdentity,settings,action,executable,cwd,files}))};
 }
