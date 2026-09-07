@@ -176,3 +176,7 @@ Session forks assign new envelope IDs. Remap the explicit retained-source recove
 ### Session names, pins and reviewed archival
 
 Add canonical rename/pin metadata with bounded control-free titles, expose it in the headless catalog and terminal session picker, and search recorded task text as well as identity/root. Preserve stable session IDs independently of titles. Add terminal current-session status, rename, pin/unpin and archive/unarchive commands; archival reviews the exact session/event boundary, never deletes source or evidence and preserves the draft. CLI named operations share metadata validation. Verify replay, title refusal/redaction, catalog/search, denied/approved archival and compiled terminal behavior. New/fork/export/disk-usage controls remain following session slices.
+
+### Terminal new and forked sessions
+
+Create a fresh session with the same explicitly selected connection but an empty draft/history, preserving the source session on disk. Fork through the existing canonical history copier, retain draft and unresolved effects, then acquire the destination before releasing the current writer. Expose /new and /fork without model calls or worktree mutations; these commands use the same checkout and say so in help. Keep created destinations available if switching fails and preserve the current session. Add headless sessions new --root PATH, validate exclusive creation and test both public surfaces plus real native switching/terminal cleanup. A separate checkout/worktree workflow is not implied by session creation.

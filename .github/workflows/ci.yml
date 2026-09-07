@@ -42,7 +42,7 @@ jobs:
       - run: bun run build
       - run: bun scripts/package.ts --output "$RUNNER_TEMP/mavona-package"
       - run: env -i PATH=/usr/bin:/bin ./dist/mavona --version
-      - run: MAVONA_TEST_BINARY="$PWD/dist/mavona" bun test tests/cli.test.ts tests/session-cli.test.ts tests/session-metadata.test.ts tests/source-recovery.test.ts tests/inspection-cli.test.ts tests/inspection-rerun.test.ts tests/inspection-comparison.test.ts tests/inspection-viewer.test.ts tests/inspection-report-viewer.test.ts tests/inspection-export.test.ts tests/agent-inspection.test.ts tests/agent-image-cli.test.ts tests/runtime-probe.test.ts tests/distribution.test.ts
+      - run: MAVONA_TEST_BINARY="$PWD/dist/mavona" bun test tests/cli.test.ts tests/session-cli.test.ts tests/session-metadata.test.ts tests/session-create.test.ts tests/source-recovery.test.ts tests/inspection-cli.test.ts tests/inspection-rerun.test.ts tests/inspection-comparison.test.ts tests/inspection-viewer.test.ts tests/inspection-report-viewer.test.ts tests/inspection-export.test.ts tests/agent-inspection.test.ts tests/agent-image-cli.test.ts tests/runtime-probe.test.ts tests/distribution.test.ts
       - run: bun build --compile scripts/source-highlighting-spike.ts --outfile dist/highlighting-spike
       - run: env -i PATH=/usr/bin:/bin ./dist/highlighting-spike
       - run: python3 scripts/pty-source.py dist/mavona
@@ -56,6 +56,7 @@ jobs:
       - run: python3 scripts/pty-inspection-export.py dist/mavona
       - run: python3 scripts/pty-recovery.py dist/mavona
       - run: python3 scripts/pty-session-metadata.py dist/mavona
+      - run: python3 scripts/pty-session-create.py dist/mavona
       - run: python3 scripts/pty-disposal.py dist/mavona
       - run: python3 scripts/pty-smoke.py dist/mavona
       - run: python3 scripts/pty-editor.py dist/mavona

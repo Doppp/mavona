@@ -1,12 +1,13 @@
 import {join} from 'node:path';
 import {parseArguments,single} from './options';
 import {dataDirectory} from './run';
-import {listSessions,sessionPath,readHistory,exportSession,forkSession,resumeSession} from '../sessions/lifecycle';
+import {createSession,listSessions,sessionPath,readHistory,exportSession,forkSession,resumeSession} from '../sessions/lifecycle';
 export async function sessionCommand(raw:string[],resume=false):Promise<number>{
- const args=parseArguments(raw,['data-dir','format','effect','reason','review','recovery','approve-restore','approve-dispose','title'],[]);const format=single(args,'format','json');if(format!=='json')throw new Error('Session output supports json');
+ const args=parseArguments(raw,['data-dir','format','effect','reason','review','recovery','approve-restore','approve-dispose','title','root'],[]);const format=single(args,'format','json');if(format!=='json')throw new Error('Session output supports json');
  const root=join(single(args,'data-dir',dataDirectory())!,'sessions');const operation=resume?'resume':args.positionals.shift()??'list';
  const id=args.positionals.shift();if(args.positionals.length)throw new Error('Unexpected session arguments');
  if(operation==='list'){if(id)throw new Error('List takes no session ID');console.log(JSON.stringify({schemaVersion:1,sessions:listSessions(root)},null,2));return 0;}
+ if(operation==='new'){if(id)throw new Error('New session assigns its own stable ID');const store=createSession(root,single(args,'root',process.cwd())!);try{console.log(JSON.stringify({schemaVersion:1,id:store.sessionId,repository:store.state.repository,correctness:'unknown',effectReplay:'never'}));return 0;}finally{store.close();}}
  if(!id)throw new Error('Session ID required');
  if(operation==='recovery'){const history=readHistory(sessionPath(root,id),id);const {retainedDeletions}=await import('../tools/recovery');console.log(JSON.stringify({schemaVersion:1,recoveries:retainedDeletions(history.events),availability:'not checked until preview'},null,2));}
  else if(operation==='restore'){const recovery=single(args,'recovery');if(!recovery)throw new Error('Use sessions restore ID --recovery COMPLETION_EVENT_ID');const directory=sessionPath(root,id);const history=readHistory(directory,id);const {SessionStore}=await import('../sessions/store');const {prepareRestoration,restoreSource}=await import('../tools/recovery');const review=await prepareRestoration({events:history.events},recovery);if(single(args,'approve-restore')!==review.id){console.log(JSON.stringify({schemaVersion:1,status:'approval_required',review},null,2));return 2;}const store=new SessionStore(directory,id);const controller=new AbortController();const cancel=()=>controller.abort();process.on('SIGINT',cancel);process.on('SIGTERM',cancel);try{const result=await restoreSource(store,recovery,review.id,controller.signal);console.log(JSON.stringify({schemaVersion:1,...result}));return result.state==='passed'?0:4;}finally{process.off('SIGINT',cancel);process.off('SIGTERM',cancel);store.close();}}
