@@ -1,4 +1,5 @@
 export interface Payloads {
+ 'retention.policy.changed':{policy:string};
  'terminal.theme.changed':{theme:'dark'|'light'|'no-color'};
  'session.export.requested':{exportId:string;review:string};
  'session.export.completed':{exportId:string;status:'passed'|'unknown';result:string};
@@ -66,6 +67,7 @@ export type EventType=keyof Payloads;
 export interface Envelope {protocolVersion:1;eventId:string;sessionId:string;sequence:number;timestamp:string;type:string;schemaVersion:number;payload:Record<string,unknown>;causedBy?:string}
 export type KnownEvent = {[T in EventType]:Omit<Envelope,'type'|'payload'>&{type:T;payload:Payloads[T]}}[EventType];
 const shapes:Record<EventType,Record<string,readonly string[]|null|'number'|'boolean'>>={
+ 'retention.policy.changed':{policy:null},
  'terminal.theme.changed':{theme:['dark','light','no-color']},
  'session.export.requested':{exportId:null,review:null},'session.export.completed':{exportId:null,status:['passed','unknown'],result:null},
  'session.renamed':{title:null},'session.pinned':{pinned:'boolean'},
