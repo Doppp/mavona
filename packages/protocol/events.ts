@@ -1,4 +1,6 @@
 export interface Payloads {
+ 'session.export.requested':{exportId:string;review:string};
+ 'session.export.completed':{exportId:string;status:'passed'|'unknown';result:string};
  'session.renamed':{title:string};
  'session.pinned':{pinned:boolean};
  'inspection.flow':{inspectionId:string;reference:string};
@@ -63,6 +65,7 @@ export type EventType=keyof Payloads;
 export interface Envelope {protocolVersion:1;eventId:string;sessionId:string;sequence:number;timestamp:string;type:string;schemaVersion:number;payload:Record<string,unknown>;causedBy?:string}
 export type KnownEvent = {[T in EventType]:Omit<Envelope,'type'|'payload'>&{type:T;payload:Payloads[T]}}[EventType];
 const shapes:Record<EventType,Record<string,readonly string[]|null|'number'|'boolean'>>={
+ 'session.export.requested':{exportId:null,review:null},'session.export.completed':{exportId:null,status:['passed','unknown'],result:null},
  'session.renamed':{title:null},'session.pinned':{pinned:'boolean'},
  'inspection.flow':{inspectionId:null,reference:null},'inspection.rerun':{inspectionId:null,previousInspectionId:null,reviewId:null},
  'source.disposal.requested':{recoveryId:null,effectId:null,stagingPath:null,review:null},'source.disposal.completed':{recoveryId:null,effectId:null,state:['passed','unknown'],result:null},

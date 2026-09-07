@@ -188,3 +188,7 @@ Read HEAD or an explicit full commit ID through bounded argument-array Git objec
 ### Measured session storage status
 
 Correct the retention scan to bound every filesystem entry, reject changing/symlink directory traversal and identify managed trace ZIPs. Expose read-only per-session and data-directory apparent-byte totals, sampling time, default thresholds and explicit advisory global budget status through sessions storage and terminal /storage. Never scan/delete retained checkout source as disposable session storage. Do not turn failed or incomplete scans into passed usage evidence. Verify actual metadata/capture/video/trace files, symlink scope, no canonical writes and public projections before implementing reviewed file export.
+
+### Exact session snapshot file export
+
+Build a deterministic canonical-prefix export with a snapshot timestamp, event count/hash, pending-effect IDs and incomplete-tail count. Preview exact output SHA/size and a new absolute JSON destination outside session storage and Git worktrees; revalidate after approval. Share the already-tested anchored temporary-file/no-replace publication with inspection archives because both current features need the same boundary. Persist session export intent/result separately from application effects; interrupted output stays unknown and is never automatically retried. Existing stdout session export remains available. Test stale/denied grants, existing destination/source preservation, actual JSON snapshots and both native surfaces.
