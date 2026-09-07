@@ -60,6 +60,8 @@ jobs:
       - run: python3 scripts/pty-inspection-rerun.py dist/mavona
       - run: python3 scripts/pty-inspection-comparison.py dist/mavona
       - run: python3 scripts/pty-inspection-export.py dist/mavona
+      - if: runner.os == 'macOS'
+        run: python3 scripts/pty-inspection-live.py dist/mavona
       - run: python3 scripts/pty-recovery.py dist/mavona
       - run: python3 scripts/pty-session-metadata.py dist/mavona
       - run: python3 scripts/pty-session-create.py dist/mavona

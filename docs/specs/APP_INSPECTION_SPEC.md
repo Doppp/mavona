@@ -1,6 +1,6 @@
 # Mavona v2 App Inspection specification
 
-**Status:** Required MVP scope; planned, not implemented
+**Status:** Required MVP scope; implementation and release acceptance in progress
 **Revision:** 5 September 2026
 **Implementation:** Playwright browser adapter under Mavona's TypeScript application service
 
@@ -59,7 +59,7 @@ For a view, component, CSS, Turbo or Stimulus change, suggest a relevant inspect
 7. Compare evidence and show each required check as passed, failed or unknown.
 8. Save the flow/report and optionally propose a durable repository test.
 
-Planned TUI commands:
+TUI commands:
 
 - `/inspect-app [path-or-url]`: setup or start inspection.
 - `/app`: open the App Inspection drawer.
@@ -69,7 +69,7 @@ Planned TUI commands:
 - `/app takeover`: pause agent browser actions and focus the headed browser.
 - `/app stop`: cancel inspection and stop only Mavona-owned processes.
 
-Planned CLI equivalents:
+CLI equivalents:
 
 ```sh
 mavona app doctor
