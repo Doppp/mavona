@@ -26,6 +26,7 @@ import {argvJSON} from '../cli/options';
 import type {Envelope} from '../protocol/events';
 import type {ScreenModel} from './screen';
 import {effectiveTerminalTheme,parseTerminalTheme,type TerminalThemeName} from './theme';
+import {projectTranscript,type TranscriptMessage} from './transcript-items';
 export class TuiController {
  private vision=false;private sessions:ReturnType<typeof listSessions>=[];private argumentCommand:TerminalCommand|undefined;private repairAttempts:0|1=1;model:ScreenModel;verifiers:Verifier[]=[];
  private traceViewer:{url:string;stop:()=>void}|undefined;private editor:EditorAdapter|undefined;
@@ -35,6 +36,7 @@ export class TuiController {
  private policy:ExecutionPolicy;private vault=new CredentialVault();
  private models:string[]=[];private modelConnection:ProviderSelection['connection']|undefined;private connectionKind:'local'|'remote'='local';private comparisonBefore:string|undefined;private pickerMode:'comparison-before'|'comparison-after'|'recovery'|'inspections'|'sessions'|'commands'|'command-arguments'|'files'|'pins'|'roots'|'models'|'connection-kinds'|'providers'='files';private roots:string[]=[];private railsPath:string;private inspection:RepositoryInspection|undefined;private discoveryPending:Promise<void>|undefined;
  private pins=new Map<string,{id:string;path:string;line:number;digest:string}>();
+ private expandedTools=new Set<string>();
  constructor(private root:string,private store:SessionStore,private changed:(model:ScreenModel)=>void,private terminal?:{switchSession?:(id:string)=>Promise<void>;copy?:(text:string)=>boolean;suspend:()=>void|Promise<void>;resume:()=>void|Promise<void>}){
   this.policy=new ExecutionPolicy(root);this.source=new SourceNavigator(root);this.railsPath=store.state.railsRoot?join(root,store.state.railsRoot):root;
   for(const [id,value] of Object.entries(store.state.references))this.references.set(id,JSON.parse(value) as SourceSelection);
@@ -44,7 +46,7 @@ export class TuiController {
   const repairPolicy=store.events.findLast(event=>event.type==='repair.policy');if(repairPolicy){if(repairPolicy.payload.maxAttempts!==0&&repairPolicy.payload.maxAttempts!==1)throw new Error('Unsupported repair policy');this.repairAttempts=repairPolicy.payload.maxAttempts;}
   const savedConnection=store.events.findLast(event=>event.type==='provider.configured'||event.type==='provider.disconnected');if(savedConnection?.type==='provider.configured')this.selection=restoreSelection(String(savedConnection.payload.configuration));
   const savedTheme=store.events.findLast(event=>event.type==='terminal.theme.changed')?.payload.theme as TerminalThemeName|undefined;
-  this.model={theme:effectiveTerminalTheme(savedTheme),...(this.selection?{connection:this.connectionLabel(this.selection)}:{}),sourcePanePercent:pane>=20&&pane<=40?pane:40,repository:root.split('/').pop()??root,status:'Discovering Rails application…',draft:store.state.draft,messages:store.state.messages.map(m=>({id:m.id,text:`${m.role}: ${m.text}`})),source:null};
+  this.model={theme:effectiveTerminalTheme(savedTheme),...(this.selection?{connection:this.connectionLabel(this.selection)}:{}),sourcePanePercent:pane>=20&&pane<=40?pane:40,repository:root.split('/').pop()??root,status:'Discovering Rails application…',draft:store.state.draft,messages:projectTranscript(store.events,this.expandedTools),source:null};
  }
  private async openModels(connection:ProviderSelection['connection']){this.active=new AbortController();this.update({running:true});this.add(`Model discovery · ${connection.locality.toUpperCase()} · ${new URL(connection.baseUrl).host} · no repository context sent.`);try{const preset=presets.find(item=>item.id===connection.id);const credential=await this.vault.resolve(connection.id,preset?.credentialNames??[]);if(credential)this.store.addSecret(credential.value);this.models=(await discoverModels(connection,this.active.signal,credential?.value)).filter(validModelId).sort();this.modelConnection=connection;this.pickerMode='models';this.filterFiles('');this.add(`Model discovery · ${this.models.length} valid IDs · credential source ${credential?.source??'none'}. Selection sends no inference request.`);}catch{this.add(`Model discovery unavailable. Use /connect ${connection.id} MODEL ${connection.baseUrl} ${connection.locality} with an explicit model ID. Current selection retained.`);}finally{this.active=undefined;this.update({running:false});}}
  private connectionLabel(selection:ProviderSelection){return `${selection.connection.locality.toUpperCase()} · ${selection.connection.id} / ${selection.model} · ${new URL(selection.connection.baseUrl).host}`;}
@@ -88,15 +90,17 @@ export class TuiController {
   return new Promise(resolve=>{const cancelled=()=>this.resolveApproval(false);signal.addEventListener('abort',cancelled,{once:true});this.approval=value=>{signal.removeEventListener('abort',cancelled);resolve(value);};this.update({approval:{id,text:this.store.sanitizeText(text)}});});
  }
  private event(event:Envelope){
+  const prior=this.model.messages as TranscriptMessage[];const last=prior.at(-1);if(event.type!=='assistant.delta'&&last?.kind==='assistant'&&last.streaming)this.update({messages:[...prior.slice(0,-1),{...last,streaming:false}]});
   if(event.type==='assistant.delta'){
-   const last=this.model.messages.at(-1);const id=last?.id.startsWith('assistant:')?last.id:`assistant:${event.eventId}`;
-   const messages=last?.id===id?[...this.model.messages.slice(0,-1),{id,text:last.text+String(event.payload.text)}]:[...this.model.messages,{id,text:String(event.payload.text)}];this.update({messages});
+   const current=this.model.messages as TranscriptMessage[];const tail=current.at(-1);const id=tail?.kind==='assistant'&&tail.streaming?tail.id:`assistant:${event.eventId}`;
+   const messages=tail?.id===id?[...current.slice(0,-1),{...tail,text:tail.text+String(event.payload.text),streaming:true}]:[...current,{id,kind:'assistant' as const,text:String(event.payload.text),streaming:true}];this.update({messages});
   }else if(event.type==='context.compacted'){this.add('Context compacted locally · '+String(event.payload.beforeBytes)+' → '+String(event.payload.afterBytes)+' bytes. Canonical evidence retained.');
   }else if(event.type==='task.repair.started'){this.add('Repair attempt '+String(event.payload.attempt)+' / 1 · objective verifier failure. Prior checks are stale until rerun.');}
   else if(event.type==='inspection.completed'){this.add('App Inspection · '+String(event.payload.status)+'\nLocal report: '+String(event.payload.reportPath));}
   else if(event.type==='verification.selected'){this.add('Verifier selection · execution still requires approval\n'+String(event.payload.selection));}
-  else if(event.type==='tool.requested')this.add(`Tool · ${event.payload.name} · running`,event.eventId);
-  else if(event.type==='verification.completed')this.add(`Verification · ${event.payload.checkId} · ${event.payload.state}\n${event.payload.result}`,event.eventId);
+  else if(event.type==='tool.requested'){const card=projectTranscript([event],this.expandedTools)[0];if(card)this.update({messages:[...this.model.messages,card]});}
+  else if(event.type==='tool.completed'){const request=this.store.events.findLast(item=>item.type==='tool.requested'&&item.payload.callId===event.payload.callId);if(request){const card=projectTranscript([request,event],this.expandedTools).at(-1);if(card)this.update({messages:(this.model.messages as TranscriptMessage[]).map(item=>item.id===card.id?card:item)});}}
+  else if(event.type==='verification.completed'){const card=projectTranscript([event],this.expandedTools)[0];if(card)this.update({messages:[...this.model.messages,card]});}
   else if(event.type==='usage.reported')this.update({usage:`${event.payload.inputTokens} in / ${event.payload.outputTokens} out`});
  }
  async submit(text:string,preserveDraft=false){
@@ -104,6 +108,7 @@ export class TuiController {
   if(!preserveDraft)this.draft(text);
   try{
    if(text==='/help')this.add(commandHelp()+'\nEffects require existing approval. Never paste credentials into the composer.');
+   else if(text.startsWith('/tool ')){const id=text.slice(6).trim(),key='tool:'+id,items=this.model.messages as TranscriptMessage[];if(!items.some(item=>item.id===key))throw new Error('Unknown tool call ID');if(this.expandedTools.has(id))this.expandedTools.delete(id);else this.expandedTools.add(id);this.update({messages:items.map(item=>item.id===key?{...item,expanded:this.expandedTools.has(id)}:item)});}
    else if(text==='/theme')this.add(`Theme · ${this.model.theme} · /theme dark|light|no-color · status remains visible in text.`);
    else if(text.startsWith('/theme ')){const requested=parseTerminalTheme(text.slice(7).trim());this.store.append('terminal.theme.changed',{theme:requested});const effective=effectiveTerminalTheme(requested);this.update({theme:effective});this.add(effective!==requested?`Theme · ${effective} · ${requested} preference saved; NO_COLOR currently overrides it. Status remains visible in text.`:`Theme · ${effective} · high contrast · status remains visible in text.`);}
    else if(text.startsWith('/dispose ')){const id=text.slice(9).trim();this.active=new AbortController();this.update({running:true});const review=await prepareDisposal(this.store,id);if(!await this.requestApproval(review.id,'Permanently remove this retained source copy? This cannot be undone.\n'+JSON.stringify(review,null,2),this.active.signal)){this.add('Source disposal denied; retained bytes were not removed.');return;}const result=await disposeSource(this.store,id,review.id,this.active.signal);this.policy.revoke();this.add('Source disposal · '+result.state+' · '+result.path+' · correctness unknown');}

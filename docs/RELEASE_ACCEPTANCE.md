@@ -89,7 +89,7 @@ Baseline: master `fdee113`; implementation branch `codex/mavona-v0.1`. No featur
 
 | ID | State | Implementation / checks / remaining evidence |
 | --- | --- | --- |
-| UI-01 | implementing | Streaming transcript and bounded history rendering implemented; full Markdown/tool drawer and PTY matrix pending. |
+| UI-01 | implementing | Streaming Markdown, bounded history rendering and expandable tool/verification cards implemented; full cross-host PTY/performance matrix pending. |
 | UI-02 | implementing | Multiline composer, paste, committed IME Unicode, fuzzy selection, draft retention and cancellation tested; cross-host accessibility matrix pending. |
 | UI-03 | implementing | Approvals, source/diff review, root/file/model/session pickers and persisted terminal themes implemented; full plans and remaining picker acceptance pending. |
 | CODE-01 | implementing | Real Ruby-highlighted source navigation, fuzzy picker, selection/copy and pins tested, including native PTY; full acceptance pending. |
@@ -556,3 +556,9 @@ Focused controller/OpenTUI/source checks:12passed,55assertions,0failed. Captured
 The composer preserves an atomic UTF-8 composition commit containing CJK, a multi-code-point emoji and a decomposed combining sequence in its canonical draft. Standalone right-to-left input remains in logical storage order. The TUI specification now records the measured v0.1 limitation: OpenTUI and the terminal control shaping and bidirectional cursor movement, and mixing RTL text next to combining marks can reorder the mark in the editor's backing text. Users can place the RTL text on a separate line or compose it externally and paste atomically.
 
 The real OpenTUI renderer check passed9tests/42assertions, including exact model storage, visible CJK/emoji/RTL and60×18 resize. Rebuilt macOS arm64 `python3 scripts/pty-unicode.py dist/mavona` passed actual PTY UTF-8 composition bytes, exact persisted draft values, standalone RTL logical order, zero inference, resize and terminal cleanup. Cross-host IME implementations and mixed-direction cursor behavior remain unverified or unsupported as documented.
+
+### Streaming Markdown and canonical tool cards
+
+Canonical user/assistant deltas, tool calls and verification results now project into stable transcript items. Adjacent assistant deltas coalesce and render through OpenTUI's incremental Markdown renderer with concealed syntax and conservative terminal tables. Tool cards show textual state, tool, bounded target, measured event duration and stable call ID. `/tool CALL_ID`, also available in the command palette, expands sanitized arguments and bounded result text. Oversized terminal details carry an explicit truncation marker while canonical bounded events remain unchanged. Verification uses a separate double-border card and always includes state and provenance.
+
+Focused projection/controller/OpenTUI checks:13passed,61assertions,0failed. They cover resumed projection, Markdown concealment, stable tool IDs, expanded arguments/results, terminal-only truncation, unknown verification styling, draft preservation and no event mutation from expansion. Rebuilt macOS arm64 `python3 scripts/pty-transcript.py dist/mavona` passed a resumed canonical Markdown/tool/verification history, palette-driven expansion, preserved draft,80×24→60×18 resize and terminal cleanup. The complete offline suite passed334tests/2237assertions with6conditional skips and no failures across67files. Full code-block copy/save actions, rapid-stream latency measurement and all-host PTY evidence remain implementing.
