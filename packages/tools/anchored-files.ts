@@ -9,7 +9,7 @@ function loadNative(){
  const library=process.platform==='darwin'?'/usr/lib/libSystem.B.dylib':'libc.so.6';
  const directory=mkdtempSync(join(tmpdir(),'mavona-openat-'));
  const bridge=(()=>{try{const path=join(directory,'bridge.c');writeFileSync(path,source,{mode:0o600,flag:'wx'});return cc({source:path,symbols:{mavona_openat:{args:[FFIType.i32,FFIType.cstring,FFIType.i32,FFIType.u32],returns:FFIType.i32}}});}finally{rmSync(directory,{recursive:true,force:true});}})();
- const file=dlopen(library,{mkdirat:{args:[FFIType.i32,FFIType.cstring,FFIType.u32],returns:FFIType.i32}});
+ const file=dlopen(library,{unlinkat:{args:[FFIType.i32,FFIType.cstring,FFIType.i32],returns:FFIType.i32},mkdirat:{args:[FFIType.i32,FFIType.cstring,FFIType.u32],returns:FFIType.i32}});
  const move=process.platform==='darwin'?(()=>{const lib=dlopen(library,{renameatx_np:{args:[FFIType.i32,FFIType.cstring,FFIType.i32,FFIType.cstring,FFIType.u32],returns:FFIType.i32}});return (from:number,name:string,to:number,target:string)=>lib.symbols.renameatx_np(from,name,to,target,4);})():(()=>{const lib=dlopen(library,{renameat2:{args:[FFIType.i32,FFIType.cstring,FFIType.i32,FFIType.cstring,FFIType.u32],returns:FFIType.i32}});return (from:number,name:string,to:number,target:string)=>lib.symbols.renameat2(from,name,to,target,1);})();
  return {library:file,bridge,...file.symbols,openat:(fd:number,path:string,flags:number,mode:number)=>bridge.symbols.mavona_openat(fd,Buffer.from(path+'\0'),flags,mode),move,closeOnExec:process.platform==='darwin'?0x1000000:0x80000};
 }
@@ -28,6 +28,7 @@ export class AnchoredFiles {
  }
  open(parent:{fd:number;leaf:string},flags:number,mode=0){const fd=this.native.openat(parent.fd,parent.leaf,flags|constants.O_NOFOLLOW|this.native.closeOnExec,mode);if(fd<0)throw new Error('File changed, exists or symlink refused');return fd;}
  move(from:{fd:number;leaf:string},to:{fd:number;leaf:string}){if(this.native.move(from.fd,from.leaf,to.fd,to.leaf)!==0)throw new Error('Atomic move refused; destination exists or source changed');fsyncSync(from.fd);fsyncSync(to.fd);}
+ remove(parent:{fd:number;leaf:string}){if(this.native.unlinkat(parent.fd,parent.leaf,0)!==0)throw new Error('Anchored removal refused');fsyncSync(parent.fd);}
  matches(fd:number){const metadata=fstatSync(fd,{bigint:true});return metadata.isFile()&&metadata.nlink===1n&&!!this.scope.fileIdentity&&same(metadata,this.scope.fileIdentity);}
  close(){closeSync(this.rootFd);}
 }

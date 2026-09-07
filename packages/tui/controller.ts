@@ -1,3 +1,4 @@
+import {prepareDisposal,disposeSource} from '../tools/disposal';
 import {retainedDeletions,prepareRestoration,restoreSource} from '../tools/recovery';
 import {inspectionChoices,inspectionDrawer} from './inspection';
 import {TaskImages} from '../agent/images';
@@ -97,6 +98,7 @@ export class TuiController {
   if(!preserveDraft)this.draft(text);
   try{
    if(text==='/help')this.add(commandHelp()+'\nEffects require existing approval. Never paste credentials into the composer.');
+   else if(text.startsWith('/dispose ')){const id=text.slice(9).trim();this.active=new AbortController();this.update({running:true});const review=await prepareDisposal(this.store,id);if(!await this.requestApproval(review.id,'Permanently remove this retained source copy? This cannot be undone.\n'+JSON.stringify(review,null,2),this.active.signal)){this.add('Source disposal denied; retained bytes were not removed.');return;}const result=await disposeSource(this.store,id,review.id,this.active.signal);this.policy.revoke();this.add('Source disposal · '+result.state+' · '+result.path+' · correctness unknown');}
    else if(text==='/recover')this.openRecovery();
    else if(text.startsWith('/restore ')){const id=text.slice(9).trim();this.active=new AbortController();this.update({running:true});const review=await prepareRestoration(this.store,id);if(!await this.requestApproval(review.id,'Restore this retained source without replacing a current file? Prior verification will be stale.\n'+JSON.stringify(review,null,2),this.active.signal)){this.add('Source restoration denied; retained bytes were not moved.');return;}const result=await restoreSource(this.store,id,review.id,this.active.signal);this.policy.revoke();this.add('Source restoration · '+result.state+' · '+result.path+' · correctness unknown');}
    else if(text==='/app')this.openInspection();
