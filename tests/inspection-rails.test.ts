@@ -4,8 +4,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { InspectionService, approveFlow, parseFlow } from '../packages/app-inspection/service';
 import { renderReport } from '../packages/app-inspection/report';
+import {browserEngines} from './helpers/browser-engines';
 const live=process.env.MAVONA_RAILS_INSPECTION_URL;
-for(const browser of ['chromium','firefox','webkit'] as const)(live?test:test.skip)(`Rails Turbo/Stimulus canonical flow ${browser}`,async()=>{
+for(const browser of browserEngines)(live?test:test.skip)(`Rails Turbo/Stimulus canonical flow ${browser}`,async()=>{
  const dir=await mkdtemp(join(tmpdir(),`mavona-rails-${browser}-`));const future=new Date();future.setUTCDate(future.getUTCDate()+7+['chromium','firefox','webkit'].indexOf(browser));const date=future.toISOString().slice(0,10);
  const baseline=Bun.spawnSync(['sqlite3','-readonly',join(process.cwd(),'fixtures/rails-dogfood/tmp/dogfood_browser.sqlite3'),'SELECT scheduled_on FROM orders WHERE customer_id = (SELECT id FROM customers WHERE name = \'Bob\');']);expect(baseline.exitCode).toBe(0);const bobDate=baseline.stdout.toString().trim();
  const flow=parseFlow({version:1,url:new URL('/session/new',live!).href,browser,steps:[

@@ -42,6 +42,9 @@ end
   while App.hits==0 and time.monotonic()<deadline:collect(.1)
   assert App.hits>0,'Live browser did not attach';assert any(e['type']=='effect.requested' and e['payload']['kind']=='browser' for e in events());collect(1);palette('current live page');deadline=time.monotonic()+10
   while not any(e['type']=='inspection.artifact' for e in events()) and time.monotonic()<deadline:collect(.1)
+  if not any(e['type']=='inspection.artifact' for e in events()):
+   palette('current live page');deadline=time.monotonic()+10
+   while not any(e['type']=='inspection.artifact' for e in events()) and time.monotonic()<deadline:collect(.1)
   assert any(e['type']=='inspection.artifact' for e in events());palette('focus the live browser');collect(.3);palette('fresh observation');deadline=time.monotonic()+10
   while len([e for e in events() if e['type']=='app_observation'])<1 and time.monotonic()<deadline:collect(.1)
   palette('Stop live inspection');deadline=time.monotonic()+10

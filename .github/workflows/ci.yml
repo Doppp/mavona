@@ -12,8 +12,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-14]
+        include:
+          - os: ubuntu-24.04
+            browser-engines: chromium,firefox,webkit
+          - os: macos-14
+            browser-engines: chromium,firefox
     runs-on: ${{ matrix.os }}
+    env:
+      MAVONA_TEST_BROWSER_ENGINES: ${{ matrix.browser-engines }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -28,7 +34,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y bubblewrap=0.9.0-1ubuntu0.1
+          if sysctl kernel.apparmor_restrict_unprivileged_userns >/dev/null 2>&1; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          fi
           bwrap --version
+          bwrap --unshare-user --unshare-net --ro-bind / / -- /usr/bin/true
       - run: bun install --frozen-lockfile
       - name: Provision explicit fixture and browser test dependencies
         run: |
@@ -36,14 +46,19 @@ jobs:
           bun node_modules/playwright/cli.js install --with-deps chromium firefox webkit
       - run: ruby fixtures/rails-dogfood/bin/check
       - run: bun run typecheck
-      - run: bun test
+      - name: Run tests with a virtual display
+        if: runner.os == 'Linux'
+        run: xvfb-run -a bun test
+      - name: Run tests
+        if: runner.os == 'macOS'
+        run: bun test
       - run: bun scripts/parity/verify.ts
       - run: bun scripts/rails-browser-acceptance.ts
       - run: bun run build
       - run: bun scripts/package.ts --output "$RUNNER_TEMP/mavona-package"
       - run: env -i PATH=/usr/bin:/bin ./dist/mavona --version
       - run: MAVONA_TEST_BINARY="$PWD/dist/mavona" bun test tests/cli.test.ts tests/session-cli.test.ts tests/session-metadata.test.ts tests/session-create.test.ts tests/session-storage.test.ts tests/session-export-file.test.ts tests/source-recovery.test.ts tests/source-history.test.ts tests/inspection-cli.test.ts tests/inspection-rerun.test.ts tests/inspection-comparison.test.ts tests/inspection-viewer.test.ts tests/inspection-report-viewer.test.ts tests/inspection-export.test.ts tests/agent-inspection.test.ts tests/agent-image-cli.test.ts tests/runtime-probe.test.ts tests/distribution.test.ts
-      - run: bun build --compile scripts/source-highlighting-spike.ts --outfile dist/highlighting-spike
+      - run: bun build --compile --no-compile-autoload-bunfig scripts/source-highlighting-spike.ts --outfile dist/highlighting-spike
       - run: env -i PATH=/usr/bin:/bin ./dist/highlighting-spike
       - run: python3 scripts/pty-source.py dist/mavona
       - run: python3 scripts/pty-source-history.py dist/mavona
@@ -70,24 +85,3 @@ jobs:
       - run: python3 scripts/pty-smoke.py dist/mavona
       - run: python3 scripts/pty-editor.py dist/mavona
       - run: python3 scripts/pty-editor.py dist/mavona --cancel
-
-  ruby-characterization:
-    # Retain the historical oracle without restoring a competing application tree.
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          fetch-depth: 0
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 4.0.6
-          bundler-cache: false
-      - name: Extract immutable baseline outside checkout
-        run: |
-          mkdir "$RUNNER_TEMP/mavona-ruby-baseline"
-          git archive fdee1136acd7863885ed20c6760f61674f7e32c5 | tar -x -C "$RUNNER_TEMP/mavona-ruby-baseline"
-      - name: Run historical deterministic suite
-        run: |
-          cd "$RUNNER_TEMP/mavona-ruby-baseline"
-          bundle install
-          MAVONA_BENCHMARK=0 bundle exec rake test

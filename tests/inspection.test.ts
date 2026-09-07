@@ -3,6 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { InspectionService, approveFlow, parseFlow, aggregateChecks, doctor } from '../packages/app-inspection/service';
+import {browserEngines} from './helpers/browser-engines';
 const fixture = () => Bun.serve({port:0, hostname:'127.0.0.1',fetch(req){ const u = new URL(req.url); if(u.pathname==='/bad')return new Response('failed',{status:500}); return new Response(`<html><head><title>Fixture</title></head><body><h1>Booking</h1><label>Name<input aria-label="Name"></label><button onclick="document.querySelector('h1').textContent='Saved'">Save</button><input type="password" value="SECRET_CANARY"><script>console.error('password=SECRET_CANARY');fetch('/bad');fetch('https://example.com/blocked');</script></body></html>`, {headers:{'content-type':'text/html'}}); }});
 describe('inspection policy',()=>{
  test('parsing never grants effects and rejects arbitrary JavaScript',()=>{expect(()=>parseFlow({version:1,url:'http://127.0.0.1:3000',steps:[{op:'evaluate',script:'alert(1)'}]})).toThrow();expect(aggregateChecks([{status:'passed'},{status:'unknown'}])).toBe('unknown');expect(aggregateChecks([])).toBe('unknown');});
@@ -17,7 +18,7 @@ describe('inspection policy',()=>{
  });
 });
 
-for(const browser of ['chromium','firefox','webkit'] as const)test(`real ${browser}: flow binding, revocation and cancellation`,async()=>{
+for(const browser of browserEngines)test(`real ${browser}: flow binding, revocation and cancellation`,async()=>{
  const server=fixture(),dir=await mkdtemp(join(tmpdir(),'mavona-inspection-policy-'));const service=new InspectionService();
  try{const flow=parseFlow({version:1,url:server.url.href,browser,steps:[{op:'act',action:'fill',locator:{kind:'label',value:'Name'},value:'Ada'}]});const grant=approveFlow(flow,dir,'user');expect((await service.start(flow,grant,{artifactDirectory:dir,secrets:['SECRET_CANARY']})).state).toBe('ready');
  await expect(service.act({op:'act',action:'fill',locator:{kind:'label',value:'Name'},value:'UNAPPROVED'})).rejects.toThrow('approval-required');
@@ -27,7 +28,7 @@ for(const browser of ['chromium','firefox','webkit'] as const)test(`real ${brows
  }finally{await service.stop();server.stop(true);await rm(dir,{recursive:true,force:true});}
 },30000);
 
-for(const browser of ['chromium','firefox','webkit'] as const)test(`${browser} redirects, popup/frame resources and WebSockets cannot escape approved origin`,async()=>{
+for(const browser of browserEngines)test(`${browser} redirects, popup/frame resources and WebSockets cannot escape approved origin`,async()=>{
  let outsideRequests=0;const outside=Bun.serve({hostname:'127.0.0.1',port:0,fetch(){outsideRequests++;return new Response('outside');}});
  const server=Bun.serve({hostname:'127.0.0.1',port:0,fetch(req){if(new URL(req.url).pathname==='/redirect')return Response.redirect(new URL('/redirect-again',req.url).href);if(new URL(req.url).pathname==='/redirect-again')return Response.redirect(outside.url.href);return new Response(`<h1>Policy</h1><iframe src="${outside.url.href}"></iframe><img src="${outside.url.href}"><script>window.open('${outside.url.href}');new WebSocket('${outside.url.href.replace('http:','ws:')}');fetch('/redirect');</script>`,{headers:{'content-type':'text/html'}});}});
  const dir=await mkdtemp(join(tmpdir(),'mavona-inspection-egress-'));
