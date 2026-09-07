@@ -76,6 +76,7 @@ mavona app doctor
 mavona app install --browser chromium
 mavona app inspect --url http://127.0.0.1:3000 --headed
 mavona app run --flow .mavona/flows/reschedule.json --format jsonl
+mavona app baseline --session SESSION --capture CAPTURE --config config/mavona/layout.json
 mavona app report <inspection-id>
 ```
 
@@ -106,7 +107,7 @@ The runner owns assertion results. A screenshot is an observation, not proof tha
 
 Aggregate required checks: any failure means failed; otherwise any missing, cancelled, unavailable or stale required check means unknown; only all required checks passing permits verified. Unchecked browsers, routes, accessibility criteria and viewport profiles remain visibly unchecked. Browser evidence supplements repository tests; it cannot replace unrelated required verifiers.
 
-Before/after comparison requires comparable application state, viewport, engine, fonts and capture settings. Inconsistent inputs produce a non-comparable result. Baseline pixel tests require a reviewed baseline, explicit thresholds and controlled animation/time/data. No automatic baseline acceptance to turn a regression green. Baseline changes use patch review. A visual match alone does not establish accessibility or functional correctness.
+Before/after comparison requires comparable application state, viewport, engine, fonts and capture settings. Inconsistent inputs produce a non-comparable result. Baseline pixel tests require a reviewed baseline, explicit thresholds and controlled animation/time/data. A versioned repository baseline configuration names a stable check ID, a contained PNG path and hash, exact recorded capture conditions, the changed-pixel threshold and whether the check is required. Execution requires review of the current configuration, baseline and captured artifact identities. No automatic baseline acceptance turns a regression green. Baseline changes use patch review. A visual match alone does not establish accessibility or functional correctness.
 
 ## 6. Authority, privacy and effects
 

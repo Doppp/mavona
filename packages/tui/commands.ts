@@ -1,6 +1,7 @@
 export interface TerminalCommand {id:string;command:string;description:string;arguments?:string}
 const entries:[string,string,string?][]=[
  ['/theme','Set terminal theme','dark|light|no-color'],
+ ['/app baseline','Review and run a configured visual baseline','CAPTURE_ID CONFIG_PATH'],
  ['/tool','Expand or collapse a tool call','CALL_ID'],
  ['/retention','Show or configure retention','WARNING_BYTES HARD_BYTES ARCHIVE_DAYS EXPIRE_DAYS on|off'],
  ['/app revoke-login','Revoke one protected login reference','ID'],
