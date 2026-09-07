@@ -25,7 +25,9 @@ with tempfile.TemporaryDirectory(prefix='mavona-source-pty-') as directory:
   def command(name,argument=None):
    os.write(master,b'\x10');collect(.2);os.write(master,name.encode());collect(.2);os.write(master,b'\r');collect(.2)
    if argument is not None:os.write(master,argument.encode());collect(.2);os.write(master,b'\r');collect(.3)
-  command('/revision','HEAD');assert b'commit' in output,'Commit revision label missing';command('/select','2:2');command('/attach');command('/worktree')
+  revision_offset=len(output);command('/revision','HEAD');deadline=time.monotonic()+5
+  while not any(marker in output[revision_offset:] for marker in (b'commit ',b'mmit ')) and time.monotonic()<deadline:collect(.1)
+  assert any(marker in output[revision_offset:] for marker in (b'commit ',b'mmit ')),'Commit revision label missing';command('/select','2:2');command('/attach');command('/worktree')
   assert child.poll() is None,bytes(output).decode(errors='replace')
   assert b'order.rb' in output and b'Source' in output,bytes(output).decode(errors='replace')
   logs=list(root.glob('Library/Application Support/Mavona/sessions/*/events.jsonl'))+list(root.glob('.local/share/mavona/sessions/*/events.jsonl'))

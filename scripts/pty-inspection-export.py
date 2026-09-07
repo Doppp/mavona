@@ -26,7 +26,8 @@ with tempfile.TemporaryDirectory(prefix='mavona-inspection-pty-') as directory:
   deadline=time.monotonic()+10
   while b'runtime unchecked' not in output and time.monotonic()<deadline:collect(.1)
   assert b'runtime unchecked' in output,'Discovery did not become ready'
-  os.write(master,b'unfinished drawer draft');collect(.2);os.write(master,b'\x10');collect(.2);os.write(master,b'/app');collect(.2);os.write(master,b'\r');collect(.3)
+  os.write(master,b'unfinished drawer draft');collect(.2);os.write(master,b'\x10');collect(.2);os.write(master,b'Inspect recorded app evidence');collect(.2);os.write(master,b'\r');deadline=time.monotonic()+5
+  while b'App Inspection' not in output and time.monotonic()<deadline:collect(.1)
   assert b'App Inspection' in output,'Drawer header missing';assert b'Current verification' in output,'Truth label missing'
   os.write(master,b'\x1b[6~');collect(.2);os.write(master,b'\x1b[F');collect(.2)
   assert b'Images and model' in output,'Drawer keyboard scrolling did not reach footer'
