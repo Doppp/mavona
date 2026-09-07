@@ -82,6 +82,8 @@ mavona app report <inspection-id>
 
 Every command uses the same domain service. Headless mode requires an explicit policy for effects and returns a structured refusal when a human decision is needed. Opening a report is local and does not upload it.
 
+During a reviewed live inspection, `/app import PATH` imports one repository-contained PNG as unreviewed reference evidence and `/app annotate ARTIFACT_ID TEXT` records a bounded user annotation. Import review binds the regular file identity, input and normalized hashes, dimensions and size; changed, linked, excluded or escaping files are refused.
+
 ## 4. Narrow internal interface
 
 Use one inspection service with schema-validated operations: `start`, `observe`, `act`, `capture`, `assert`, `stop`. Saved flows compose these operations; do not expose the entire Playwright object graph to the model. Browser actions remain policy-bound tools within the existing agent loop.

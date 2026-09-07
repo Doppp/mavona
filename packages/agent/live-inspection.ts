@@ -1,6 +1,6 @@
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join,relative} from 'node:path';
-import {InspectionService,approveFlow,type Artifact,type Flow,type Report} from '../app-inspection/service';
+import {InspectionService,approveFlow,type Annotation,type Artifact,type Flow,type Report} from '../app-inspection/service';
 import {AuthenticationStore} from '../app-inspection/authentication';
 import {repositoryEvidence} from '../app-inspection/provenance';
 import {reportManifest} from '../app-inspection/report-viewer';
@@ -23,6 +23,8 @@ export class LiveInspection {
  snapshot(){return this.service.snapshot();}
  serverStatus(){return {ownership:this.server.ownership,url:this.server.url,logs:this.server.logs()};}
  async capture():Promise<Artifact>{return await this.service.perform({op:'capture'}) as Artifact;}
+ async importImage(bytes:Buffer):Promise<Artifact>{return this.service.importImage(bytes,{approved:true});}
+ async annotate(artifactId:string,text:string):Promise<Annotation>{return this.service.annotate(artifactId,{text,provenance:'user'});}
  async takeover(){await this.service.takeover();return this.snapshot();}
  async resume(){await this.service.resume();return this.snapshot();}
  async saveAuthentication(store:AuthenticationStore,expiresAt:number){return this.service.saveAuthentication(store,{approved:true,expiresAt});}

@@ -1,0 +1,10 @@
+import {constants} from 'node:fs';
+import {open,realpath,stat} from 'node:fs/promises';
+import {relative} from 'node:path';
+import {containedPath,digest} from '../tools/source';
+import {normalizePng} from './images';
+
+async function read(root:string,path:string){const canonicalRoot=await realpath(root),canonical=await containedPath(canonicalRoot,path),file=await open(canonical,constants.O_RDONLY|constants.O_NOFOLLOW);try{const before=await file.stat();if(!before.isFile()||before.nlink!==1||before.size<24||before.size>20*1024*1024)throw new Error('Invalid imported image file');const bytes=Buffer.alloc(Number(before.size));let offset=0;while(offset<bytes.length){const result=await file.read(bytes,offset,bytes.length-offset,offset);if(!result.bytesRead)break;offset+=result.bytesRead;}const after=await file.stat(),current=await stat(canonical);if(offset!==bytes.length||before.dev!==after.dev||before.ino!==after.ino||before.size!==after.size||before.mtimeMs!==after.mtimeMs||current.dev!==before.dev||current.ino!==before.ino||await realpath(root)!==canonicalRoot)throw new Error('Imported image changed while reading');const normalized=normalizePng(bytes);return {path:relative(canonicalRoot,canonical),bytes,inputSha256:digest(bytes),normalizedSha256:normalized.sha256,size:bytes.length,width:normalized.width,height:normalized.height};}finally{await file.close();}}
+function reviewFor(image:Awaited<ReturnType<typeof read>>){const review={version:1 as const,scope:'import one repository-contained PNG as unreviewed reference evidence',path:image.path,inputSha256:image.inputSha256,normalizedSha256:image.normalizedSha256,size:image.size,width:image.width,height:image.height};return {...review,id:digest(JSON.stringify(review))};}
+export async function prepareImageImport(root:string,path:string){return reviewFor(await read(root,path));}
+export async function approvedImageImport(root:string,path:string,approvedId:string){const image=await read(root,path),review=reviewFor(image);if(review.id!==approvedId)throw new Error('Image import requires exact fresh review approval');return image.bytes;}
