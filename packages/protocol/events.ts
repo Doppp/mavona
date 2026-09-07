@@ -1,4 +1,6 @@
 export interface Payloads {
+ 'inspection.export.requested':{inspectionId:string;exportId:string;review:string};
+ 'inspection.export.completed':{inspectionId:string;exportId:string;status:'passed'|'unknown';result:string};
  'inspection.report':{inspectionId:string;manifest:string};
  'inspection.summary':{inspectionId:string;summary:string};
  'inspection.artifact':{inspectionId:string;artifactId:string;managedPath:string;evidence:string};
@@ -53,6 +55,7 @@ export type EventType=keyof Payloads;
 export interface Envelope {protocolVersion:1;eventId:string;sessionId:string;sequence:number;timestamp:string;type:string;schemaVersion:number;payload:Record<string,unknown>;causedBy?:string}
 export type KnownEvent = {[T in EventType]:Omit<Envelope,'type'|'payload'>&{type:T;payload:Payloads[T]}}[EventType];
 const shapes:Record<EventType,Record<string,readonly string[]|null|'number'|'boolean'>>={
+ 'inspection.export.requested':{inspectionId:null,exportId:null,review:null},'inspection.export.completed':{inspectionId:null,exportId:null,status:['passed','unknown'],result:null},
  'inspection.report':{inspectionId:null,manifest:null},
  'inspection.summary':{inspectionId:null,summary:null},
  'inspection.artifact':{inspectionId:null,artifactId:null,managedPath:null,evidence:null},

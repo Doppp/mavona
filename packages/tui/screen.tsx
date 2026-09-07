@@ -8,6 +8,7 @@ export interface ScreenActions {closeInspection?():void;openSessions?():Promise<
 export function Screen(props:{model:()=>ScreenModel;actions:ScreenActions}) {
  const renderer=useRenderer();const dimensions=useTerminalDimensions();const wide=()=>dimensions().width>=120; let input:TextareaRenderable|undefined;const [busy,setBusy]=createSignal(false);
  createEffect(()=>{const draft=props.model().draft;if(input&&input.plainText!==draft)input.setText(draft);});
+ let approvalScroll:ScrollBoxRenderable|undefined;
  let inspectionScroll:ScrollBoxRenderable|undefined;
  let transcriptScroll:ScrollBoxRenderable|undefined;let sourceScroll:ScrollBoxRenderable|undefined;let lastSourcePosition='';
  const positionSource=()=>{const source=props.model().source;const key=source?`${source.path}:${source.digest}:${source.line}:${source.diff?.afterDigest??'source'}`:'';if(sourceScroll&&source&&key!==lastSourcePosition&&sourceScroll.scrollHeight>0){sourceScroll.scrollTo({x:0,y:Math.max(0,(source.line??1)-1)});lastSourcePosition=key;}};
@@ -15,7 +16,7 @@ export function Screen(props:{model:()=>ScreenModel;actions:ScreenActions}) {
  let lastInterrupt=0;let lastEscape=0;
  useKeyboard(key=>{
   if(props.model().approval){
-   key.preventDefault();if(key.name==='y'&&!key.ctrl)props.actions.approve?.(true);else if(key.name==='n'||key.name==='escape')props.actions.approve?.(false);else if(key.ctrl&&key.name==='c')props.actions.cancel?.();return;
+   key.preventDefault();if(['up','down','pageup','pagedown','home','end'].includes(key.name)){if(key.name==='home')approvalScroll?.scrollTo(0);else if(key.name==='end')approvalScroll?.scrollTo(approvalScroll.scrollHeight);else approvalScroll?.scrollBy((key.name==='up'||key.name==='pageup'?-1:1)*(key.name.startsWith('page')?8:1));return;}if(key.name==='y'&&!key.ctrl)props.actions.approve?.(true);else if(key.name==='n'||key.name==='escape')props.actions.approve?.(false);else if(key.ctrl&&key.name==='c')props.actions.cancel?.();return;
   }
   if(props.model().picker){if(key.name==='escape'||key.ctrl&&key.name==='c'){key.preventDefault();props.actions.closePicker?.();}else if(key.name==='down'||key.name==='up'){key.preventDefault();if(key.name==='down')picker?.moveDown();else picker?.moveUp();}else if(key.name==='return'){key.preventDefault();const option=picker?.getSelectedOption();if(typeof option?.value==='string')void props.actions.pickFile?.(option.value);}return;}
   if(key.ctrl&&key.name==='end'&&!props.model().source&&!props.model().inspection){key.preventDefault();transcriptScroll?.scrollTo(transcriptScroll.scrollHeight);return;}
@@ -46,13 +47,13 @@ export function Screen(props:{model:()=>ScreenModel;actions:ScreenActions}) {
     </box>
    </Show>
   </box>}><box flexDirection="column" flexGrow={1}><text height={2}>App Inspection · recorded evidence{'\n'}↑↓ PgUp/PgDn scroll · Esc close · Ctrl+P commands</text><scrollbox ref={value=>{inspectionScroll=value;}} flexGrow={1}><text>{props.model().inspection?.text}</text></scrollbox></box></Show>
-  <Show when={props.model().approval} fallback={<box height={0}/>}><box flexDirection="column" border borderStyle="double" maxHeight={14}><text>Approve exact action? · Y approve once · N deny · Esc deny</text><scrollbox><text>{props.model().approval?.text}</text></scrollbox></box></Show>
+  <Show when={props.model().approval} fallback={<box height={0}/>}><box flexDirection="column" border borderStyle="double" height={Math.min(14,Math.max(6,dimensions().height-10),Math.max(5,(props.model().approval?.text.split('\n').length??1)+4))} flexShrink={0}><text height={2} flexShrink={0}>Approve exact action? · Y approve · N/Esc deny · PgUp/PgDn scroll</text><scrollbox ref={value=>{approvalScroll=value;}} flexGrow={1} minHeight={0}><text>{props.model().approval?.text}</text></scrollbox></box></Show>
   <box borderStyle="single" border={true} minHeight={4} maxHeight={8}>
    <textarea ref={value=>{input=value;}} focused={!props.model().approval&&!props.model().picker&&!props.model().inspection} initialValue={props.model().draft} placeholder="/help · /files · /open path · /connect provider model"
     onContentChange={()=>props.actions.draft(input?.plainText??'')}
     keyBindings={[{name:'return',action:'submit'},{name:'return',shift:true,action:'newline'},{name:'j',ctrl:true,action:'newline'},{name:'linefeed',action:'newline'}]}
     onSubmit={()=>{void submit();}} />
   </box>
-  <text height={1}>STRICT · {busy()?'working':'idle'} · {props.model().usage??''} · Enter submit · Ctrl+J newline · Ctrl+C twice exit</text>
+  <text height={1}>STRICT · {busy()||props.model().running?'working':'idle'} · {props.model().usage??''} · Enter submit · Ctrl+J newline · Ctrl+C twice exit</text>
  </box>;
 }
