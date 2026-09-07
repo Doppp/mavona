@@ -18,8 +18,8 @@ export async function containedPath(root:string,path:string):Promise<string> {
  if (excluded(relative(base,canonical))) throw new Error('Resolved path excluded by repository read policy');
  return canonical;
 }
-export interface SourceSnapshot { path:string; text:string; digest:string; revision:'worktree'; lineCount:number }
-export interface SourceSelection { path:string; start:number; end:number; text:string; digest:string; revision:'worktree' }
+export interface SourceSnapshot { path:string; text:string; digest:string; revision:'worktree'|`commit:${string}`; lineCount:number }
+export interface SourceSelection { path:string; start:number; end:number; text:string; digest:string; revision:'worktree'|`commit:${string}` }
 export async function readSource(root:string,path:string,maxBytes=1024*1024):Promise<SourceSnapshot> {
  if (!Number.isSafeInteger(maxBytes)||maxBytes<1) throw new Error('Invalid source limit');
  const canonical=await containedPath(root,path);
@@ -41,8 +41,8 @@ export async function readSource(root:string,path:string,maxBytes=1024*1024):Pro
 }
 export function selectLines(source:SourceSnapshot,start:number,end:number):SourceSelection {
  if (!Number.isInteger(start)||!Number.isInteger(end)||start<1||end<start||end>source.lineCount) throw new Error('Invalid line range');
- return {path:source.path,start,end,text:source.text.split('\n').slice(start-1,end).join('\n'),digest:source.digest,revision:'worktree'};
+ return {path:source.path,start,end,text:source.text.split('\n').slice(start-1,end).join('\n'),digest:source.digest,revision:source.revision};
 }
 export async function selectionIsCurrent(root:string,selection:SourceSelection):Promise<boolean> {
- try { return (await readSource(root,selection.path)).digest===selection.digest; } catch { return false; }
+ try { const source=selection.revision==='worktree'?await readSource(root,selection.path):await (await import('./source-history')).readCommittedSource(root,selection.path,selection.revision.slice(7));return source.digest===selection.digest; } catch { return false; }
 }

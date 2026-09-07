@@ -12,7 +12,7 @@ export async function sourceDiff(before:SourceSnapshot,after:SourceSnapshot):Pro
   try{for(;;){const part=await reader.read();if(part.done)break;size+=part.value.length;if(size>4*1024*1024){child.kill(9);throw new Error('Diff output limit');}chunks.push(part.value);}const code=await child.exited;if(code!==0&&code!==1)throw new Error('Diff unavailable');}
   finally{clearTimeout(timer);await reader.cancel();}
   const lines=Buffer.concat(chunks).toString('utf8').split('\n');const additions=lines.filter(line=>line.startsWith('+')&&!line.startsWith('+++')).length;const deletions=lines.filter(line=>line.startsWith('-')&&!line.startsWith('---')).length;
-  const text=lines.map(line=>line==='--- a/before'?`--- snapshot/${JSON.stringify(before.path)} (${before.digest})`:line==='+++ b/after'?`+++ worktree/${JSON.stringify(after.path)} (${after.digest})`:line.startsWith('diff --git ')?`diff ${JSON.stringify(before.path)}`:line).join('\n');
+  const text=lines.map(line=>line==='--- a/before'?`--- ${before.revision==='worktree'?'snapshot':before.revision}/${JSON.stringify(before.path)} (${before.digest})`:line==='+++ b/after'?`+++ worktree/${JSON.stringify(after.path)} (${after.digest})`:line.startsWith('diff --git ')?`diff ${JSON.stringify(before.path)}`:line).join('\n');
   return {text,beforeDigest:before.digest,afterDigest:after.digest,additions,deletions};
  }finally{await rm(directory,{recursive:true,force:true});}
 }
