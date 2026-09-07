@@ -514,3 +514,9 @@ Actual compiled macOS arm64 comparison/image/drawer suite:6passed,58assertions,0
 ### Forked retained-source identity continuity
 
 A regression demonstrated a restored deletion incorrectly projecting as retained after fork because copied envelopes receive new IDs. Fork now remaps the four explicit recovery/disposal recoveryId payload references along with causedBy. Historical review text remains unchanged provenance; source bytes and unknown effect state are never replayed. Actual restored and permanently removed source forks retain their tombstones under the copied completion ID. Source recovery/session lifecycle/headless suite:19passed,129assertions,0failed; strict typecheck passed. No cross-host claim or new acceptance completion is implied.
+
+### Canonical session names, pins and confirmed archival
+
+Session rename/pin events preserve stable identity and pending-effect truth. Titles are bounded and reject terminal/bidirectional controls; known secrets are redacted before persistence. Headless catalog rows include title, pin, recorded task context and locality, with pinned rows first within the bounded catalog. Terminal /session, /rename, /pin-session, /unpin-session, /archive and /unarchive provide the same metadata; archival confirms the exact session/event boundary. The picker searches names/task text as well as IDs/roots. Metadata changes never delete source, artifacts or drafts or establish fresh correctness.
+
+Actual source and compiled macOS arm64 metadata/session suite:7passed,57assertions,0failed. Native pty-session-metadata.py passed rename, pin, denied/approved archive, searchable identity, unarchive/unpin, draft preservation, no inference, resize and cleanup. Native build and strict typecheck passed. Complete bounded-catalog scale/recency, new/fork/export/disk-usage controls and full session acceptance remain implementing.

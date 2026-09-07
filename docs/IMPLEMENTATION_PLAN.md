@@ -172,3 +172,7 @@ Select two canonical capture IDs, load only their immutable manifest-checked mas
 ### Forked recovery identity continuity
 
 Session forks assign new envelope IDs. Remap the explicit retained-source recoveryId references alongside causedBy so completed restoration/disposal tombstones continue to refer to the copied deletion event. Preserve historical review text as original evidence and retain all unknown effect states; do not replay or copy source bytes. Test an actual restored/deleted-source fork before extending session controls.
+
+### Session names, pins and reviewed archival
+
+Add canonical rename/pin metadata with bounded control-free titles, expose it in the headless catalog and terminal session picker, and search recorded task text as well as identity/root. Preserve stable session IDs independently of titles. Add terminal current-session status, rename, pin/unpin and archive/unarchive commands; archival reviews the exact session/event boundary, never deletes source or evidence and preserves the draft. CLI named operations share metadata validation. Verify replay, title refusal/redaction, catalog/search, denied/approved archival and compiled terminal behavior. New/fork/export/disk-usage controls remain following session slices.
